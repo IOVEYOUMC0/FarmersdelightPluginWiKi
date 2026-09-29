@@ -72,5 +72,9 @@ Ham is the standout: a knife is the way to get `farmersdelight:ham`, which you t
 into the very filling `farmersdelight:smoked_ham` — or, if you kill the pig while it is on
 fire, it drops the smoked ham directly.
 
-A server owner can add other tools as drop triggers, and can retune or disable any of these
-drops; what your server drops may differ if it has been reconfigured.
+A server owner can add, retune or remove these drops: they live with the rest of the pack's loot in the
+CraftEngine pack file `vanilla_loots.yml` (entries named `farmersdelight:ham_from_pig` and the like), edited
+the same way as any other pack entry. What your server drops may differ if it has been changed.
+
+The table describes a target that is **not** on fire. While it is burning, only the pig and the hoglin swap
+their drop for the smoked variant; the other rows drop nothing at all.

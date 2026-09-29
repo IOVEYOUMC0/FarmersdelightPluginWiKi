@@ -6,9 +6,10 @@ Package: `com.huidu.farmersdelight.api.loot`
 Class: `FarmersDelightKnifeDrops` — `final`, private constructor, `@ApiStatus.NonExtendable`.
 
 Registration of extra mob drops harvested with a knife: the rule set behind FarmersDelight's ham,
-leather, feather and string drops. Server owners configure these in `config.yml`; this facade is for
-plugins that need to add rules at runtime — an addon shipping its own butchering items, a quest plugin
-adding a conditional drop.
+leather, feather and string drops. The rules that ship with the plugin are data, not Java — they live in
+the bundled CraftEngine pack file `vanilla_loots.yml` (`farmersdelight:ham_from_pig` and the like), so a
+server owner tunes them there. This facade is for plugins that need to add rules at runtime — an addon
+shipping its own butchering items, a quest plugin adding a conditional drop.
 
 ## How a rule fires
 
@@ -16,7 +17,8 @@ A rule fires when a player kills an **adult** entity of the matching type while 
 and a chance roll passes.
 
 The rolled item is **contributed to the death event's drop list** rather than spawned directly, so other
-plugins' loot handling sees it like any vanilla drop.
+plugins' loot handling sees it like any vanilla drop. The pack-defined rules do the same, through the
+death event as well.
 
 ## API
 
@@ -42,17 +44,18 @@ public static boolean     hasRule(String entityType);
 | `burningItemId` | item id to drop instead when the entity dies on fire, or `null` to always use `normalItemId` |
 | `chance` | base drop probability, 0..1 |
 | `lootingMultiplier` | added to `chance` per Looting level on the killing tool; 0 to ignore Looting |
-| `toolItems` | item ids that count as the harvesting tool. Empty or `null` falls back to the globally configured knife item list |
-| `toolTags` | item tag ids that count as the harvesting tool, written **without** the leading `#`. Empty or `null` falls back to the global knife tag list |
+| `toolItems` | item ids that count as the harvesting tool. Empty or `null` falls back to the plugin's knife definition |
+| `toolTags` | item tag ids that count as the harvesting tool, written **without** the leading `#`. Empty or `null` falls back to the plugin's knife definition |
 
 Returns `false` when FarmersDelight is unavailable (not loaded, or not enabled) or `entityType` is null
 or blank. Otherwise `true`.
 
-**There is one rule per entity type, not a list.** Registering for a type that already has a rule —
-including a built-in one — replaces it.
+**There is one rule per entity type, not a list.** Registering for a type that already has a rule
+replaces it.
 
 The five-argument overload is the seven-argument one with `null, null` for the tool matchers, so the
-rule uses the globally configured knife items and tags.
+rule uses the plugin's knife definition: the configured knife items and tags plus any CraftEngine tag an
+item declares itself — the same check the pack rules use.
 
 ```java
 import com.huidu.farmersdelight.api.loot.FarmersDelightKnifeDrops;
@@ -76,38 +79,33 @@ FarmersDelightKnifeDrops.register(
 Removes a rule previously added by `register`. Returns `true` when a rule registered *by this facade*
 existed for that entity type.
 
-It does not touch rules that came from `config.yml` or the built-in defaults — and it does not need to,
-because those come back on the next reload anyway.
+It only touches rules registered through this facade. The pack-defined drops are separate CraftEngine
+loot entries and cannot be removed from here — override those by editing the pack, or by adding your own
+loot source.
 
 Call it on your plugin's disable.
 
 ### Queries
 
-`entityTypesWithRules()` — the lowercase entity type names that currently have a knife drop rule, **from
-any source** (built-in, config, or facade). Returns an empty set when FarmersDelight is unavailable.
+`entityTypesWithRules()` — the lowercase entity type names that currently have a rule **registered through
+this facade**. Returns an empty set when FarmersDelight is unavailable.
 
-`hasRule(entityType)` — true when a rule exists for that type, from any source. Case-insensitive.
+`hasRule(entityType)` — true when such a rule exists for that type. Case-insensitive.
 
-Both reflect the currently live rule map, so a rule your addon registered and a rule the server owner
-wrote in `config.yml` are indistinguishable through these two methods. Track your own registrations if
-you need to tell them apart.
+Both read the facade's own rule map, so they do not report the drops the pack defines (pig, cow, chicken
+and the rest). Use them to check your own registrations.
 
 ## Surviving `/fd reload`
 
-Rules registered here persist across `/fd reload`: the reload rebuilds the whole rule map from the built-in
-defaults plus `config.yml`, and then re-applies everything registered through this facade **on top**,
-publishing the finished map in a single write.
+Rules registered here persist across `/fd reload`: the reload no longer rebuilds a rule map from a config
+file, so the facade's registrations simply stay in place.
 
 So a registration outlives an admin's reload without your addon having to listen for
 `FarmersDelightReloadEvent`.
 
-Two consequences of "on top":
-
-* Your rule wins over a `config.yml` rule for the same entity type, permanently, until you unregister.
-  Be conservative about registering for entity types FarmersDelight already covers (pig, cow, chicken)
-  unless overriding is exactly what you mean.
-* After `unregister`, the config/default rule for that type is restored at the *next* reload, not
-  immediately.
+Because there is no config file behind the map any more, an `unregister` takes effect immediately, and a
+rule you register for an entity the pack already covers (pig, cow, chicken) means that mob drops **both**
+your item and the pack's.
 
 ## Threading
 

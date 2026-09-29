@@ -41,9 +41,10 @@ debug:
 
 | 现象 | 可能原因 | 解决 |
 | --- | --- | --- |
-| FarmersDelight 从不启用，日志说缺依赖 | 没装 CraftEngine | 安装与服务器匹配的 CraftEngine **26.8.2**；它是硬 `depend`。 |
+| FarmersDelight 从不启用，日志说缺依赖 | 没装 CraftEngine | 安装与服务器匹配的 CraftEngine **26.8.2 及以上**（26.8.2/26.9/26.9.1 已核对）；它是硬 `depend`。 |
 | 插件加载失败，报版本不支持 / 类错误 | 服务端低于 MC 1.21.4 或 Java 低于 21 | 用 **Paper/Folia 1.21.4+** 跑在 **Java 21+** 上。 |
 | 自定义物品 / 方块显示紫黑贴图 | 客户端没用上当前资源包 | 执行 **`/ce reload all`** 重建包（单独的 `/ce reload` 不会）；确认玩家接受了包。见 [资源包](resource-pack.md)。 |
+| 手持煎锅交互报 `ObfuscatedItemModelProcessor` / `NoClassDefFoundError` | CraftEngine 26.9.1 不再提供旧的客户端模型处理器 | 更新到本次 FarmersDelight 构建后完整重启；插件会回退服务端物品模型并只记录一次警告，再执行 **`/ce reload all`** 重建资源包。 |
 | `/ce item give ... farmersdelight:cooking_pot` 报未知物品 | CraftEngine 内容没解析 | 查控制台有无 CraftEngine 行为报错（[确认行为已加载](verifying.md)）；修好点名的方块配置；`/ce reload`。 |
 | 控制台出现点名某属性的 CraftEngine 行为报错 | 某方块配置缺了必需属性 | 不是崩溃，是信号。把点名的属性补回该方块，再 `/ce reload`。见 [确认行为已加载](verifying.md)。 |
 | 方块放下了但什么都不做（如耕地湿度永不变） | 它的行为因缺属性而中止加载 | 同上——读那条行为报错，补属性。 |
@@ -74,7 +75,7 @@ debug:
 | `handheld` | 单个活动手持会话的检查、推进及完成结算 |
 | `handheld_display` | 手持外观刷新，包括副本构建及提交；不含网络线程实际发送 |
 | `skillet` | 单个放置煎锅更新，包括调用的特效及出餐逻辑 |
-| `stove` | 单个炉灶烹饪更新，不含独立的实体烫伤轮询 |
+| `stove` | 单个炉灶烹饪更新，不含实体烫伤 |
 
 例如 `/fd stats profile 600 handheld` 观察手持负载，再用 `/fd stats profile 600 handheld_display` 检查显示刷新。时长范围为 20 至 12000 tick；省略时长为 200，省略功能为 `all`。采样结束输出调用数、每秒调用数、累计/平均/最大耗时和 P95。全部耗时以毫秒表示，调用率使用实际经过时间。零调用表示窗口内未执行此功能，不表示功能没有成本。
 
@@ -82,7 +83,7 @@ debug:
 
 功能计时在实际执行线程上进行，统计在采样窗口内开始并完成的调用，包含被调用逻辑；`handheld_display` 可能已计入 `handheld`，各行不能相加。厨锅调度轮次在 Paper 上包含同步更新，在 Folia 上主要包含调度提交，不能作为区域执行成本。纳秒计时测量的是经过时间，会受线程停顿影响；这些结果不是 CPU 占用、全服 MSPT 或总网络流量。需要调用栈、GC 和全服瓶颈时使用服务端已有的 spark。
 
-每个版本会发布两个 jar：普通包和 debug 包。两者文件名随分发渠道不同而不同，它们是同一个插件，只能装其中一个；`/fd debugtools` 和 `/fd debug` 只在 debug 包里存在。
+`-PdebugTools=true` 构建会额外生成 `farmersdelight-1.0.2-debug.jar`，包含 `/fd debugtools` 和 `/fd debug` 造景工具；普通包仍为 `farmersdelight-1.0.2.jar`。两者是同一个插件，只安装其中一个。
 
 小规模手动测试可用 `/fd debugtools test cooking_pot 64 200`、`skillet`、`stove` 或 `all`。它在玩家附近分批创建测试工作站并自动采样；每批最多处理 16 个位置。用 `/fd debugtools undo` 清理，或用 `/fd debugtools stop` 停止尚未完成的批次。手持路径使用 `/fd debugtools test handheld 1 200`，需要主手煎锅、副手可烹饪食材和附近热源；它使用玩家当前物品，不替换背包内容。
 

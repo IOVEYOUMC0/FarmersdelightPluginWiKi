@@ -1,0 +1,3 @@
+# The wiki is Markdown and YAML only. Keep every text file LF so a checkout on any platform produces
+# byte-identical content and editing a page never shows up as a whole-file change.
+* text=auto eol=lf

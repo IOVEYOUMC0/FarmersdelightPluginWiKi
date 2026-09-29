@@ -10,7 +10,7 @@ icon: circle-check
 
 A healthy boot prints a short summary to the console: a *Startup config* line (scheduler, cutting-board mode,
 hopper settings, advancements) and a *Content ready* line that counts the cooking-pot and cutting-board
-recipes, mob drop rules, pet foods and advancements that loaded. If those counts look right, content parsed.
+recipes, addon-registered mob drop rules, pet foods and advancements that loaded. If those counts look right, content parsed.
 
 For a per-subsystem breakdown (language files, block behaviors, tick manager, recipe counts, drop rules) turn
 on the `startup` / `recipe` / `loot` debug categories — see [Troubleshooting](troubleshooting.md). You do not

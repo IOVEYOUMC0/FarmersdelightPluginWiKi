@@ -45,9 +45,10 @@ surfaces it without turning debug on.
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
-| FarmersDelight never enables; log says a dependency is missing | CraftEngine not installed | Install a server-compatible CraftEngine **26.8.2** build; it is a hard `depend`. |
+| FarmersDelight never enables; log says a dependency is missing | CraftEngine not installed | Install a server-compatible CraftEngine **26.8.2 or newer** (26.8.2/26.9/26.9.1 verified); it is a hard `depend`. |
 | Plugin fails to load with an unsupported-version / class error | Server below MC 1.21.4 or Java below 21 | Run **Paper/Folia 1.21.4+** on **Java 21+**. |
 | Custom items/blocks show purple-and-black textures | Client not using the current resource pack | Run **`/ce reload all`** to rebuild the pack (plain `/ce reload` won't); make sure the player accepted the pack. See [Resource pack](resource-pack.md). |
+| Handheld skillet interaction reports `ObfuscatedItemModelProcessor` / `NoClassDefFoundError` | CraftEngine 26.9.1 no longer ships the old client model processor | Install this FarmersDelight build and fully restart; the plugin falls back to the server-side item model and logs one warning, then run **`/ce reload all`** to rebuild the resource pack. |
 | `/ce item give ... farmersdelight:cooking_pot` says unknown item | CraftEngine content didn't parse | Check console for a CraftEngine behavior error ([Verifying](verifying.md)); fix the named block config; `/ce reload`. |
 | Console shows a CraftEngine behavior error naming a property | A block's config is missing a required property | Not a crash — a signal. Restore the named property on that block, then `/ce reload`. See [Verifying](verifying.md). |
 | A block places but does nothing (e.g. farmland never changes moisture) | Its behavior aborted its load on a missing property | Same as above — read the behavior error, fix the property. |
@@ -78,7 +79,7 @@ A player with `farmersdelight.admin` can run `/fd stats profile 200 all`, approx
 | `handheld` | One active handheld session check, progress update and completion |
 | `handheld_display` | Display refresh including copy construction and submission, excluding network-thread sending |
 | `skillet` | One placed skillet update including called effects and serving logic |
-| `stove` | One stove cooking update, excluding the separate entity burn poll |
+| `stove` | One stove cooking update, excluding entity burns |
 
 For example, use `/fd stats profile 600 handheld` for handheld load, then `/fd stats profile 600 handheld_display` for display refreshes. Duration is clamped to 20-12000 ticks; defaults are 200 ticks and `all`. Results include calls, calls per second, total/average/maximum time and P95. Times are milliseconds; call rates use actual elapsed time. Zero calls means the feature did not execute during that window, not that it is free.
 
@@ -86,9 +87,7 @@ Each feature retains the latest 4096 calls for percentiles; counts, totals and m
 
 Feature timing runs on the executing thread and counts calls that start and finish within the profile. Timings include callees: `handheld_display` may already be included in `handheld`, so rows are not additive. Pot dispatch passes include synchronous updates on Paper but mainly task submission on Folia. Elapsed-time measurements include thread pauses and are not CPU usage, server MSPT or total network traffic. Use the server's existing spark profiler for call stacks, GC and server-wide bottlenecks.
 
-Two jars are published for each version: a release jar and a debug jar. They carry different filenames depending
-on the distribution, they are the same plugin, and only one may be installed. `/fd debugtools` and `/fd debug`
-exist only in the debug jar.
+Building with `-PdebugTools=true` produces `farmersdelight-1.0.2-debug.jar` with the `/fd debugtools` and `/fd debug` scene tools. Release builds produce `farmersdelight-1.0.2.jar`. These are the same plugin: install only one.
 
 For a small manual load, use `/fd debugtools test cooking_pot 64 200`, `skillet`, `stove` or `all`. It creates nearby test stations in slices and starts sampling; each slice handles at most 16 positions. Use `/fd debugtools undo` to clean up or `/fd debugtools stop` to stop an unfinished batch. Test the handheld path with `/fd debugtools test handheld 1 200`; hold a skillet, cookable food and stand near a heat source. It uses the current held items and does not replace the inventory.
 
