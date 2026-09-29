@@ -33,13 +33,19 @@ FarmersDelight 是一个 **CraftEngine 移植**。它提供的每个方块、物
 - 服务端会**自动**在 FarmersDelight 之前加载 CraftEngine——加载顺序不需要你操心；
 - 启动时 FarmersDelight 会等 CraftEngine 把物品和方块解析完，再去注册配方和内容。
 
-装一个与你服务端兼容的 CraftEngine 26.8.2 构建。当前 FarmersDelight 固定使用 **CraftEngine 26.8.2** API，不能用 26.7.x 构建替代。
+装一个与你服务端兼容的 CraftEngine 构建。本仓库固定用官方 Maven 的 **CraftEngine 26.9.1** API 编译，实机核对过的服务端 CraftEngine 版本是 **26.8.2、26.9、26.9.1**：
+
+- 26.8.2 起就够用：26.8.2 / 26.9 / 26.9.1 三个版本下，本插件及其全部附属引用的 CraftEngine 类与方法完全一致
+  （187 个类、595 个成员，无一缺失，也没有未实现的接口方法），配方/进度/数据包段落数量与启动日志逐项相同。
+- 核对的边界：上面是**链接层**（类与方法是否都在）加启动结果的核对，客户端表现没有在 26.8.2/26.9 上逐项实机验证；
+  更旧的 26.8 及以前也没有核对过。
+- Minecraft 26.3 目前不可用：CraftEngine 26.9.1 在 26.3 上注入方块即失败并直接关服，等 CraftEngine 支持后再说。
 
 ## 可选集成（软依赖）
 
 以下这些都**不是必须的**。FarmersDelight 在运行时检测它们，只有插件在场时才点亮对应功能。没有它们一切照常。
 
-- **PlaceholderAPI** —— 暴露 `%farmersdelight_buff_...%` 占位符（见 [Buffs → 管理命令与占位符](../../api-docs/zh-cn/buffs.md)）。
+- **PlaceholderAPI** —— 暴露 `%farmersdelight_buff_...%` 占位符（清单见[自定义 buff](../../api-docs/zh-cn/buffs.md)）。
 - **AuraSkills** —— 让烹饪经验以技能形式结算，而不是原版经验球（`config.yml` 里的 `experience-reward.mode`）。
 - **UltimateAdvancementAPI** —— 驱动进度页面 UI。
 - **领地 / 圈地插件** —— WorldGuard、GriefPrevention、Lands、Towny、Residence 等一大批插件通过随包的保护层被识别，

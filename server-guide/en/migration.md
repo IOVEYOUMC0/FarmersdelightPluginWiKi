@@ -8,8 +8,8 @@ icon: arrows-rotate
 
 Whether you are coming fresh from the original mod or upgrading an existing FarmersDelight install, these are
 the things that behave differently from "just overwrite the files". This page covers the operational rules;
-for what a shipped block definition changes between versions, read the block's own entry under
-`plugins/CraftEngine/resources/farmersdelight/configuration/` before you accept the new file.
+the block-level details (legacy canvas_rug, `boost-chance` defaults, tomato-vine and stove-burn changes) are
+in [Block behavior configuration](block-behaviors.md).
 
 ## Coming from the mod
 
@@ -41,10 +41,19 @@ So after a plugin update you do **not** need to hand-migrate `config.yml` — yo
 settings appear at their defaults, and dead keys are cleaned up. (A backup failure during this process is
 reported in the log rather than aborting the update.)
 
-Villager and wandering-trader offers now live in `world-data.yml`. Mob-extra and straw drop rules now live in
-`drops.yml`. When a legacy `config.yml` still contains either `world-data:` or `drops:`, the section is moved to
-the matching file automatically. The affected files are backed up before the move; edit the standalone files after
-that point.
+Villager and wandering-trader offers now live in `world-data.yml`. The straw-drop whitelist now lives in
+`drops.yml`. The cutting board's per-item and per-tag display tables now live in `display-overrides.yml`
+(`items` / `tags`). When a legacy `config.yml` still contains `world-data:`, `drops:`,
+`cutting-board.display-overrides` or `cutting-board.display-tag-overrides`, that section is moved to the matching
+file automatically. Renamed settings inside `config.yml` (`hopper-interactions` per station became `allow-hopper`;
+the `performance.*` knobs grouped under `warnings` / `budgets` / `proxy-display`) are rewritten in place. The
+affected files are backed up before the move; edit the standalone files after that point.
+
+**The knife mob drops moved out of `drops.yml` and into the CraftEngine pack** (the `farmersdelight:*_from_*`
+entries in `vanilla_loots.yml`), where CraftEngine parses them with the rest of the pack's loot and they are
+edited the same way. A `mob-extra` / `mob-extra-tools` section left in `drops.yml` is ignored silently —
+change those drops in the pack instead. Rules an addon registers at
+runtime through `FarmersDelightKnifeDrops` are unaffected.
 
 ## Shipped files are installed only when absent
 
@@ -77,7 +86,52 @@ A recipe file is written **only when it is entirely missing**. Recipes added by 
 that already has `recipes/*.yml`. On startup the ids that exist in the jar but not on disk are listed once in
 the console. To pull those new ids in, set `merge-missing-bundled: true` — but leave it **false** if you
 deleted recipes on purpose, because merging brings every deleted recipe back. An id already on disk is never
-overwritten under either setting.
+overwritten under either setting. The same switch covers the bundled cards in `recipes/special_recipes.yml`,
+and deleting a card from that file disables it while the switch stays off.
+
+### Addon cooking-pot, cutting-board and special recipes moved into the packs
+
+CrabbersDelight, BrewinAndChewin, BarbequesDelight and EndsDelight no longer ship their cooking-pot,
+cutting-board and special recipes as `plugins/<addon>/recipes/*.yml`. The recipes now travel with each addon's
+CraftEngine pack, at `plugins/CraftEngine/resources/<addon>/configuration/farmersdelight/`, under the
+`cooking_recipes`, `cutting_recipes` and `special_recipes` root keys. Ids and entry fields are unchanged; what
+changed is where they live and how they take effect:
+
+- The old `plugins/<addon>/recipes/{cooking_pot_recipes,cutting_board_recipes,special_recipes}.yml` files are
+  **no longer read** and can be deleted. If you edited one, move those edits into the pack directory above and
+  run `/ce reload all` (or restart). Upgrading releases the new pack files automatically; an existing file of
+  the same name is never overwritten.
+- Editing these recipes takes `/ce reload all` (or a restart) instead of `/fd reload`: CraftEngine reads pack
+  content while it loads packs.
+- Each addon's own recipes (Brewin' And Chewin's keg fermenting and pouring, BarbequesDelight's grilling and
+  skewering) moved into its pack too, at
+  `plugins/CraftEngine/resources/<addon>/configuration/recipes/`. They keep one extra layer:
+  `plugins/<addon>/recipes/<same file>.yml` is **still read on top** and wins for the ids it defines — that is
+  the file Brewin' And Chewin's in-game keg recipe editor writes. So the old file may stay as an override layer
+  (identical to the shipped defaults, so nothing changes) or be deleted in favour of the pack copy; editing the
+  pack copy takes `/ce reload all` as well.
+
+### Addon cooking-pot, cutting-board and special recipes moved into the packs
+
+CrabbersDelight, BrewinAndChewin, BarbequesDelight and EndsDelight no longer ship their cooking-pot,
+cutting-board and special recipes as `plugins/<addon>/recipes/*.yml`. The recipes now travel with each addon's
+CraftEngine pack, at `plugins/CraftEngine/resources/<addon>/configuration/farmersdelight/`, under the
+`cooking_recipes`, `cutting_recipes` and `special_recipes` root keys. Ids and entry fields are unchanged; what
+changed is where they live and how they take effect:
+
+- The old `plugins/<addon>/recipes/{cooking_pot_recipes,cutting_board_recipes,special_recipes}.yml` files are
+  **no longer read** and can be deleted. If you edited one, move those edits into the pack directory above and
+  run `/ce reload all` (or restart). Upgrading releases the new pack files automatically; an existing file of
+  the same name is never overwritten.
+- Editing these recipes takes `/ce reload all` (or a restart) instead of `/fd reload`: CraftEngine reads pack
+  content while it loads packs.
+- Each addon's own recipes (Brewin' And Chewin's keg fermenting and pouring, BarbequesDelight's grilling and
+  skewering) moved into its pack too, at
+  `plugins/CraftEngine/resources/<addon>/configuration/recipes/`. They keep one extra layer:
+  `plugins/<addon>/recipes/<same file>.yml` is **still read on top** and wins for the ids it defines — that is
+  the file Brewin' And Chewin's in-game keg recipe editor writes. So the old file may stay as an override layer
+  (identical to the shipped defaults, so nothing changes) or be deleted in favour of the pack copy; editing the
+  pack copy takes `/ce reload all` as well.
 
 ### Loot-injection datapack
 
@@ -93,8 +147,8 @@ plugin updates. See [First config](first-config.md).
    whether you want those recipes (`merge-missing-bundled`).
 5. If the update changed shipped CE resource files you had edited, merge those changes by hand.
 6. Regenerate the pack (`/ce reload all`) and confirm textures in-game.
-7. Skim the release notes for the build you installed; a block-level change that needs a manual step is called
-   out there.
+7. Skim [Block behavior configuration](block-behaviors.md) for any block-specific one-time migration steps
+   your upgrade calls for.
 
 ## Back to the guide
 
