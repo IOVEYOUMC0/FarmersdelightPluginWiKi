@@ -14,7 +14,7 @@ FarmersDelight ships two custom food effects:
 An addon can apply, query and clear them directly, or register its own food items so that eating them
 grants an effect.
 
-Every signature uses only Bukkit / `java` types; the bodies delegate to renamed internals.
+Every signature uses only Bukkit / `java` types; the bodies delegate to the plugin's internal implementation.
 
 ## Threading
 

@@ -231,7 +231,7 @@ public record RecipeInfo(String id, String type, List<String> ingredients, List<
 }
 ```
 
-一份只读快照，只携带 Bukkit 和 java 类型，因此能穿过混淆稳定的 API 边界。`ingredients` 和 `tools` 回来的是上文那套 配方文件语法的 id 字符串 —— 内部的原料记录永远不会离开插件。`container()` 和 `results()` 每次访问都克隆，列表字段 是不可变副本，所以你对 `RecipeInfo` 做的任何事都碰不到活配方。
+一份只读快照，只携带 Bukkit 和 java 类型，因此只跨受支持的 API 边界。`ingredients` 和 `tools` 回来的是上文那套 配方文件语法的 id 字符串 —— 内部的原料记录永远不会离开插件。`container()` 和 `results()` 每次访问都克隆，列表字段 是不可变副本，所以你对 `RecipeInfo` 做的任何事都碰不到活配方。
 
 哪些字段有值取决于 `type()`：
 
