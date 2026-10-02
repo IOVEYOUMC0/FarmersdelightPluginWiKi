@@ -15,7 +15,7 @@ FarmersDelight 在此基础上补足 CE 本身不提供的有状态玩法：工�
 | --- | --- | --- |
 | 物品、方块、标签、战利品或 CE 配方 | `plugins/CraftEngine/resources/farmersdelight/configuration/*.yml` | `/ce reload all` |
 | 运行参数、权限、性能、显示 | `plugins/FarmersDelight/config.yml` | `/fd reload config` 或重启 |
-| 数据包声明的厨锅 / 砧板 / 特殊配方与进度树 | `plugins/CraftEngine/resources/<数据包>/configuration/**.yml` 中的 `cooking_recipes`、`cutting_recipes`、`special_recipes`、`farmersdelight_advancements` 段 | `/ce reload all` |
+| 数据包声明的厨锅 / 砧板 / 特殊配方、进度树与高级标签组 | `plugins/CraftEngine/resources/<数据包>/configuration/**.yml` 中的 `cooking_recipes`、`cutting_recipes`、`special_recipes`、`farmersdelight_advancements`、`advanced_tags` 段 | `/ce reload all` |
 | 插件自己的配方文件 | `plugins/FarmersDelight/recipes/*.yml` | `/fd reload recipes` |
 
 CE YAML 有意保持无注释。将它当作纯数据文件，本页才是字段说明。不要使用 Bukkit 的 `/reload`；它会让 CE 注册表和已调度任务处于不确定状态。

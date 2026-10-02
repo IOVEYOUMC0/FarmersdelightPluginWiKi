@@ -55,7 +55,7 @@ FarmersDelight 模型和贴图送达客户端。单独的 `/ce reload` 只重新
 
 ### 数据包里的 FarmersDelight 段落
 
-除了 CE 自己的原生段落，FarmersDelight 还向 CraftEngine 注册了四个属于自己的段落。任何 CE 数据包——不只是
+除了 CE 自己的原生段落，FarmersDelight 还向 CraftEngine 注册了五个属于自己的段落。任何 CE 数据包——不只是
 `plugins/CraftEngine/resources/farmersdelight/`，也包括你自己或第三方放进 `resources/` 的数据包——都可以在
 `configuration/` 下的任意 YAML 里声明它们，CraftEngine 会把内容交给 FarmersDelight：
 
@@ -65,6 +65,7 @@ FarmersDelight 模型和贴图送达客户端。单独的 `/ce reload` 只重新
 | `cutting_recipes` | 砧板配方 |
 | `special_recipes` | 配方查看界面里的特殊配方卡片 |
 | `farmersdelight_advancements` | 附属进度树 |
+| `advanced_tags` | 配方原料可以按名字引用的高级标签组 |
 
 ```yaml
 # 例：plugins/CraftEngine/resources/corndelight/configuration/farmersdelight/cooking_pot_recipes.yml
@@ -92,6 +93,39 @@ cooking_recipes:
   `cooking_recipes` / `cutting_recipes` / `special_recipes` 段（CrabbersDelight、BrewinAndChewin、BarbequesDelight、
   EndsDelight）。它们原先的 `plugins/<附属>/recipes/{cooking_pot_recipes,cutting_board_recipes,special_recipes}.yml`
   已不再被读取，见[迁移说明](migration.md)。
+
+### 高级标签组（`advanced_tags`）
+
+配方原料可以不写单个物品，而是按名字引用一组物品。`advanced_tags` 单独占用一次注册，所以数据包或插件已经占用该 id 时，
+只损失标签组：上面的配方段落照常加载，控制台会打印冲突提示。数据包文件里的根键是 `advanced_tags`，一个组就是物品 ID 列表，
+或者单个物品 ID：
+
+```yaml
+advanced_tags:
+  meats:
+    - minecraft:beef
+    - minecraft:porkchop
+  raw_proteins:
+    - advtag:meats
+    - minecraft:chicken
+```
+
+组成员是物品 ID，或者用 `advtag:<组>` 引入另一个组的成员；读取数据包时组会被展平一次。在原料的位置，像写物品 ID 一样写组名即可：
+
+```yaml
+cooking_recipes:
+  myaddon:meat_stew:
+    ingredients:
+      - advtag:raw_proteins
+    result: myaddon:meat_stew
+```
+
+- 只有原料会读取 `advtag:`——`tool:` / `tools:` 里的写法不当作组引用。
+- 无法解析的组——成环、引用了没人声明的组、或嵌套超过 128 层——会被整组丢弃，并在一条控制台警告里列出；引用了被丢弃组的组也会一起被丢弃。
+- 值既不是列表、也不是单个物品 ID 时，会被报告并跳过。两个数据包声明同一个组 id 时，先声明的那个生效。
+- 只有一个成员的组等价于直接写那个成员。原料引用了未知、被丢弃或空的组时，该配方加载失败，失败会出现在控制台的配方问题报告里，
+  而不是变成一个永远匹配不到任何东西的原料。
+- 没有声明任何组的数据包行为完全不变。
 
 ## 5. 确认方块和物品都在
 

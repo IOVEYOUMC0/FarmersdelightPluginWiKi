@@ -85,6 +85,8 @@ cooking_recipes:
 - 加载顺序：FD 自己的配方文件 → 数据包 → 运行时 API 注册，同 id 时后者胜出；特殊配方同理，包层输给插件文件、内置默认与 API 注册。
 - 改完要 `/ce reload all`（或重启）：数据包内容只在 CraftEngine 加载数据包时读一次。`/fd reload recipes` 只重读
   `plugins/FarmersDelight/recipes/*.yml`。
+- 原料还可以按名字引用**高级标签组**：数据包用 `advanced_tags` 根键声明（它单独占用一次注册，冲突只损失标签组），配方在写物品 ID 的位置写
+  `advtag:<组>`。组在加载时展平；引用的组未知、被丢弃或为空时该配方加载失败，而不是静默地匹配不到任何东西。见[安装](../../server-guide/zh-cn/install.md)。
 - 只有配方需要**运行时**决定时才走下面的 Java 路径（读数据库、按玩家或时间变化、由别的插件在运行时喂数据）。
 
 **需要动态注册时**：结果和容器是 `ItemStack`，所以 CraftEngine 物品必须已经加载完。FarmersDelight 自己也是把配方加载推迟到
@@ -164,7 +166,7 @@ CraftEngine 未就绪时保留上一批并重试、撤回已删除的 id 都由�
 
 ## 附属自己的数据包段落
 
-FD 自己也用同一套机制读它的四类段落，并且把它开放出来：`com.huidu.farmersdelight.api.pack.AddonPackSections`
+FD 自己也用同一套机制读它的五类段落，并且把它开放出来：`com.huidu.farmersdelight.api.pack.AddonPackSections`
 让附属声明**自己的** CE 段落（酒桶发酵、烧烤、串制这类 FD 不认识的内容），由 CraftEngine 在加载数据包时递进来。
 
 ```java

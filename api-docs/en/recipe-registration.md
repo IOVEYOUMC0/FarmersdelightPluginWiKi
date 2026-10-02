@@ -94,6 +94,10 @@ cooking_recipes:
   defaults and API registrations.
 - Run `/ce reload all` (or restart) after editing: pack content is read once, while CraftEngine loads packs.
   `/fd reload recipes` only re-reads `plugins/FarmersDelight/recipes/*.yml`.
+- An ingredient may also name an **advanced tag group**: a pack declares `advanced_tags` (a claim of its own,
+  so a conflict on that id costs tag groups only) and the recipe writes `advtag:<group>` where an item id
+  would go. Groups are flattened at load time, and a recipe naming an unknown, dropped or empty group fails to
+  load instead of quietly matching nothing. See [Installation](../../server-guide/en/install.md).
 - Reach for the Java path below only when a recipe has to be decided at runtime (a database, per-player or
   time-based content, data another plugin feeds in).
 
@@ -178,7 +182,7 @@ recipe editor; recipes that come from a pack are written into FD's own recipe fi
 
 ## Sections for an addon's own content
 
-FarmersDelight reads its own four sections through this mechanism and exposes it:
+FarmersDelight reads its own five sections through this mechanism and exposes it:
 `com.huidu.farmersdelight.api.pack.AddonPackSections` lets an addon claim sections of its own (keg fermenting,
 grilling, skewering — anything FarmersDelight itself does not know about), handed over by CraftEngine while it
 loads packs.

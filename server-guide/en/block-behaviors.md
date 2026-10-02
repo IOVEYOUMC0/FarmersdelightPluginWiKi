@@ -16,7 +16,7 @@ crops, soil, rope, mushroom colonies and their integrations. Addons use the same
 | --- | --- | --- |
 | Item, block, tag, loot or CE recipe | `plugins/CraftEngine/resources/farmersdelight/configuration/*.yml` | `/ce reload all` |
 | Runtime tuning, permissions, performance, displays | `plugins/FarmersDelight/config.yml` | `/fd reload config` or restart |
-| Pack-declared cooking-pot / cutting-board / special recipes and advancement trees | the `cooking_recipes`, `cutting_recipes`, `special_recipes` and `farmersdelight_advancements` sections of `plugins/CraftEngine/resources/<pack>/configuration/**.yml` | `/ce reload all` |
+| Pack-declared cooking-pot / cutting-board / special recipes, advancement trees and advanced tag groups | the `cooking_recipes`, `cutting_recipes`, `special_recipes`, `farmersdelight_advancements` and `advanced_tags` sections of `plugins/CraftEngine/resources/<pack>/configuration/**.yml` | `/ce reload all` |
 | The plugin's own recipe files | `plugins/FarmersDelight/recipes/*.yml` | `/fd reload recipes` |
 
 CE YAML is deliberately comment-free. Keep an edited file as data only and use this page as the field

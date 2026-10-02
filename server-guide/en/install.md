@@ -61,7 +61,7 @@ pack rebuild is what makes the newly extracted FarmersDelight models and texture
 
 ### FarmersDelight sections inside a CraftEngine pack
 
-Besides CraftEngine's own sections, FarmersDelight registers four sections of its own. Any CraftEngine pack —
+Besides CraftEngine's own sections, FarmersDelight registers five sections of its own. Any CraftEngine pack —
 not just `plugins/CraftEngine/resources/farmersdelight/`, but also packs you or a third party drop into
 `resources/` — can declare them in any YAML under `configuration/`, and CraftEngine hands the content to
 FarmersDelight:
@@ -72,6 +72,7 @@ FarmersDelight:
 | `cutting_recipes` | Cutting-board recipes |
 | `special_recipes` | Special-recipe cards in the recipe view |
 | `farmersdelight_advancements` | Addon advancement trees |
+| `advanced_tags` | Advanced tag groups a recipe ingredient can name |
 
 ```yaml
 # Example: plugins/CraftEngine/resources/corndelight/configuration/farmersdelight/cooking_pot_recipes.yml
@@ -103,6 +104,45 @@ cooking_recipes:
   (CrabbersDelight, BrewinAndChewin, BarbequesDelight, EndsDelight). Their former
   `plugins/<addon>/recipes/{cooking_pot_recipes,cutting_board_recipes,special_recipes}.yml` files are no longer
   read — see the [migration notes](migration.md).
+
+### Advanced tag groups (`advanced_tags`)
+
+A recipe ingredient may name a group of items instead of one item. `advanced_tags` is claimed in a
+registration of its own, so a pack or plugin that already owns that id costs you tag groups and nothing else:
+the recipe sections above keep loading and the conflict is logged. In a pack file the root key is
+`advanced_tags`, and a group is a list of item ids, or a single item id:
+
+```yaml
+advanced_tags:
+  meats:
+    - minecraft:beef
+    - minecraft:porkchop
+  raw_proteins:
+    - advtag:meats
+    - minecraft:chicken
+```
+
+A member is an item id, or `advtag:<group>` to pull in another group's members; groups are flattened once
+while the packs are read. Name a group in an ingredient exactly where an item id would go:
+
+```yaml
+cooking_recipes:
+  myaddon:meat_stew:
+    ingredients:
+      - advtag:raw_proteins
+    result: myaddon:meat_stew
+```
+
+- Only ingredients read `advtag:` — a `tool:` / `tools:` entry is not a group reference.
+- A group that cannot be resolved — a cycle, a reference to a group nobody declared, or nesting deeper than
+  128 — is dropped whole and listed in one console warning; a group that referenced a dropped group is
+  dropped with it.
+- A value that is neither a list nor a single item id is reported and skipped. When two packs declare the
+  same group id, the first declaration wins.
+- A single-member group is equivalent to writing that member. An ingredient naming an unknown, dropped or
+  empty group fails that recipe to load, and the failure is listed in the recipe-issue report in the console
+  rather than becoming an ingredient that silently matches nothing.
+- Packs that declare no groups behave exactly as before.
 
 ## 5. Verify blocks and items exist
 
