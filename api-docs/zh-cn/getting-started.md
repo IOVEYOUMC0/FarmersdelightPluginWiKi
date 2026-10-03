@@ -24,85 +24,98 @@ FarmersDelight 的构建里有一个 `apiJar` 任务，只打包 `com/huidu/farm
 ```bash
 # 在 FarmersDelight 仓库里执行
 ./gradlew apiJar
-# -> build/libs/farmersdelight-1.0.2-api.jar
+# -> build/libs/farmersdelight-plugin-1.0.3-api.jar
 ```
 
-现有的附属用了两种接法。
+同一个 jar 也作为该模块的主产物发布，坐标见下。也就是说无论走哪条通道，附属拿到的都是同一份产物。
 
-### 方案 A：直接放 jar（FDAddonTemplate）
+## 依赖这个 api
 
-模板把 jar 放在 `libs/` 下，以 `compileOnly` 引入：
+不要到处复制这个 jar，直接按坐标声明依赖即可：
 
 ```kotlin
-plugins {
-    id("java")
-    // Shadow bundles your code into one jar. FarmersDelight + CraftEngine are NOT bundled (compileOnly).
-    id("io.github.goooler.shadow") version "8.1.7"
-}
-
-repositories {
-    mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://repo.momirealms.net/releases/") // CraftEngine
-    mavenLocal()
-}
-
-dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
-    compileOnly("org.jetbrains:annotations:26.1.0")
-    compileOnly("net.momirealms:craft-engine-core:26.8.2")
-    compileOnly("net.momirealms:craft-engine-bukkit:26.8.2")
-    compileOnly(files("libs/farmersdelight-api-1.0.0.jar"))
-}
-
-java {
-    toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.encoding = "UTF-8"
-    options.release.set(21)
-}
+compileOnly("com.huidu.farmersdelight:farmersdelight-plugin:1.0.3")
 ```
 
 必须是 `compileOnly`：运行时由真正的 FarmersDelight 插件提供实现。把 api jar shade 进自己的插件，只会多出 一份永远不会被用到的死类。
 
-### 方案 B：composite build（BrewinAndChewin、ExpandedDelight）
+这个坐标有两条解析通道，两条通道用的是同一个版本号，也就是你的附属对应的 FarmersDelight 版本——这里是 `1.0.3`。
 
-两个正式附属都用这种接法，让 Gradle 自动重建并同步 api jar，附属永远不会对着过期的 接口编译：
+### 本地 composite build
+
+当本地存在 FarmersDelight 检出（通常是同级的 `../FarmersDelight` 目录）时，构建会把它作为
+[composite build](https://docs.gradle.org/current/userguide/composite_builds.html) 包含进来，该坐标会被替换成
+那个检出的 `:apiJar` 产物。开发时应当走这条通道：离线可用，api 一改立刻生效，不需要发布任何东西。
 
 ```kotlin
 // settings.gradle.kts
-rootProject.name = "brewinandchewin"
+rootProject.name = "fdaddontemplate"
 
-includeBuild("../plugin") {
-    name = "farmersdelight-plugin"
+val farmersDelightCheckout = file("../FarmersDelight")
+if (farmersDelightCheckout.isDirectory) {
+    includeBuild(farmersDelightCheckout) {
+        name = "farmersdelight-plugin"
+    }
 }
 ```
+
+### git 源码依赖
+
+没有这个检出时，同一个坐标改由 Gradle 的
+[源码依赖（source dependency）](https://docs.gradle.org/current/userguide/declaring_repositories.html#sec:declaring_source_dependencies)
+解析：Gradle 克隆 FarmersDelight 仓库，检出与所请求版本对应的 tag，构建它的 `apiJar`，再从那里解析产物。
+整条链路不经过任何 Maven 仓库，两条通道编译时用的都是同一份只含 api 的 jar。
 
 ```kotlin
-// build.gradle.kts
-val syncFarmersDelightApi by tasks.registering(Copy::class) {
-    group = "build"
-    description = "Builds farmersdelight :apiJar via composite build and stages it into libs/."
-    dependsOn(gradle.includedBuild("farmersdelight-plugin").task(":apiJar"))
-    from(file("../plugin/build/libs")) {
-        include("farmersdelight-plugin-*-api.jar")
-        rename { "farmersdelight-1.0.0.jar" }
+// settings.gradle.kts
+sourceControl {
+    gitRepository(uri("https://github.com/IOVEYOUMC0/Farmersdelight-Plugin.git")) {
+        producesModule("com.huidu.farmersdelight:farmersdelight-plugin")
     }
-    into("libs")
-}
-
-tasks.compileJava { dependsOn(syncFarmersDelightApi) }
-
-dependencies {
-    compileOnly(files("libs/farmersdelight-1.0.0.jar"))
 }
 ```
 
-把 `from(...)` 的路径指向你构建 FarmersDelight jar 的位置；同步任务会把它复制到 `libs/`。
+这条通道需要网络，并且每个版本第一次解析时会先克隆一次，所以第一次 `build` 会明显比 composite build 慢。
+只有 FarmersDelight 仓库打了对应 tag 的版本才能这样请求，因此请让版本号跟你要对标的发行版保持一致。
 
-两个附属都用 Java 21，且 `options.release.set(21)`。
+### 两条通道写在同一个脚本里
+
+常见的附属 `settings.gradle.kts` 会同时声明两条通道，并在本地有检出时优先用检出：
+
+```kotlin
+val farmersDelightApiVersion = "1.0.3"
+val farmersDelightCheckout = file("../FarmersDelight")
+
+sourceControl {
+    gitRepository(uri("https://github.com/IOVEYOUMC0/Farmersdelight-Plugin.git")) {
+        producesModule("com.huidu.farmersdelight:farmersdelight-plugin")
+    }
+}
+
+if (farmersDelightCheckout.isDirectory) {
+    includeBuild(farmersDelightCheckout) {
+        name = "farmersdelight-plugin"
+    }
+}
+```
+
+依赖本身随后可以像普通坐标一样写在 `build.gradle.kts` 里。模板改成在 `settings.gradle.kts` 里加，是因为它想让
+版本号和通道声明放在同一处：
+
+```kotlin
+gradle.beforeProject {
+    afterEvaluate {
+        if (configurations.findByName("compileOnly") != null) {
+            dependencies.add("compileOnly", "com.huidu.farmersdelight:farmersdelight-plugin:$farmersDelightApiVersion")
+        }
+    }
+}
+```
+
+`libs/` 下不再放任何 jar，且该目录已被 git 忽略，以免有人再放回一份过期的副本。有测试的附属把同一个坐标
+也加到 `testImplementation`。
+
+附属都用 Java 21 和 `options.release.set(21)`，它们的 `compileOnly` CraftEngine 产物照旧从 Maven 取。
 
 ## plugin.yml
 

@@ -19,93 +19,112 @@ The corollary is that the api jar is all you need to compile.
 
 ## Getting the api jar
 
-FarmersDelight's build defines an `apiJar` task that packages only `com/huidu/farmersdelight/api/**` — no
+FarmersDelight's build defines an `apiJar` task that packages only `com/huidu.farmersdelight/api/**` — no
 internals, not a runnable plugin:
 
 ```bash
 # in the FarmersDelight repo
 ./gradlew apiJar
-# -> build/libs/farmersdelight-1.0.2-api.jar
+# -> build/libs/farmersdelight-plugin-1.0.3-api.jar
 ```
 
-There are two ways real addons consume it.
+The same jar is published as the module's main artifact under the coordinate below, so the addon-facing
+contract is one artifact in every channel.
 
-### Option A — copy the jar (FDAddonTemplate)
+## Depending on the api
 
-The template keeps a copy under `libs/` and references it as `compileOnly`:
+Do not copy that jar around. Declare it as a normal dependency on the published coordinate:
 
 ```kotlin
-plugins {
-    id("java")
-    // Shadow bundles your code into one jar. FarmersDelight + CraftEngine are NOT bundled (compileOnly).
-    id("io.github.goooler.shadow") version "8.1.7"
-}
-
-repositories {
-    mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://repo.momirealms.net/releases/") // CraftEngine
-    mavenLocal()
-}
-
-dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
-    compileOnly("org.jetbrains:annotations:26.1.0")
-    compileOnly("net.momirealms:craft-engine-core:26.8.2")
-    compileOnly("net.momirealms:craft-engine-bukkit:26.8.2")
-    compileOnly(files("libs/farmersdelight-api-1.0.0.jar"))
-}
-
-java {
-    toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.encoding = "UTF-8"
-    options.release.set(21)
-}
+compileOnly("com.huidu.farmersdelight:farmersdelight-plugin:1.0.3")
 ```
 
 `compileOnly` is deliberate: the real FarmersDelight plugin supplies the implementation at runtime. Shading
 the api jar into your addon would give you a second, dead copy of those classes.
 
-### Option B — composite build (BrewinAndChewin, ExpandedDelight)
+The coordinate resolves through one of two channels. The version is the same in both, pinned to the
+FarmersDelight release your addon is written against — `1.0.3` here.
 
-Both production addons sit next to the FarmersDelight checkout and let Gradle rebuild and stage the api jar
-automatically, so the addon never compiles against a stale surface:
+### Local composite build
+
+When a FarmersDelight checkout is present — normally a sibling `../FarmersDelight` directory — the build
+includes it as a [composite build](https://docs.gradle.org/current/userguide/composite_builds.html), so the
+coordinate is substituted with the `:apiJar` output of that checkout. This is the channel to use while
+developing: it works offline and an api change is picked up immediately, without publishing anything.
 
 ```kotlin
 // settings.gradle.kts
-rootProject.name = "brewinandchewin"
+rootProject.name = "fdaddontemplate"
 
-includeBuild("../plugin") {
-    name = "farmersdelight-plugin"
+val farmersDelightCheckout = file("../FarmersDelight")
+if (farmersDelightCheckout.isDirectory) {
+    includeBuild(farmersDelightCheckout) {
+        name = "farmersdelight-plugin"
+    }
 }
 ```
+
+### Git source dependency
+
+Without that checkout the same coordinate is resolved through Gradle's
+[source dependency](https://docs.gradle.org/current/userguide/declaring_repositories.html#sec:declaring_source_dependencies)
+support: Gradle clones the FarmersDelight repository, checks out the tag matching the requested version,
+builds its `apiJar` and resolves the artifact from there. Nothing is published to Maven, and the artifact your
+addon compiles against is the same api-only jar in both channels.
 
 ```kotlin
-// build.gradle.kts
-val syncFarmersDelightApi by tasks.registering(Copy::class) {
-    group = "build"
-    description = "Builds farmersdelight :apiJar via composite build and stages it into libs/."
-    dependsOn(gradle.includedBuild("farmersdelight-plugin").task(":apiJar"))
-    from(file("../plugin/build/libs")) {
-        include("farmersdelight-plugin-*-api.jar")
-        rename { "farmersdelight-1.0.0.jar" }
+// settings.gradle.kts
+sourceControl {
+    gitRepository(uri("https://github.com/IOVEYOUMC0/Farmersdelight-Plugin.git")) {
+        producesModule("com.huidu.farmersdelight:farmersdelight-plugin")
     }
-    into("libs")
-}
-
-tasks.compileJava { dependsOn(syncFarmersDelightApi) }
-
-dependencies {
-    compileOnly(files("libs/farmersdelight-1.0.0.jar"))
 }
 ```
 
-Point the `from(...)` path at wherever your FarmersDelight jar is built; the sync task copies it into `libs/`.
+This channel needs network access and a clone on the first resolution of each version; expect the first
+`build` to take noticeably longer than the composite-build channel. A version can only be requested if the
+FarmersDelight repository is tagged with it, so bump the version in step with the release you target.
 
-Both addons target Java 21 and `options.release.set(21)`.
+### Both channels in one script
+
+The usual addon `settings.gradle.kts` declares both and lets the checkout win when it is there:
+
+```kotlin
+val farmersDelightApiVersion = "1.0.3"
+val farmersDelightCheckout = file("../FarmersDelight")
+
+sourceControl {
+    gitRepository(uri("https://github.com/IOVEYOUMC0/Farmersdelight-Plugin.git")) {
+        producesModule("com.huidu.farmersdelight:farmersdelight-plugin")
+    }
+}
+
+if (farmersDelightCheckout.isDirectory) {
+    includeBuild(farmersDelightCheckout) {
+        name = "farmersdelight-plugin"
+    }
+}
+```
+
+The dependency itself can then be declared in `build.gradle.kts` like any other coordinate. The template adds
+it from `settings.gradle.kts` instead, because it wants the version in one place next to the channel
+declaration:
+
+```kotlin
+gradle.beforeProject {
+    afterEvaluate {
+        if (configurations.findByName("compileOnly") != null) {
+            dependencies.add("compileOnly", "com.huidu.farmersdelight:farmersdelight-plugin:$farmersDelightApiVersion")
+        }
+    }
+}
+```
+
+Nothing is vendored under `libs/` any more, and that directory is git-ignored so a stale copy cannot creep
+back in. An addon with tests adds the same coordinate to `testImplementation` as well.
+
+Addons target Java 21 and `options.release.set(21)`, and their `compileOnly` CraftEngine artifacts come from
+Maven as before.
 
 ## plugin.yml
 
