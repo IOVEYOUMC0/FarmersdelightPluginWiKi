@@ -12,8 +12,35 @@ items, recipes and mechanics on top of them. This page explains, for a server ad
 adds, how it hooks into FarmersDelight, and which config knobs it exposes** — so you can understand and
 tune the behaviours the addons register.
 
-Every addon is a faithful port of a Forge/Fabric mod and credits its original author (all MIT). None of
-them replace FarmersDelight; they extend it.
+Most addons are faithful ports of a Forge/Fabric mod; Villagers' Delight is original to this project. None
+of them replace FarmersDelight — they extend it. Attribution and licensing are per addon, exactly as the
+upstream projects state them:
+
+| Addon | Upstream mod | Authors | Upstream license |
+| ----- | ------------ | ------- | ---------------- |
+| FarmersDelight (this core plugin) | Farmer's Delight | vectorwing | MIT |
+| Brewin' And Chewin' (BAC) | Brewin' And Chewin' | ProbablyEyes (owner), Umpaz, MerchantCalico, RaymondBlaze, Farcr | MIT, `Copyright (c) 2022 Umpaz` |
+| Barbeque's Delight (BBQD) | Barbeque's Delight | MaoMao, lcy0x1 | MIT (`LICENSE`, `Copyright (c) 2024 MaoMao`); the mod's `mods.toml` declares LGPL-2.1 instead — see the notes |
+| Crabber's Delight (CD) | Crabber's Delight | AlabasterLeking | MIT, declared by the upstream build metadata only |
+| End's Delight (ED) | End's Delight | FoggyHillside | MIT, `Copyright (c) 2022 FoggyHillside` |
+| Villagers' Delight (VD) | — (original to this project) | this project | not applicable (no upstream mod) |
+
+Notes on the ones that need them:
+
+* **BAC** — our CraftEngine content is based on the revision whose `LICENSE` read "MIT License, Copyright (c)
+  2022 Umpaz", and that licence travels with this port (it ships in the addon jar's `NOTICE.txt`). Upstream
+  **deleted its `LICENSE` file on 2026-08-24** (commit `ed58394`), so later upstream versions no longer carry
+  it; this port stays under the MIT revision it was built from. The author list above is the union of the two
+  sources, written with canonical spellings: `MerchantCalico` is the same person as the GitHub handle
+  `MerchantPug`, and `Probleyes` — the spelling the jar's `NOTICE.txt` uses — is an older spelling of
+  `ProbablyEyes`.
+* **BBQD** — the upstream repository's `LICENSE` is MIT (`Copyright (c) 2024 MaoMao`) and Modrinth also lists
+  the mod as MIT, while its `META-INF/mods.toml` declares `license="LGPL-2.1"`. This project distributes its
+  port under the repository `LICENSE` (MIT). The two upstream statements contradict each other; that is an
+  upstream inconsistency, not a choice made here.
+* **CD** — upstream ships **no `LICENSE` file and no copyright line**; MIT is declared only by its build
+  metadata (`gradle.properties: mod_license=MIT License`, `mod_authors=AlabasterLeking` and the matching
+  `neoforge.mods.toml`), so treat it as a metadata declaration rather than a signed licence text.
 
 ***
 
@@ -74,8 +101,8 @@ install the pack is written unconditionally; afterwards this controls whether mi
 
 ## Brewin' And Chewin' (BAC)
 
-*Fermentation addon — a port of Brewin' And Chewin' by Umpaz. Namespace `brewinandchewin`. Soft-depends
-on BreweryX.*
+*Fermentation addon — a port of Brewin' And Chewin' by ProbablyEyes (owner), Umpaz, MerchantCalico,
+RaymondBlaze and Farcr. Namespace `brewinandchewin`. Soft-depends on BreweryX.*
 
 **Adds:** the **Keg** (a fermenting block that turns ingredients into alcoholic fluids over time), fluid
 **pouring** (draw a fluid into a bottle), a coaster, cheeses that **age in the keg** (ferment → cheese
@@ -98,7 +125,8 @@ fluid → pour + ripening), the **ice crate**, and four custom drink effects.
 
 ## End's Delight (ED)
 
-*End-themed cuisine — a port of End's Delight by FoggyHillside. Namespace `endsdelight`.*
+*End-themed cuisine — a port of End's Delight by FoggyHillside (MIT, `Copyright (c) 2022 FoggyHillside`).
+Namespace `endsdelight`.*
 
 **Adds:** End foods and drinks, the **End stove**, feast blocks, the two-part **dragon leg** (a bed-style
 paired block), End knives, and mob drops from End creatures.
@@ -120,7 +148,13 @@ paired block), End knives, and mob drops from End creatures.
 
 ## Expanded Delight
 
-*Additional crops & cooking — a port of Expanded Delight by ianm1647. Namespace `expandeddelight`.*
+*Additional crops & cooking — a port of Expanded Delight by ianm1647 (the upstream author). Namespace
+`expandeddelight`.*
+
+> **Scope:** this project has **no port repository for Expanded Delight in the current workspace** — the only
+> trace is a scaffold under `Reference/` — so it is **not part of the project's current maintenance scope**.
+> Nothing here is a licence claim for it, and the notes below describe the intended port (content mapping and
+> config shape) rather than a shipped addon.
 
 **Adds:** extra crops, foods, a workstation and cheese content. The world-generation parts of the original
 mod are intentionally omitted (a plugin cannot add worldgen); everything craftable/plantable is ported.
@@ -131,8 +165,8 @@ mod are intentionally omitted (a plugin cannot add worldgen); everything craftab
 
 ## Crabber's Delight (CD)
 
-*Seafood & crabbing — a port of Crabber's Delight by AlabasterLeking. Namespace `crabbersdelight`. Soft-depends
-on CustomFishing.*
+*Seafood & crabbing — a port of Crabber's Delight by AlabasterLeking (MIT, declared in the upstream build
+metadata only). Namespace `crabbersdelight`. Soft-depends on CustomFishing.*
 
 **Adds:** the **crab trap** (baited block that catches loot on a timer), the **worm bin** (composts items
 into worms/bait), fishing gear, a large seafood item set, the **coconut** (a falling block with an
@@ -156,7 +190,8 @@ configuration migration or backup is provided.
 
 ## Barbeque's Delight (BBQD)
 
-*Grilled skewers — a port of Barbeque's Delight (MIT,
+*Grilled skewers — a port of Barbeque's Delight by MaoMao and lcy0x1 (MIT by the upstream repository
+`LICENSE`; its `mods.toml` says LGPL-2.1 — see the licence notes above,
 [Modrinth](https://modrinth.com/mod/rtu7uERF)). Namespace `barbequesdelight`.*
 
 **Adds:** the **Grill** (cook two skewers at once with a mid-point flip, or they burn), the **ingredients

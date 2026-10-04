@@ -11,7 +11,7 @@ FarmersDelight 是基于 CraftEngine 的 Farmer's Delight Paper/Folia 移植插�
 - 可配置作物、耕地、绳索、蘑菇群落和储物方块。
 - 营养、舒适、食物效果和配方书。
 - Folia 安全调度，以及稳定的 `com.huidu.farmersdelight.api` 附属 API。
-- 支持 Brewin' And Chewin'、End's Delight、Expanded Delight、Crabber's Delight、Barbeque's Delight 和 Villagers' Delight 等附属。
+- 支持 Brewin' And Chewin'、End's Delight、Expanded Delight、Crabber's Delight、Barbeque's Delight 和 Villagers' Delight 等附属（Expanded Delight 在当前工作区还没有移植仓，不属于本项目维护范围，见[附属指南](addon-guide/README.md)）。
 
 ## 运行要求
 
