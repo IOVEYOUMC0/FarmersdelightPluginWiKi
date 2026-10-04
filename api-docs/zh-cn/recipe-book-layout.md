@@ -12,16 +12,18 @@ icon: book-bookmark
 
 ```java
 @ApiStatus.OverrideOnly
-public interface RecipeBookLayout {
+public interface RecipeBookLayout extends GuiLayout {
     Component title();
     int rows();
     List<String> layout();
     Map<Character, String> legend();
 
     default Map<String, ItemStack> decorations();      // Map.of()
-    default int size();                                // rows() * 9
     default List<Integer> slotsByType(String role);
     default int firstSlotByType(String role);          // 没有则 -1
+
+    // 继承自 GuiLayout：BACKGROUND、size()、contains、isFunctional、
+    // functionalSlots、slotsOf、firstSlotOf
 }
 ```
 
@@ -46,7 +48,18 @@ public record SimpleRecipeBookLayout(Component title, int rows, List<String> lay
 
 ### layout() 与 legend()
 
-`layout()` 每行一个字符串，每行最多 9 个字符。第 8 列之后的字符会被忽略，超出 `size()` 的格子下标会被跳过。每个 字符通过 `legend()` 映射到一个**角色名**。没有 legend 条目的字符留空。
+`layout()` 每行一个字符串，每行最多 9 个字符。第 8 列之后的字符会被忽略，超出 `size()` 的格子下标会被跳过。每个 字符通过 `legend()` 映射到一个**角色名**。没有 legend 条目的字符留空 —— 共享视图把它读作 `background`，见下文。
+
+### 共享的 GuiLayout 视图
+
+`RecipeBookLayout extends GuiLayout`，所以配方书与容器 GUI 对每个画出的格子口径一致：
+
+* `slotType(int)` 是这套布局的原始方法。网格没有画出的格子、以及 `null` 或空白的 legend 条目，都读作 `background`；
+* 因此 `isFunctional(slot)` 只在「画出来的、且 legend 类型不是 `background`」的格子上为 true；
+* `slotsOf("background")` 会把没画出的格子也列出来，因为它们归一化之后就是它；
+* `slotsByType(role)` / `firstSlotByType(role)` 保持字面查询不变 —— 当你的意思确实是「legend 条目恰好等于这个角色的字符」时用它们。
+
+这套归一化正是本视图与 `GuiLayouts.cellTypes` 保持一致的原因。配置读取器把 legend 值从 `gui.yml` 原样取出，所以写得没有值的键会以 `null` 到达；把它当成一个独立类型，会让这个格子在 这里算功能格、而在归一化读取器那里算背景格。归一化之后，三者对每个画出的格子口径一致。共享视图的另一侧见[容器 GUI](container-gui.md)。
 
 ### decorations()
 

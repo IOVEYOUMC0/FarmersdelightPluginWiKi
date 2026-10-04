@@ -42,4 +42,5 @@
 * [Config updates](config-updates.md)
 * [Version compatibility helpers](compat-utilities.md)
 * [Content registration](content-registration.md)
+* [Container GUI](container-gui.md)
 * [Debug tools](debug-tools.md)

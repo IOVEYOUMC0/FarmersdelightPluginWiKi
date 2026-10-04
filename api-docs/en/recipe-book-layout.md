@@ -11,16 +11,18 @@ FarmersDelight render **your** type as an independent book with your title, grid
 
 ```java
 @ApiStatus.OverrideOnly
-public interface RecipeBookLayout {
+public interface RecipeBookLayout extends GuiLayout {
     Component title();
     int rows();
     List<String> layout();
     Map<Character, String> legend();
 
     default Map<String, ItemStack> decorations();      // Map.of()
-    default int size();                                // rows() * 9
     default List<Integer> slotsByType(String role);
     default int firstSlotByType(String role);          // -1 when none
+
+    // inherited from GuiLayout: BACKGROUND, size(), contains, isFunctional,
+    // functionalSlots, slotsOf, firstSlotOf
 }
 ```
 
@@ -51,7 +53,24 @@ and `{total}` (page count). **Detail titles do not** — they are used verbatim.
 
 `layout()` is one string per row, up to 9 characters each. Characters past column 8 are ignored, and a slot
 index beyond `size()` is skipped. Each character is mapped through `legend()` to a **role name**. A character
-with no legend entry is left empty.
+with no legend entry is left empty — which the shared view reads as `background`, see below.
+
+### The shared GuiLayout view
+
+`RecipeBookLayout extends GuiLayout`, so the book and a container GUI agree on what each drawn cell is:
+
+* `slotType(int)` is this layout's primitive. A cell the grid does not draw, and a legend entry that is `null`
+  or blank, both read as `background`;
+* `isFunctional(slot)` is therefore true only for a drawn cell whose legend type is not `background`;
+* `slotsOf("background")` lists the undrawn cells as well, because that is what they normalise to;
+* `slotsByType(role)` / `firstSlotByType(role)` keep their literal lookup and are unchanged — use them when you
+  mean "a character whose legend entry is exactly this role".
+
+The normalisation is what keeps this view and `GuiLayouts.cellTypes` agreeing. The config reader copies a
+legend value straight out of `gui.yml`, so a key written without a value arrives as `null`; treating that as a
+type of its own would make the cell functional here while the normalising reader calls the same cell
+background. All three then agree per drawn cell. See [Container GUI](container-gui.md) for the other side of
+the shared view.
 
 ### decorations()
 
