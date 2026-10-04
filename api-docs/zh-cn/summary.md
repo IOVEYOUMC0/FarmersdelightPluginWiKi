@@ -46,5 +46,6 @@ icon: grid-4
 2. [配置更新](config-updates.md)
 3. [版本兼容工具](compat-utilities.md)
 4. [内容注册](content-registration.md)
-5. [容器 GUI](container-gui.md)
-6. [调试工具](debug-tools.md)
+5. [旧 id 迁移](legacy-id-migration.md)
+6. [容器 GUI](container-gui.md)
+7. [调试工具](debug-tools.md)
