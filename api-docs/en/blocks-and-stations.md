@@ -18,6 +18,7 @@ Types covered here:
 | `CuttingBoardSnapshot` | record | `@Experimental` |
 | `SkilletSnapshot` | record | `@Experimental` |
 | `StoveSnapshot` | record | `@Experimental` |
+| `CraftEngineBlockAccess` | static facade, private constructor | — |
 
 `@ApiStatus.Experimental` means the signatures may still change between FarmersDelight releases — pin
 the version you compile against and re-check on upgrade. `@ApiStatus.NonExtendable` on
@@ -288,6 +289,57 @@ if (stove != null && stove.lit() && !stove.blockedAbove()) {
 
 A note on cost: every accessor clones. In a per-tick loop, call `items()` once into a local rather than
 inside the loop condition.
+
+## CraftEngineBlockAccess
+
+Final, with no `@ApiStatus` annotation. The class exposes the CraftEngine block plumbing FarmersDelight uses
+internally — resolving a CE world, turning a block entity back into a Bukkit world, reading a state's id or
+facing, marking a chunk dirty — published so addons do not each rewrite it. Every method is null-tolerant and
+returns `null` / `false` rather than throwing, because the callers are block behaviours and chunk listeners
+where an exception aborts something much larger.
+
+```java
+public static CEWorld                getCEWorld(World world);
+public static World                  getBukkitWorld(BlockEntity blockEntity);
+public static World                  toWorld(Object levelHandle);
+public static BlockPos               toBlockPos(Object posHandle);
+public static void                   markDirty(BlockEntity blockEntity);
+public static String                 blockId(ImmutableBlockState state);
+public static BlockFace              facing(ImmutableBlockState state);
+public static String                 property(ImmutableBlockState state, String propertyName);
+public static BlockEntityController  blockEntityController(World world, int x, int y, int z);
+```
+
+The parameter and return types are CraftEngine's, so this part of the surface needs CraftEngine on your
+compile classpath — which it already is if you write behavior classes.
+
+`getCEWorld` is the one worth calling instead of the obvious alternative. Do not resolve the world yourself
+through `BukkitWorldManager.instance().getWorld(uuid).ceWorld()`: before CraftEngine binds its blocks,
+resolving a world deserializes saved chunk data against an unbound registry; a block left over from an
+uninstalled pack then throws, and because chunk-load handlers are a common caller it throws for every chunk.
+`getCEWorld` applies the readiness gate, tolerates both CraftEngine return shapes and logs the failure once
+instead of propagating it. A `null` result means CraftEngine is not ready or the world's data cannot be
+loaded — not that the world has no CE content.
+
+`markDirty` flags the block entity's chunk as unsaved. CraftEngine serialises only chunks marked dirty, so
+every state change that must survive a restart has to be followed by it. `blockId` reads a CE block state's
+custom id (`"namespace:id"`, or `null` when it is not a custom block); `facing` defaults to `NORTH` when the
+state has no facing property; `property` returns `null` when the state has no such property.
+
+### `blockEntityController(World world, int x, int y, int z)`
+
+The block-entity controller at a world position, or `null` when it cannot be read. It returns `null` in
+exactly three cases:
+
+* the world is unknown to CraftEngine — CraftEngine is not ready yet, or the world's data cannot be loaded
+  (the condition `getCEWorld` screens for);
+* the chunk is **not loaded**;
+* the position holds no block entity.
+
+Only an already loaded chunk is consulted, so this never loads one and never returns data a region would have
+to be scheduled for. It is still a read of world state, so the region-thread rule above applies — and `null`
+on an unloaded chunk means "not readable now", not "no station here". Load the chunk on its owning thread
+first if that distinction matters.
 
 ## Related pages
 

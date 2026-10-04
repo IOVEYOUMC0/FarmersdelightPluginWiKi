@@ -45,4 +45,5 @@ icon: grid-4
 1. [调度](scheduling.md)
 2. [配置更新](config-updates.md)
 3. [版本兼容工具](compat-utilities.md)
-4. [调试工具](debug-tools.md)
+4. [内容注册](content-registration.md)
+5. [调试工具](debug-tools.md)

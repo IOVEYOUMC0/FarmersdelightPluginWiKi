@@ -41,4 +41,5 @@
 * [Scheduling](scheduling.md)
 * [Config updates](config-updates.md)
 * [Version compatibility helpers](compat-utilities.md)
+* [Content registration](content-registration.md)
 * [Debug tools](debug-tools.md)

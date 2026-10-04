@@ -10,14 +10,15 @@ icon: box-isometric
 
 本页涉及的类型：
 
-| 类型                      | 形态        | `@ApiStatus`                     |
-| ----------------------- | --------- | -------------------------------- |
-| `FarmersDelightBlocks`  | 静态门面，私有构造 | `@Experimental`、`@NonExtendable` |
-| `FarmersDelightStation` | 枚举，4 个常量  | `@Experimental`                  |
-| `CookingPotSnapshot`    | record    | `@Experimental`                  |
-| `CuttingBoardSnapshot`  | record    | `@Experimental`                  |
-| `SkilletSnapshot`       | record    | `@Experimental`                  |
-| `StoveSnapshot`         | record    | `@Experimental`                  |
+| 类型                       | 形态        | `@ApiStatus`                     |
+| ------------------------ | --------- | -------------------------------- |
+| `FarmersDelightBlocks`   | 静态门面，私有构造 | `@Experimental`、`@NonExtendable` |
+| `FarmersDelightStation`  | 枚举，4 个常量  | `@Experimental`                  |
+| `CookingPotSnapshot`     | record    | `@Experimental`                  |
+| `CuttingBoardSnapshot`   | record    | `@Experimental`                  |
+| `SkilletSnapshot`        | record    | `@Experimental`                  |
+| `StoveSnapshot`          | record    | `@Experimental`                  |
+| `CraftEngineBlockAccess` | 静态门面，私有构造 | —                                |
 
 {% hint style="info" %}
 `@ApiStatus.Experimental` 表示签名在 FarmersDelight 版本之间仍可能变动：锁定你编译时的版本，升级时重新核对。 `FarmersDelightBlocks` 上的 `@ApiStatus.NonExtendable` 有双重保障 —— 类本身是 `final` 且构造私有。
@@ -248,6 +249,38 @@ if (stove != null && stove.lit() && !stove.blockedAbove()) {
 ```
 
 关于开销：每次访问器调用都会克隆。在逐 tick 的循环里，请先把 `items()` 取到局部变量，不要写在循环条件里。
+
+## CraftEngineBlockAccess
+
+final，没有 `@ApiStatus` 注解。这个类把 FarmersDelight 内部使用的 CraftEngine 方块底层操作公开出来 —— 解析 CE 世界、把方块实体转回 Bukkit 世界、读状态的 id 或朝向、标记区块为脏 —— 免得每个附属各抄一份。所有方法都容忍 null，返回 `null` / `false` 而不是抛异常，因为调用方是方块行为和区块监听器，那里抛异常会连带中止大得多的东西。
+
+```java
+public static CEWorld                getCEWorld(World world);
+public static World                  getBukkitWorld(BlockEntity blockEntity);
+public static World                  toWorld(Object levelHandle);
+public static BlockPos               toBlockPos(Object posHandle);
+public static void                   markDirty(BlockEntity blockEntity);
+public static String                 blockId(ImmutableBlockState state);
+public static BlockFace              facing(ImmutableBlockState state);
+public static String                 property(ImmutableBlockState state, String propertyName);
+public static BlockEntityController  blockEntityController(World world, int x, int y, int z);
+```
+
+参数与返回类型都是 CraftEngine 的，所以这部分接口面需要你的编译类路径上有 CraftEngine —— 只要你写行为类，本来就是如此。
+
+`getCEWorld` 是最该用它、而不是用那条显眼替代路的一个。不要自己去走 `BukkitWorldManager.instance().getWorld(uuid).ceWorld()`：在 CraftEngine 绑定方块之前，解析世界会拿未绑定的注册表去反序列化已保存的区块数据；一个来自已卸载数据包的残留方块就会抛出异常，而区块加载处理器是常见调用方，于是每个区块都抛。`getCEWorld` 会加上就绪闸门、兼容 CraftEngine 的两种返回形态，并且只记一次失败日志而不向上传播。返回 `null` 的含义是「CraftEngine 尚未就绪，或该世界的数据读不出来」，不是「这个世界没有 CE 内容」。
+
+`markDirty` 把方块实体所在区块标记为未保存。CraftEngine 只序列化被标脏的区块，所以任何必须挺过重启的状态变更后面都要跟一次它。`blockId` 读方块状态的自定义 id（`"namespace:id"`，不是自定义方块时为 `null`）；`facing` 在状态没有朝向属性时默认 `NORTH`；`property` 在该状态没有这个属性时返回 `null`。
+
+### `blockEntityController(World world, int x, int y, int z)`
+
+返回某世界坐标上的方块实体控制器，读不到时返回 `null`。返回 `null` 的情况恰好三种：
+
+* 世界对 CraftEngine 未知 —— CraftEngine 尚未就绪，或该世界的数据读不出来（即 `getCEWorld` 会把关的那种情况）；
+* 区块**未加载**；
+* 该坐标上没有方块实体。
+
+它只查已经加载的区块，因此不会加载区块，也不会返回任何需要调度区域才能拿到的数据。但它仍然是对世界状态的读取，上面那条区域线程规则同样适用 —— 而且区块未加载时的 `null` 含义是「现在读不到」，不是「这里没有工作站」。如果你的逻辑依赖这个区别，请先在拥有该区块的线程上加载它。
 
 ## 相关页面
 

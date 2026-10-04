@@ -2,9 +2,9 @@
 [简体中文](../zh-cn/compat-utilities.md)
 # Version compatibility helpers
 
-`com.huidu.farmersdelight.api.util` contains three small helpers that exist so an addon can support Minecraft
-1.21.4 through current builds from a single compiled jar. Two of them paper over Bukkit API changes; the third
-is a CraftEngine tooltip helper.
+`com.huidu.farmersdelight.api.util` contains the small helpers that exist so an addon can support Minecraft
+1.21.4 through current builds from a single compiled jar. `CompatAttributes` and `CompatItemMeta` paper over
+Bukkit API changes; `TooltipUtils` and `CeItemInterop` deal with CraftEngine's own item wrapper.
 
 The supported floor is 1.21.4, so both compatibility shims now resolve on every supported server. They are
 kept because they are published API and because they still absorb the attribute-registry rename and any
@@ -19,7 +19,7 @@ resolve.
 
 ## CompatAttributes
 
-`@ApiStatus.NonExtendable`, final, two public constants.
+`@ApiStatus.Internal`, `@ApiStatus.NonExtendable`, final, two public constants.
 
 ```java
 public static final Attribute MAX_HEALTH;
@@ -43,6 +43,13 @@ if (maxHealthAttr == null) {
     return;
 }
 ```
+
+**`@ApiStatus.Internal` is not decoration here — reference these constants only from inside a method body.**
+They are static fields, so naming one from your own field initializer, static block or `static final` constant
+makes this class load during *your* addon's class initialization. An addon runs under its own class loader, and
+a failure there (`NoClassDefFoundError`) aborts that initializer and silently leaves whatever you were wiring
+up disabled — the plugin loads, the feature just never works. A method body keeps the load on a path your addon
+can handle; for a lookup this small, a self-contained copy in the addon is the safer answer still.
 
 ## CompatItemMeta
 
@@ -80,6 +87,39 @@ if (itemModel != null && !itemModel.isBlank()) {
 `isSupported()` is there for when you need to branch to a genuinely different fallback instead. No current
 consumer calls it — every real call site relies on the silent no-op.
 
+## CeItemInterop
+
+`@ApiStatus.NonExtendable`, final, three static conversions between CraftEngine's
+`net.momirealms.craftengine.core.item.Item` wrapper and Bukkit's `ItemStack`. These are the conversions the
+plugin's container and recipe code performs on every stored item, so each one lives here instead of being
+copied per call site.
+
+| Method | Behaviour |
+| --- | --- |
+| `asBukkitStack(Item item)` | The Bukkit stack, or `null` when `item` is `null` **or empty**; the count is not inspected |
+| `toBukkitStack(Item item)` | The Bukkit stack for an already-checked item — **no empty guard** |
+| `normalize(Item item)` | A defensive copy of the item, or `Item.empty()` |
+
+`asBukkitStack` is the guarded one: a null or empty item returns `null`, and everything else goes through
+CraftEngine's own `ItemStackUtils.getBukkitStack`. Nothing here resolves CraftEngine's readiness, so a caller
+that can run before CraftEngine is ready keeps its own readiness guard, and a failure inside the conversion
+propagates to the caller rather than being swallowed.
+
+`toBukkitStack` is the same conversion **without** the empty-item guard, for a caller that inspects the
+converted stack itself or substitutes its own fallback. A null item still returns `null`; every other item is
+handed to CraftEngine unchanged — including an empty one, which converts to an empty `ItemStack` rather than
+to `null`. Pick the one that matches what your call site does with nothing.
+
+`normalize` returns something you can safely keep: `Item.empty()` when the argument is null, empty, or has a
+count that is not positive, and otherwise a **copy** with the same count (`copyWithCount`) rather than the
+instance you passed. That copy is why it is safe to store the result while the caller keeps mutating its own
+item.
+
+```java
+Item stored = CeItemInterop.normalize(incoming);   // never null; a copy when there is content
+ItemStack bukkit = CeItemInterop.asBukkitStack(stored);   // null for the empty case
+```
+
 ## TooltipUtils
 
 Final, no `@ApiStatus` annotation, one static method:
@@ -115,5 +155,6 @@ full meter would show no bar at all without the clamp.
 ## Related pages
 
 * [Getting started](getting-started.md)
+* [Content registration](content-registration.md)
 * [Debug tools](debug-tools.md)
 * [Items](items.md)
