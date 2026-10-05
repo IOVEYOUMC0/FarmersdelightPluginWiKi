@@ -30,10 +30,11 @@ icon: grid-4
 ## 世界内容
 
 1. [方块与工作站](blocks-and-stations.md)
-2. [物品](items.md)
-3. [食物效果](food-effects.md)
-4. [小刀掉落](knife-drops.md)
-5. [进度](advancements.md)
+2. [标签与可被小刀挖掘的方块](tags.md)
+3. [物品](items.md)
+4. [食物效果](food-effects.md)
+5. [小刀掉落](knife-drops.md)
+6. [进度](advancements.md)
 
 ## 玩家
 
