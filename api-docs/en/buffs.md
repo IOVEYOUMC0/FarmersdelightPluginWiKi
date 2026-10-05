@@ -300,7 +300,7 @@ The retry exists for whole-profile sync plugins (HuskSync, MySQLPlayerDataBridge
 synced PDC a moment *after* join. It defaults to 40 ticks and is disabled by setting the key to `0`. This is
 the whole reason `restoreState` must be gap-filling: the second call runs unconditionally.
 
-The quit save deliberately runs at `LOWEST` so your PDC writes land before a sync plugin snapshots the
+The quit save runs at `LOWEST` so your PDC writes land before a sync plugin snapshots the
 player. Because the state lives in the player's PDC, a buff persisted this way rides a whole-PDC sync across
 a proxy network for free.
 
@@ -386,7 +386,7 @@ on every load and reload. While it is `false`:
 - FarmersDelight's own effect ticker and the 20-tick sync pass are not armed;
 - every `BuffBossbar` call is a no-op.
 
-`saveAll` is gated deliberately: switching the system off clears the live state, and an ungated save would
+`saveAll` is gated: switching the system off clears the live state, and an ungated save would
 write that emptiness over the player's stored buffs on their next quit and destroy them permanently. Skipping
 the write leaves what is stored intact, ready for the switch being turned back on.
 

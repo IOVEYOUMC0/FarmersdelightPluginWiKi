@@ -28,7 +28,7 @@ If your addon is mostly content, see CraftEngine's official wiki. A large addon 
 package is internal and may change or disappear between releases. A package-private class inside the api
 package, such as `SnapshotItems`, is also an implementation detail and is not part of the contract.
 
-Compile against the api-only jar (`gradlew apiJar`) rather than the full plugin jar. That makes the boundary a compile error instead of a production incident. See [Getting started](getting-started.md).
+The compile target is the api-only jar (`gradlew apiJar`), not the full plugin jar. That makes the boundary a compile error instead of a production incident. See [Getting started](getting-started.md).
 
 Individual types carry `@ApiStatus` annotations that narrow this further:
 

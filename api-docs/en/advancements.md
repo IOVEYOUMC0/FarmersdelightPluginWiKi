@@ -198,11 +198,11 @@ satisfies the requirement.
 gone, that criterion is dropped so the remaining ones can still complete the advancement. Without it, a
 single deleted item leaves the advancement permanently one subtask short.
 
-Rules and guardrails:
+How the two declarations behave:
 
 * Both are optional and additive. An advancement or criterion with no declared requirement is always
   shown, which is how everything behaves if you never call these.
-* Declare only ids whose absence genuinely makes the advancement impossible. Over-declaring hides
+* An id belongs in the list only when its absence genuinely makes the advancement impossible; over-declaring hides
   content that still works.
 * Calling `requires` again for the same advancement **replaces** the previous list.
 * The tab root is always kept and ignores any requirement.

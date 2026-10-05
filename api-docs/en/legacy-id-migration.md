@@ -23,7 +23,7 @@ rewrites the stacks it can reach. Addons declare their own ids the same way.
 Two entries from that upstream alias table show the shape of the problem:
 
 * `barbecue_stick → cooked_meat_skewer` — an item rename;
-* `basket → bamboo_basket` — upstream aliased the block **and** the item, and our pack still ships
+* `basket → bamboo_basket` — upstream aliased the block **and** the item, and FarmersDelight's pack still ships
   `farmersdelight:basket`, so this is exactly the case this layer exists for. Note that this api migrates
   **items**: block-level ids are not covered (see *Limits*).
 
@@ -102,7 +102,7 @@ So the correct order for a rename is:
 
 ## Automatic hooks
 
-Five hooks rewrite stacks as they come into view. You do not schedule anything.
+Five hooks rewrite stacks as they come into view. No scheduling is needed on your side.
 
 | Moment | What is rewritten | Runs on |
 | --- | --- | --- |
@@ -127,8 +127,7 @@ A container is rewritten only when its **owner can be named**:
 * one of FarmersDelight's own container GUIs — the viewing player.
 
 Any other holder — a third-party holder plugin, a merchant, a custom `InventoryHolder` this plugin cannot
-attribute — is **skipped**, and the open is not recorded as migrated, so the next open tries again. Skipping
-is deliberate: reading a container from whichever thread happens to see the event, without knowing which
+attribute — is **skipped**, and the open is not recorded as migrated, so the next open tries again. Skipping happens when the owner is unknown: reading a container from whichever thread happens to see the event, without knowing which
 region owns it, is the one thing these hooks must not do. A skipped container therefore migrates late (on a
 later open), or not at all if it is never opened again.
 

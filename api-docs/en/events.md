@@ -751,7 +751,7 @@ public ProfessionCookingExperienceEvent(UUID playerId, String playerName, String
 
 ### Firing it from your own station
 
-Do not construct it directly. Call the API instead, which also drops the vanilla XP orbs (gated by the
+There is no need to construct it directly: the API call also drops the vanilla XP orbs (gated by the
 cooking-pot XP config) and awards AuraSkills XP, then fires the event for you:
 
 ```java

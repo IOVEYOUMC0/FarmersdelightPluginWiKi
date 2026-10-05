@@ -102,7 +102,7 @@ public final class IngredientMatching {
 }
 ```
 
-A generic two-pass ingredient matcher, deliberately decoupled from Bukkit: you supply the `matcher` ("does this
+A generic two-pass ingredient matcher, decoupled from Bukkit: you supply the `matcher` ("does this
 slot satisfy this ingredient?") and `initialAmount` ("how many ingredient-units does this slot contribute?").
 Because it touches no Bukkit types, it is unit-testable without a running server.
 

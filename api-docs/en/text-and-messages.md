@@ -87,7 +87,7 @@ When you embed an item name in a lore line, pair `translatable` with
 should ignore an anvil rename. See [Items](items.md) for the four display-name renderings and when each
 applies.
 
-`formatDuration` exists for buff bossbar titles following the `"<name> [%s]"` convention, and is deliberately
+`formatDuration` exists for buff bossbar titles following the `"<name> [%s]"` convention, and is
 hand-rolled rather than `String.format` because it is called from the PlaceholderAPI hot path. See
 [Buffs and bossbars](buffs.md).
 

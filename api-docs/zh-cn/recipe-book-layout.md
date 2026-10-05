@@ -154,7 +154,7 @@ private record Layout(Component title, int rows, List<String> layout,
 
 这个列表页每页 45 条配方。`'T'` 映射到 `"tool"`，它不是已知角色，所以由 `ViewableRecipe.displaySlots().get("tool")` 填充。
 
-不要把布局写死，应该从你自己的 `gui.yml` 里读，让服主能改主题。BAC 就是从磁盘读 `KegRecipeBookConfig`，并在重载时 换掉布局：
+布局可以从你自己的 `gui.yml` 里读，这样服主就能改主题。BAC 就是从磁盘读 `KegRecipeBookConfig`，并在重载时 换掉布局：
 
 ```java
 private volatile KegRecipeBookConfig book;

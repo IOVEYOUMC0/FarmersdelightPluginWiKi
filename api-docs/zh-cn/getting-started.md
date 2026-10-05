@@ -31,13 +31,13 @@ FarmersDelight 的构建里有一个 `apiJar` 任务，只打包 `com/huidu/farm
 
 ## 依赖这个 api
 
-不要到处复制这个 jar，直接按坐标声明依赖即可：
+这个 jar 不需要到处复制：按坐标声明依赖即可：
 
 ```kotlin
 compileOnly("com.huidu.farmersdelight:farmersdelight-plugin:1.0.3")
 ```
 
-必须是 `compileOnly`：运行时由真正的 FarmersDelight 插件提供实现。把 api jar shade 进自己的插件，只会多出 一份永远不会被用到的死类。
+作用域用 `compileOnly`：运行时由真正的 FarmersDelight 插件提供实现。把 api jar shade 进自己的插件，只会多出 一份永远不会被用到的死类。
 
 这个坐标有两条解析通道，两条通道用的是同一个版本号，也就是你的附属对应的 FarmersDelight 版本——这里是 `1.0.3`。
 

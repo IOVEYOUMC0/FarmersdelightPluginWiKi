@@ -12,7 +12,7 @@ items, recipes and mechanics on top of them. This page explains, for a server ad
 adds, how it hooks into FarmersDelight, and which config knobs it exposes** — so you can understand and
 tune the behaviours the addons register.
 
-Most addons are faithful ports of a Forge/Fabric mod; Villagers' Delight is original to this project. None
+Most addons are faithful ports of a Forge/Fabric mod; Villagers' Delight is original to this plugin. None
 of them replace FarmersDelight — they extend it. Attribution and licensing are per addon, exactly as the
 upstream projects state them:
 
@@ -27,7 +27,7 @@ upstream projects state them:
 
 Notes on the ones that need them:
 
-* **BAC** — our CraftEngine content is based on the revision whose `LICENSE` read "MIT License, Copyright (c)
+* **BAC** — the CraftEngine content of this port is based on the revision whose `LICENSE` read "MIT License, Copyright (c)
   2022 Umpaz", and that licence travels with this port (it ships in the addon jar's `NOTICE.txt`). Upstream
   **deleted its `LICENSE` file on 2026-08-24** (commit `ed58394`), so later upstream versions no longer carry
   it; this port stays under the MIT revision it was built from. The author list above is the union of the two
@@ -35,8 +35,7 @@ Notes on the ones that need them:
   `MerchantPug`, and `Probleyes` — the spelling the jar's `NOTICE.txt` uses — is an older spelling of
   `ProbablyEyes`.
 * **BBQD** — the upstream repository's `LICENSE` is MIT (`Copyright (c) 2024 MaoMao`) and Modrinth also lists
-  the mod as MIT, while its `META-INF/mods.toml` declares `license="LGPL-2.1"`. This project distributes its
-  port under the repository `LICENSE` (MIT). The two upstream statements contradict each other; that is an
+  the mod as MIT, while its `META-INF/mods.toml` declares `license="LGPL-2.1"`. The port is distributed under the repository `LICENSE` (MIT). The two upstream statements contradict each other; that is an
   upstream inconsistency, not a choice made here.
 * **CD** — upstream ships **no `LICENSE` file and no copyright line**; MIT is declared only by its build
   metadata (`gradle.properties: mod_license=MIT License`, `mod_authors=AlabasterLeking` and the matching
@@ -151,8 +150,8 @@ paired block), End knives, and mob drops from End creatures.
 *Additional crops & cooking — a port of Expanded Delight by ianm1647 (the upstream author). Namespace
 `expandeddelight`.*
 
-> **Scope:** this project has **no port repository for Expanded Delight in the current workspace** — the only
-> trace is a scaffold under `Reference/` — so it is **not part of the project's current maintenance scope**.
+> **Scope:** there is **no port repository for Expanded Delight yet** — the only
+> trace is a scaffold under `Reference/` — so the guide **does not cover it**.
 > Nothing here is a licence claim for it, and the notes below describe the intended port (content mapping and
 > config shape) rather than a shipped addon.
 

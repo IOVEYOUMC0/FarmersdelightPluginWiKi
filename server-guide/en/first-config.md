@@ -117,7 +117,7 @@ drops are **pack data**: they live in the CraftEngine pack file `vanilla_loots.y
 `farmersdelight:ham_from_pig` and the like), tuned alongside the rest of the pack's loot. Villager and
 wandering-trader offers are in
 `plugins/FarmersDelight/world-data.yml`; deleting an offer there disables it. Composting, furnace-fuel values,
-pet food and food-buff assignments are in the CraftEngine item configuration. CraftEngine files are deliberately
+pet food and food-buff assignments are in the CraftEngine item configuration. CraftEngine files are
 comment-free; their field reference is in [Block behavior configuration](block-behaviors.md). You will rarely
 need them on day one.
 

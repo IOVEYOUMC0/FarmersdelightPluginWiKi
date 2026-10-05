@@ -70,7 +70,7 @@ Component servingsLine = FarmersDelightText.translatable(
 
 在 lore 里嵌物品名时，`translatable` 要配 `FarmersDelightItems.translatableDisplayNameOfNoAnvilOf`，而不是普通的 显示名接口——lore 不应该跟着铁砧改名走。四种显示名渲染各自的适用场景见[物品](items.md)。
 
-`formatDuration` 是为遵循 `"<name> [%s]"` 约定的 buff bossbar 标题准备的。它刻意手写而没用 `String.format`，因为 它位于 PlaceholderAPI 的热路径上。参见[自定义 buff 与 Bossbar](buffs.md)。
+`formatDuration` 是为遵循 `"<name> [%s]"` 约定的 buff bossbar 标题准备的。它手写而没用 `String.format`，因为 它位于 PlaceholderAPI 的热路径上。参见[自定义 buff 与 Bossbar](buffs.md)。
 
 ## FarmersDelightMessages
 

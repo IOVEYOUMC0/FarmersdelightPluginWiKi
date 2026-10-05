@@ -33,13 +33,13 @@ contract is one artifact in every channel.
 
 ## Depending on the api
 
-Do not copy that jar around. Declare it as a normal dependency on the published coordinate:
+The jar does not need to be copied around: Declare it as a normal dependency on the published coordinate:
 
 ```kotlin
 compileOnly("com.huidu.farmersdelight:farmersdelight-plugin:1.0.3")
 ```
 
-`compileOnly` is deliberate: the real FarmersDelight plugin supplies the implementation at runtime. Shading
+`compileOnly` is the right scope: the real FarmersDelight plugin supplies the implementation at runtime. Shading
 the api jar into your addon would give you a second, dead copy of those classes.
 
 The coordinate resolves through one of two channels. The version is the same in both, pinned to the

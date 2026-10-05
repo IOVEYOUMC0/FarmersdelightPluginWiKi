@@ -165,10 +165,10 @@ public AdvancementTree requiresCriterion(String advancementId, String criterion,
 
 `requiresCriterion` 对多任务进度的单个 criterion 做同样的事：当它的 id 全部消失时，这个 criterion 会被丢弃，剩下 的仍能完成该进度。没有这层声明的话，删掉一件物品就会让该进度永远差一个子任务。
 
-规则与保险丝：
+这两个声明的行为：
 
 * 两者都是可选、叠加式的。没有声明依赖的进度或 criterion 始终展示，这也是你完全不调用这两个方法时的行为。
-* 只声明那些"缺了就真的不可能达成"的 id。声明过头会把仍然能玩的内容藏起来。
+* 只有当某个 id 缺失就真的不可能达成时，它才属于这份列表；声明过头会把仍然能玩的内容藏起来。
 * 对同一个进度再次调用 `requires` 是**替换**上一份列表。
 * 标签页 root 永远保留，忽略任何依赖声明。
 * 如果某个进度的所有 criterion 都会被丢弃，则改为保留完整列表（一个 criterion 都没有的进度无法注册），并记录一条 警告。

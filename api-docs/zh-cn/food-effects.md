@@ -86,7 +86,7 @@ public static void unregisterNourishmentFood(String itemId);
 
 用同一个 id 再次注册会覆盖之前的时长。`null` id 或非正时长是空操作。FarmersDelight 不可用时四个方法都是空操作。
 
-请在你的插件禁用时反注册。
+在你自己的插件禁用时反注册即可。
 
 ## 注册器模式
 

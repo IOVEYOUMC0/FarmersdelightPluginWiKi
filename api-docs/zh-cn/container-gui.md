@@ -84,7 +84,7 @@ public static int warnUnknownCharacters(Logger logger, String configPath, int ro
 * 某一行不是九个字符宽；
 * 画出的字符 legend 没有定义。
 
-它刻意做成自包含的：接收 logger 与配置路径，而不是去抓插件，所以附属可以用自己的 logger 上报，不涉及静态查找也不涉及语言键。`null` 的 logger 或 layout 什么都不记，空白字符不是问题，路径为空白或 `null` 时报作 `gui.yml`。
+它是自包含的：接收 logger 与配置路径，而不是去抓插件，所以附属可以用自己的 logger 上报，不涉及静态查找也不涉及语言键。`null` 的 logger 或 layout 什么都不记，空白字符不是问题，路径为空白或 `null` 时报作 `gui.yml`。
 
 ## GuiSlotGroup：一个类型对应一段连续存储
 

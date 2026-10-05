@@ -27,7 +27,7 @@ FarmersDelight 建立在 CraftEngine 之上。CraftEngine 负责自定义物品�
 **`com.huidu.farmersdelight.api.**` 是唯一受支持的兼容面。** 这个包以外的内容都是内部实现，
 可能在版本更新时变化或删除。api 包里的包级私有类（例如 `SnapshotItems`）同样属于实现细节，不在约定范围内。
 
-请对着 api-only jar（`gradlew apiJar`）编译，而不是完整插件 jar。这样越界会变成一个编译错误，而不是一次线上事故。 详见[快速上手](getting-started.md)。
+编译目标用 api-only jar（`gradlew apiJar`），而不是完整插件 jar。这样越界会变成一个编译错误，而不是一次线上事故。 详见[快速上手](getting-started.md)。
 
 具体类型上还有 `@ApiStatus` 注解进一步收窄约定：
 

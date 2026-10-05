@@ -72,7 +72,7 @@ if (KnifeMineableBlocks.isKnifeMineable(Key.of("myaddon:crate"))) {
 }
 ```
 
-Pass an id you already have. Do not build the `Key` from `FarmersDelightBlocks.blockIdOf(block)` while on
+Pass an id you already have: building the `Key` from `FarmersDelightBlocks.blockIdOf(block)` while on
 another region: that resolution is exactly the region-bound world read this api is shaped to avoid.
 
 ## Tag constants

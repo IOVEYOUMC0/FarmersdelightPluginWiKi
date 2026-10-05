@@ -73,8 +73,8 @@ if (KnifeMineableBlocks.isKnifeMineable(Key.of("myaddon:crate"))) {
 }
 ```
 
-请传入你已经持有的 id。不要在别的区域上拿 `FarmersDelightBlocks.blockIdOf(block)` 的返回值来构造 `Key`：
-那次解析正是本 api 刻意避开的区域绑定世界读。
+传入你已经持有的 id 即可；从 `FarmersDelightBlocks.blockIdOf(block)` 的返回值构造 `Key` 会在别的区域上做一次区域绑定的世界读：
+这正是本 api 避开的做法。
 
 ## 标签常量
 

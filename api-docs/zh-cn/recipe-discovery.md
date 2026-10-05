@@ -77,7 +77,7 @@ public void recipeDiscovery(Player player) {
 
 `triggerObtain(player, itemId)` —— 把该物品 id 当作刚刚被获得，解锁所有以它为键的配方。用于你自己的「你获得了 XX」流程。只有在发现已开启**且**配置里的获得触发也开着时才生效，否则是空操作。
 
-获得索引由每条配方的成品和它的**精确物品**原料构建。标签原料是被刻意排除的 —— 一个标签太宽泛，不适合驱动自动解锁。 对附属类型，索引取 `ViewableRecipe.result()` 和 `ViewableRecipe.inputs()`；每当有 `RecipeType` 注册或反注册，索引 都会重建。
+获得索引由每条配方的成品和它的**精确物品**原料构建。标签原料被排除 —— 一个标签太宽泛，不适合驱动自动解锁。 对附属类型，索引取 `ViewableRecipe.result()` 和 `ViewableRecipe.inputs()`；每当有 `RecipeType` 注册或反注册，索引 都会重建。
 
 ### 线程
 

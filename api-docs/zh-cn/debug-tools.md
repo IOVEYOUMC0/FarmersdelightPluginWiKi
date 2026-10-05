@@ -166,7 +166,7 @@ public int place(Player player, Location origin, int count, int spacing, int lay
 
 可选，默认返回 0。在 `/fd debugtools activate <name>` 时被调用；管理员执行 `/fd debugtools activate all` 时，**每一个已注册扩展**的该方法也都会被调用。把你放下的方块填上样本状态， 让它们真的开始 tick、发酵、烹饪——凡是能让它们在性能分析中承压的状态都行——并返回进入活动状态的方块数。 这个数会计入命令的总计。
 
-FDAddonTemplate 自己维护了一个 `ConcurrentHashMap.newKeySet()` 记录放置坐标，因为它的示例方块没有 manager。 如果你的插件本来就有跟踪方块的 manager（比如 BrewinAndChewin 的 `KegManager`），直接遍历那个 manager， 不要重复造一份跟踪。
+FDAddonTemplate 自己维护了一个 `ConcurrentHashMap.newKeySet()` 记录放置坐标，因为它的示例方块没有 manager。 如果你的插件本来就有跟踪方块的 manager（比如 BrewinAndChewin 的 `KegManager`），遍历那个 manager 即可，不必再维护一份跟踪。
 
 ### `List<String> status(Player player)`
 

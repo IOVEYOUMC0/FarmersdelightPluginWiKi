@@ -88,7 +88,7 @@ public final class IngredientMatching {
 }
 ```
 
-一个泛型的两趟原料匹配器，刻意和 Bukkit 解耦：由你提供 `matcher`（「这个槽位满足这条原料吗」）和 `initialAmount` （「这个槽位提供多少个原料单位」）。因为不碰任何 Bukkit 类型，它无需起服就能做单元测试，FarmersDelight 也确实为它 带了测试。
+一个泛型的两趟原料匹配器，和 Bukkit 解耦：由你提供 `matcher`（「这个槽位满足这条原料吗」）和 `initialAmount` （「这个槽位提供多少个原料单位」）。因为不碰任何 Bukkit 类型，它无需起服就能做单元测试，FarmersDelight 也确实为它 带了测试。
 
 它就是厨锅和酒桶在用的那套逻辑，所以调用它，是让附属工作站的匹配语义和 FarmersDelight **一致**、而不只是「看起来 差不多」的办法。
 

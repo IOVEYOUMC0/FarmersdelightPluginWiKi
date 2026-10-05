@@ -35,7 +35,7 @@ So a lit heap ringed with mushrooms and a water source composts noticeably faste
 
 **What it does:** on its random ticks, rich soil has a chance to **fertilise the plant growing on top of it** (and, if there is nothing above, the plant directly below) — as if bone meal had been applied — showing the usual green sparkle. This makes it an excellent bed for trees, crops, sugar cane, bamboo and the like.
 
-A few things are deliberately **left alone** so the world does not go haywire: grass, ferns, moss, nylium, big dripleaf, tall flowers (sunflowers, lilacs, peonies, rose bushes, pitcher plants), wild crops and mushroom colonies are all skipped and grow at their normal pace.
+A few things are **left alone** so the world does not go haywire: grass, ferns, moss, nylium, big dripleaf, tall flowers (sunflowers, lilacs, peonies, rose bushes, pitcher plants), wild crops and mushroom colonies are all skipped and grow at their normal pace.
 
 Rich soil also behaves like dirt for planting purposes (bamboo and saplings can be placed on it), and it can grow mushrooms.
 

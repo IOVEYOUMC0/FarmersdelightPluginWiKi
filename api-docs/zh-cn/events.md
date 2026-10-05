@@ -210,7 +210,7 @@ public final class CoasterLifecycleListener implements Listener {
 
 不可取消——这次跃迁可被观察到时，锅早已完成匹配。
 
-事件在拥有该锅的 region 线程上触发，并且——这点很关键——**在锅的方块实体锁之外**。这是刻意为之：监听器可以放 心读取甚至修改这口锅而不会死锁。请走 `com.huidu.farmersdelight.api.block.FarmersDelightBlocks.cookingPot`，不要伸手进内部实现。
+事件在拥有该锅的 region 线程上触发，并且——这点很关键——**在锅的方块实体锁之外**。这样监听器可以放 心读取甚至修改这口锅而不会死锁。请走 `com.huidu.farmersdelight.api.block.FarmersDelightBlocks.cookingPot`，不要伸手进内部实现。
 
 ### 示例
 
@@ -259,7 +259,7 @@ public final class CookStartLogger implements Listener {
 
 ### 取消与线程
 
-不可取消，而且这是刻意的设计决定，不是疏漏。否决一次采收属于保护层的职责：FarmersDelight 在每次采收**之前** 都会询问它的 `ProtectionCompat` 门面（WorldGuard flag 加上 AntiGriefLib 覆盖的 24 多个领地插件），本事件只在 该检查通过后才触发。想拦截采收的领地插件应当把自己接入那个门面，让交互被干净地拒绝，而不是在这里监听——在这 里状态已经改了一半。
+不可取消，而且这是设计决定，不是疏漏。否决一次采收属于保护层的职责：FarmersDelight 在每次采收**之前** 都会询问它的 `ProtectionCompat` 门面（WorldGuard flag 加上 AntiGriefLib 覆盖的 24 多个领地插件），本事件只在 该检查通过后才触发。想拦截采收的领地插件应当把自己接入那个门面，让交互被干净地拒绝，而不是在这里监听——在这 里状态已经改了一半。
 
 两个触发点都运行在交互玩家的 region 线程上，处于 CraftEngine 方块行为调用内部，且两个 behavior 都不持有方块 实体锁。
 
@@ -623,7 +623,7 @@ public ProfessionCookingExperienceEvent(UUID playerId, String playerName, String
 
 ### 从自己的工作站触发
 
-不要直接构造。改为调用 API，它还会顺带掉落原版经验球（受炖锅经验配置控制）、发放 AuraSkills 经验，然后替你 触发事件：
+无需直接构造：调用 API 会顺带掉落原版经验球（受炖锅经验配置控制）、发放 AuraSkills 经验，然后替你 触发事件：
 
 ```java
 FarmersDelightApi.get().awardCraftingExperience(player, dropLocation, resultItem, xp, "keg");

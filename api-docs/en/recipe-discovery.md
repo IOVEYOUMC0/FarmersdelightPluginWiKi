@@ -33,7 +33,7 @@ Three consequences an addon author has to internalise:
 3. **Neither id may contain a space.** The key is split at the first space, and per-type lookups match on the
    `"<typeId> "` prefix. A space in a type id silently mangles every key it produces.
 
-Keys of types that are not currently registered are deliberately **preserved**, not pruned — removing an addon
+Keys of types that are not currently registered are **preserved**, not pruned — removing an addon
 for one restart does not wipe its players' progress.
 
 One more storage nuance for the cooking pot: the unlock key is id-only, so a cooking-pot recipe id declared by
@@ -95,7 +95,7 @@ for your own "you got this" flows. It is a no-op unless discovery is enabled *an
 is on.
 
 The obtain index is built from each recipe's result and its **exact-item** ingredients. Tag ingredients are
-deliberately excluded — a tag is far too broad to drive an auto-unlock. For addon types the index uses
+excluded — a tag is far too broad to drive an auto-unlock. For addon types the index uses
 `ViewableRecipe.result()` and `ViewableRecipe.inputs()`, and it is rebuilt whenever a `RecipeType` is registered
 or unregistered.
 

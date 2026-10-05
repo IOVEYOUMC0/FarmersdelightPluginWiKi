@@ -166,7 +166,7 @@ it a drink at all, so deleting an id there is an operator saying that item no lo
 Two consequences to accept knowingly:
 
 - **A genuinely new setting added under a registry section in a later version will not reach an existing
-  file.** That is the price of not undoing deletions. FarmersDelight pays it deliberately on parents like
+  file.** That is the price of not undoing deletions. FarmersDelight accepts that on parents like
   `buff.comfort` and `buff.nourishment`, where the mixed shape (settings *and* a keyed `foods` table) makes
   guarding at the parent the only option.
 - **A list the operator emptied still counts as present**, so a `trades:` key holding an empty list is left

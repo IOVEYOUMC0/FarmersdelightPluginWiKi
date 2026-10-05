@@ -19,7 +19,7 @@ crops, soil, rope, mushroom colonies and their integrations. Addons use the same
 | Pack-declared cooking-pot / cutting-board / special recipes, advancement trees and advanced tag groups | the `cooking_recipes`, `cutting_recipes`, `special_recipes`, `farmersdelight_advancements` and `advanced_tags` sections of `plugins/CraftEngine/resources/<pack>/configuration/**.yml` | `/ce reload all` |
 | The plugin's own recipe files | `plugins/FarmersDelight/recipes/*.yml` | `/fd reload recipes` |
 
-CE YAML is deliberately comment-free. Keep an edited file as data only and use this page as the field
+CE YAML contains no comments. Edited files stay data only, and this page is the field
 reference. Do not use Bukkit `/reload`; it leaves CE registries and scheduled work in an undefined state.
 
 After `/ce reload`, cutting-board and skillet displays are rebuilt in small per-tick batches. Tune
@@ -85,7 +85,7 @@ Grouped options today (grouped form ← legacy flat keys):
 
 Everything else stays flat (`crackle-sound`, `tool-damage`, `add-food-sound`, `sizzle-sound`, `knife-sound`, `permission`,
 `grow-speed`, `max-age` — the colony's single cap, unlike the tall crop's `max-age.{lower,upper}` —, `rich-soil-block`,
-`requires-water`, `bottom-blocks`, `bottom-block-tags`, ...). `bottom-*` deliberately stays flat because CraftEngine's own
+`requires-water`, `bottom-blocks`, `bottom-block-tags`, ...). `bottom-*` stays flat because CraftEngine's own
 `bush_block` uses the same flat names, so a block carrying both behaviors keeps one shared spelling. CraftEngine's own
 behaviors (`crop_block`, `bush_block`, `item_display`, `simple_storage_block`, ...) keep their own argument tables and are
 unaffected.

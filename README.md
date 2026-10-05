@@ -11,7 +11,7 @@ FarmersDelight is a Paper/Folia plugin port of **Farmer's Delight**, powered by 
 - Configurable crops, farmland, ropes, mushroom colonies and storage blocks.
 - Nourishment, Comfort, food effects and recipe-book integration.
 - Folia-safe scheduling and a stable `com.huidu.farmersdelight.api` addon API.
-- Optional addons for Brewin' And Chewin', End's Delight, Expanded Delight, Crabber's Delight, Barbeque's Delight and Villagers' Delight (Expanded Delight currently has no port repository in this workspace and is outside the project's maintenance scope — see the [addon guide](addon-guide/README.md)).
+- Optional addons for Brewin' And Chewin', End's Delight, Expanded Delight, Crabber's Delight, Barbeque's Delight and Villagers' Delight (Expanded Delight has no port repository yet, so the [addon guide](addon-guide/README.md) does not cover it).
 
 ## Requirements
 

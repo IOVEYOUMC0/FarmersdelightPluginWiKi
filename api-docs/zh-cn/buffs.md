@@ -263,7 +263,7 @@ FarmersDelight 以 `MONITOR` 优先级、`ignoreCancelled = true` 监听 `Player
 
 重试是为整档同步类插件（HuskSync、MySQLPlayerDataBridge 等）准备的：它们会在玩家进服**之后**一小会儿才把 同步来的 PDC 写上去。默认 40 tick，设为 `0` 即关闭重试。这也正是 `restoreState` 必须补空式的原因——第二次调用 是无条件发生的。
 
-退服保存刻意放在 `LOWEST`，好让你的 PDC 写入发生在同步插件给玩家做快照之前。由于状态就存在玩家 PDC 里，这样 持久化的 buff 能免费搭上整档同步、跨群组服务器带走。
+退服保存放在 `LOWEST`，好让你的 PDC 写入发生在同步插件给玩家做快照之前。由于状态就存在玩家 PDC 里，这样 持久化的 buff 能免费搭上整档同步、跨群组服务器带走。
 
 Brewin' And Chewin' 还在自己的 `onDisable` 里对所有在线玩家额外调了一次 `saveAll`，位置在停掉那些持有实时数值 的 manager 之前。运行期热卸载（插件管理器、看门狗级联）不会触发退服事件，没有这一段的话在线玩家的状态就全丢了。 如果你的 buff 值得持久化，照抄这个写法：
 
@@ -324,7 +324,7 @@ FarmersDelight `config.yml` 里的 `buff.enabled` 会在每次加载和重载时
 * FarmersDelight 自己的效果 ticker 和那个 20 tick 同步任务都不会启动；
 * 所有 `BuffBossbar` 调用都是空操作。
 
-`saveAll` 被拦是刻意为之：关掉系统会清空实时状态，若不拦截，玩家下次退服时就会把这份"空"写进存档、永久毁掉他 原有的 buff。跳过这次写入，已存档的数据原样保留，等系统重新打开即可复用。
+`saveAll` 被拦是因为：关掉系统会清空实时状态，若不拦截，玩家下次退服时就会把这份"空"写进存档、永久毁掉他 原有的 buff。跳过这次写入，已存档的数据原样保留，等系统重新打开即可复用。
 
 用 `isSystemEnabled()` 可以整段跳过你自己的每 tick 开销：
 

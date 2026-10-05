@@ -22,12 +22,12 @@ CraftEngine 资源提供物品、方块、配方和标签，通过 FarmersDeligh
 
 其中三条需要说明：
 
-* **BAC** —— 我们的 CraftEngine 内容所依据的那一版 `LICENSE` 写的是「MIT License，Copyright (c) 2022 Umpaz」，该许可随本移植保留
+* **BAC** —— 本移植的 CraftEngine 内容所依据的那一版 `LICENSE` 写的是「MIT License，Copyright (c) 2022 Umpaz」，该许可随本移植保留
   （随扩展 jar 的 `NOTICE.txt` 一同分发）。上游已于 **2026-08-24（提交 `ed58394`）删除其 `LICENSE` 文件**，之后的版本不再附带它；
   本移植仍按其构建时所依据的 MIT 版本分发。上表的作者串是两个来源的并集，并采用规范拼写：`MerchantCalico` 与 GitHub 账号
   `MerchantPug` 是同一人；`Probleyes`（jar 内 `NOTICE.txt` 的写法）是 `ProbablyEyes` 的旧拼写。
 * **BBQD** —— 上游仓库 `LICENSE` 为 MIT（`Copyright (c) 2024 MaoMao`），Modrinth 也把该模组标为 MIT，而其
-  `META-INF/mods.toml` 声明的是 `license="LGPL-2.1"`。本项目按仓库 `LICENSE`（MIT）分发其移植。两处上游声明互相矛盾，属上游自身
+  `META-INF/mods.toml` 声明的是 `license="LGPL-2.1"`。其移植按仓库 `LICENSE`（MIT）分发。两处上游声明互相矛盾，属上游自身
   的不一致，不是这里的选择。
 * **CD** —— 上游**没有 `LICENSE` 文件、也没有版权行**；MIT 仅由其构建元数据声明（`gradle.properties: mod_license=MIT License`、
   `mod_authors=AlabasterLeking`，以及 `neoforge.mods.toml` 中对应的占位引用），因此应视为元数据声明，而非签署过的许可文本。
@@ -49,7 +49,7 @@ CraftEngine 资源提供物品、方块、配方和标签，通过 FarmersDeligh
 | Barbeque's Delight | 烤架、食材盆、烤串调味、托盘 | `grill`、`ingredients-basin`、`seasonings` |
 | Villagers' Delight | 让农民村民识别和种植 CE 作物 | `crops`、`extra-soils`、`harvest-drops` |
 
-Expanded Delight（上游作者 `ianm1647`）：**本工作区没有它的移植仓**（`Reference/` 下只有脚手架），因此**不属于本项目当前的维护范围**。
+Expanded Delight（上游作者 `ianm1647`）：**还没有移植仓**（`Reference/` 下只有脚手架），因此**本指南不覆盖它**。
 本指南不为它作任何许可主张；上表与本节都不含它的许可条目。
 
 Crabber's Delight 的村民与流浪商人交易单独写在插件目录的 `trades.yml` 中。该附属尚未发布，因此不提供旧版配置迁移或备份。

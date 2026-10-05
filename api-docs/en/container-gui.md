@@ -80,8 +80,7 @@ array.
 
 ### It does not agree with `GuiConfig.getSlotType` in one place
 
-A station that reads the same grid through its own config class has a second, literal lookup. The two differ
-deliberately:
+A station that reads the same grid through its own config class has a second, literal lookup. The two differ in one respect:
 
 * `GuiConfig.getSlotType(slot)` returns `null` for a cell the grid does not draw (a missing row, or a column
   past the end of the row) and returns the legend value **verbatim** — so a legend entry written as a key with
