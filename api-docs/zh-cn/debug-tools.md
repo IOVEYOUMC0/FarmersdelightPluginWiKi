@@ -109,17 +109,15 @@ public interface DebugToolExtension {
 
 当 `/fd debugtools place <name> [count] [spacing] [layers]` 中的 `<name>` 不是 FarmersDelight 的内置目标时 被调用。返回实际放进世界的方块数。
 
-在你拿到参数之前，命令已经做过这些处理：
+网格由命令自己铺好，每个备好的单元调用一次 `place(...)`，所以每次调用收到的是：
 
-* `count` 是 `max(1, 请求值)`，默认 64。
-* `spacing` 被夹在 1..16，默认 1。
-* `layers` 是 `max(1, 请求值)`，默认 1。
-* `origin` 是玩家坐标，已规整到方块坐标。
+* `count`、`spacing`、`layers` 都是 `1`；
+* `origin` 在该单元**下方**一格——请填充 `origin` 在 Y 轴上加一的那一格；
 * 撤销批次已经开启，你之后每次 `undo.capture(...)` 都会并入这一批。
 
-**要注意：** FarmersDelight 自己的 `max-place-count` 上限只作用于内置目标；扩展这条路径把夹过的 `count`、 `spacing`、`layers` 直接传给你，**不会**替你套上限。请自己给放置量兜底，否则管理员输多大就放多大。
-
-排布方式由你决定。两个现成实现都用 `grid = ceil(sqrt(count))`、单元间距 `spacing`、沿 Y 叠 `layers` 层， 和内置目标的做法一致。
+网格来自管理员输入的 `count` / `spacing` / `layers`，而备好的单元总数由 `max-place-count` 限制，所以一次命令
+最多只会要你放这么多方块。该单元是空的、可编辑的，指向别处的 `undo.capture(...)` 会被拒绝。填充该单元并返回
+实际放进世界的方块数即可，单元内部的排布方式由你决定。
 
 在改动每个目标方块**之前**调用 `undo.capture(loc)`。`UndoSink` 是只有一个 `capture(Location)` 的函数式 接口；FarmersDelight 会把该坐标的方块状态快照进当前撤销批次，供 `/fd debugtools undo` 还原。最终没有改变 状态的快照，在撤销时会被静默跳过。
 

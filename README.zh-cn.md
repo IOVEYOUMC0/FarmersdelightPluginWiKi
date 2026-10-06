@@ -15,7 +15,7 @@ FarmersDelight 是基于 CraftEngine 的 Farmer's Delight Paper/Folia 移植插�
 
 ## 运行要求
 
-- Paper 或 Folia 1.21.4 及以上
+- Paper 或 Folia 1.21.5 及以上
 - Java 21
 - CraftEngine 26.8.2
 

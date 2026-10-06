@@ -111,32 +111,11 @@ changed is where they live and how they take effect:
   (identical to the shipped defaults, so nothing changes) or be deleted in favour of the pack copy; editing the
   pack copy takes `/ce reload all` as well.
 
-### Addon cooking-pot, cutting-board and special recipes moved into the packs
+### Loot injection data pack
 
-CrabbersDelight, BrewinAndChewin, BarbequesDelight and EndsDelight no longer ship their cooking-pot,
-cutting-board and special recipes as `plugins/<addon>/recipes/*.yml`. The recipes now travel with each addon's
-CraftEngine pack, at `plugins/CraftEngine/resources/<addon>/configuration/farmersdelight/`, under the
-`cooking_recipes`, `cutting_recipes` and `special_recipes` root keys. Ids and entry fields are unchanged; what
-changed is where they live and how they take effect:
-
-- The old `plugins/<addon>/recipes/{cooking_pot_recipes,cutting_board_recipes,special_recipes}.yml` files are
-  **no longer read** and can be deleted. If you edited one, move those edits into the pack directory above and
-  run `/ce reload all` (or restart). Upgrading releases the new pack files automatically; an existing file of
-  the same name is never overwritten.
-- Editing these recipes takes `/ce reload all` (or a restart) instead of `/fd reload`: CraftEngine reads pack
-  content while it loads packs.
-- Each addon's own recipes (Brewin' And Chewin's keg fermenting and pouring, BarbequesDelight's grilling and
-  skewering) moved into its pack too, at
-  `plugins/CraftEngine/resources/<addon>/configuration/recipes/`. They keep one extra layer:
-  `plugins/<addon>/recipes/<same file>.yml` is **still read on top** and wins for the ids it defines — that is
-  the file Brewin' And Chewin's in-game keg recipe editor writes. So the old file may stay as an override layer
-  (identical to the shipped defaults, so nothing changes) or be deleted in favour of the pack copy; editing the
-  pack copy takes `/ce reload all` as well.
-
-### Loot-injection datapack
-
-Installed into each world on first enable and then left alone — your later edits to the datapack files survive
-plugin updates. See [First config](first-config.md).
+Upgrading removes the old FarmersDelight loot data pack from each world — its damage-type files are carried
+over to the damage data pack first, so nothing is lost. Loot injection is now CraftEngine pack data: edit
+`vanilla_loots.yml` in the FarmersDelight pack and run `/ce reload all`. See [First config](first-config.md).
 
 ## Upgrade checklist
 

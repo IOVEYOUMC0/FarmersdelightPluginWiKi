@@ -8,7 +8,7 @@ icon: circle-play
 
 FarmersDelight 是基于 CraftEngine 的 Paper / Folia 插件。附属（addon）是**一个独立的 Bukkit 插件**，与 FarmersDelight 跑在同一个 JVM 里，硬依赖 FarmersDelight，并在进程内直接调用它的 Java API。这里没有任何 网络协议，也没有命令桥接——你编译时链接一个 jar，运行时直接调方法。
 
-本页讲的是构建配置、plugin.yml 的写法、`onEnable` 里该做什么，以及每个附属都应当装上的生命周期保护。
+本页讲的是构建配置、清单文件（`paper-plugin.yml`）的写法、`onEnable` 里该做什么，以及每个附属都应当装上的生命周期保护。
 
 ## 只有 `com.huidu.farmersdelight.api.**` 是稳定接口
 
@@ -117,27 +117,38 @@ gradle.beforeProject {
 
 附属都用 Java 21 和 `options.release.set(21)`，它们的 `compileOnly` CraftEngine 产物照旧从 Maven 取。
 
-## plugin.yml
+## paper-plugin.yml
 
-要写 `depend`，不要写 `softdepend`。你的 `onEnable` 跑起来时，CraftEngine 必须已经定义好物品和方块， FarmersDelight 也必须已经建好 api 背后的各项服务：
+把 CraftEngine 和 FarmersDelight 声明为必需的服务器依赖，而不是写 `depend` / `softdepend`。你的 `onEnable` 跑起来时，CraftEngine 必须已经定义好物品和方块，FarmersDelight 也必须已经建好 api 背后的各项服务：
 
 ```yaml
 name: FDAddonTemplate
 version: '${version}'
 main: com.example.fdaddon.FDAddonTemplate
-api-version: '1.21'
+api-version: '1.21.5'
 folia-supported: true
 description: Example addon template for the FarmersDelight (CraftEngine) plugin.
 authors:
   - YourName
-depend: [CraftEngine, FarmersDelight]
+
+dependencies:
+  server:
+    CraftEngine:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    FarmersDelight:
+      load: BEFORE
+      required: true
+      join-classpath: true
 ```
+
+`join-classpath: true` 表示你的插件自己解析该依赖的类（直接 import、`Class.forName`，或某个内置桥接代你这么做）。可选联动写在同一段里，用 `required: false`——BrewinAndChewin 就是这样写 `BreweryX` 的。
 
 关于这份文件，几点都来自正在跑的附属：
 
-* `folia-supported: true`：api 的调度封装本身是 Folia 感知的，所以把世界访问都走这些封装的附属，可以名正 言顺地声明支持 Folia。
-* FDAddonTemplate 和 BrewinAndChewin 都**没有自己的命令**。重载由 FarmersDelight 驱动（`/fd reload all`）， 配方浏览也由它负责（`/fd recipe book`）。
-* 可选联动写进 `softdepend`（BrewinAndChewin 在这里写了 `BreweryX`）。
+* `folia-supported: true`：api 的调度封装本身是 Folia 感知的，所以把世界访问都走这些封装的附属，可以名正言顺地声明支持 Folia。
+* FDAddonTemplate 和 BrewinAndChewin 都**没有自己的命令**。重载由 FarmersDelight 驱动（`/fd reload all`），配方浏览也由它负责（`/fd recipe book`）。
 
 ## onLoad
 
@@ -175,10 +186,10 @@ public void onEnable() {
     // Count this addon's CraftEngine blocks in FarmersDelight's block-state usage report.
     FarmersDelightApi.get().registerAddonBlockNamespace("fdaddon");
 
-    // Recipe types, recipes, buffs, listeners ... (see the other pages)
+    // Recipe types, buffs, listeners ... (see the other pages). Recipes that must be resolved at runtime
+    // are registered from a FarmersDelightWarmupEvent handler, not here.
     FarmersDelightApi.get().registerRecipeType(new ExampleRecipeType());
     getServer().getPluginManager().registerEvents(new ExampleReloadListener(this), this);
-    registerRecipes();
 
     // Folia-safe repeating task; keep the handle so onDisable can cancel it.
     heartbeat = FarmersDelightApi.get().runRepeating(this::onHeartbeat, 20L, 20L * 60L);
@@ -193,7 +204,7 @@ public void onEnable() {
 
 ### 配方要等 CraftEngine 的物品就绪
 
-CraftEngine 的物品是延迟加载的，在那一轮加载跑完之前，`FarmersDelightItems.create(...)` 会返回 `null`， 所以配方注册不能只在 enable 时跑一次。两个正式附属都注册两处：`onEnable` 里跑一次（覆盖 CraftEngine 先 加载完的情况），再由监听器在 CraftEngine 的 `CraftEngineReloadEvent` 里跑一次。同一个监听器也顺手接上 FarmersDelight 的 `FarmersDelightReloadEvent`，这样一条 `/fd reload all` 就能把附属一起同步：
+CraftEngine 的物品是延迟加载的，在那一轮加载跑完之前，`FarmersDelightItems.create(...)` 会返回 `null`，所以运行时注册的配方不能在 enable 时跑。改由监听 FarmersDelight 的 `FarmersDelightWarmupEvent` 来注册：它在 CraftEngine 建好物品后触发一次，首次启动与每次 `/ce reload` 之后都会再触发。**不要**用 CraftEngine 自己的重载事件——它在 CE 物品建好之前就触发，引用自定义物品的配方会被静默丢弃。同一个监听器也顺手接上 FarmersDelight 的 `FarmersDelightReloadEvent`，这样一条 `/fd reload all` 就能把附属一起同步：
 
 ```java
 public final class ExampleReloadListener implements Listener {
@@ -210,8 +221,8 @@ public final class ExampleReloadListener implements Listener {
     }
 
     @EventHandler
-    public void onCraftEngineReload(CraftEngineReloadEvent event) {
-        plugin.registerRecipes();
+    public void onFarmersDelightWarmup(FarmersDelightWarmupEvent event) {
+        // CraftEngine items are built now: register runtime recipes and anything else that resolves them.
     }
 }
 ```
@@ -268,7 +279,7 @@ public void onEnable() {
 
 ### 2. `PluginManagerGuard`：拒绝 PlugMan 一类的命令
 
-`com.huidu.farmersdelight.api.util.PluginManagerGuard` 是一个开箱即用的 `Listener`，用你自己的插件名 （写在 `plugin.yml` 里的那个）构造。它的公开接口面就这些：
+`com.huidu.farmersdelight.api.util.PluginManagerGuard` 是一个开箱即用的 `Listener`，用你自己的插件名 （写在 `paper-plugin.yml` 里的那个）构造。它的公开接口面就这些：
 
 ```java
 public final class PluginManagerGuard implements Listener {

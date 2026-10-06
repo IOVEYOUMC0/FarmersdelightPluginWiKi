@@ -488,9 +488,9 @@ public final class DiscoveryToast implements Listener {
 两个触发点，且 reason 字符串不同：
 
 1. **`FarmersDelightPlugin.reloadAll()`** —— 在配置、配方、语言文件全部重读完成后触发，reason 为 `"reloadAll"`。
-2. **`FarmersDelightCommand.executeReload`** —— 为 `all` 之外的每个 `/fd reload <target>` 触发，reason 是规范 化后的 target：`"config"`、`"gui"`、`"lang"`、`"language"`、`"languages"`、`"recipes"`、`"recipe"`、 `"advancements"`、`"advancement"`。这里之所以跳过 `all`，正是因为 `reloadAll()` 已经触发过了。
+2. **`/fd reload <target>` 命令** —— 为 `all` 与 `recipes` 之外的每个目标触发，reason 是规范化后的 target： `"config"`、`"gui"`、`"lang"`、`"advancements"`、`"loot"`、`"enchant"`、`"damage"`、`"tags"`。这里之所以跳过 `all`，正是因为 `reloadAll()` 已经触发过了。
 
-所以：局部重载给你一个窄的 reason，全量重载给你 `"reloadAll"`，永远不会是 `"all"`。
+配方文件重载会单独触发 reason `"reloadRecipes"`。所以：局部重载给你一个窄的 reason，配方重载给你 `"reloadRecipes"`，全量重载给你 `"reloadAll"`，永远不会是 `"all"`。
 
 ### 携带的数据
 
@@ -500,7 +500,7 @@ public final class DiscoveryToast implements Listener {
 
 不可取消。到达的是执行重载的那条线程：对 `/fd reload` 而言就是命令线程，也就是主线程 / 全局线程。
 
-正是这个钩子让附属可以**完全不做自己的命令**——Brewin' And Chewin' 与 ExpandedDelight 都完全依赖它。注意：你 注册的配方在重载后会保留，但依赖 CraftEngine 物品的配方还应当在 CraftEngine 自己的 `CraftEngineReloadEvent` 上重新注册，因为 CE 物品只有在 CE 加载之后才能解析。
+正是这个钩子让附属可以**完全不做自己的命令**——Brewin' And Chewin' 与 ExpandedDelight 都完全依赖它。注意：你 注册的配方在重载后会保留，但依赖 CraftEngine 物品的配方必须改从 `FarmersDelightWarmupEvent` 注册——CE 物品只有在 CE 加载之后才能解析，而 CraftEngine 自己的重载事件触发得太早，会把它们静默丢弃。
 
 ### 示例
 

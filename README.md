@@ -15,7 +15,7 @@ FarmersDelight is a Paper/Folia plugin port of **Farmer's Delight**, powered by 
 
 ## Requirements
 
-- Paper or Folia 1.21.4 or newer
+- Paper or Folia 1.21.5 or newer
 - Java 21
 - CraftEngine 26.8.2
 

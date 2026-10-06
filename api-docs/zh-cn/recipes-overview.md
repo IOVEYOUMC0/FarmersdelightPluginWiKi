@@ -66,7 +66,7 @@ FarmersDelight 支持 Folia，线程归属是硬约束。
 
 `RecipeType` 在 `onEnable` 里注册即可。CraftEngine 内容未就绪时只保存类型，warmup 后统一建立结果索引。已注册类型随后替换配方集合时，调用 `refreshRecipeType(type.id())`；`findRecipesProducing(item)` 会直接从反向索引返回 FD 与附属的 `JumpTarget`，点击时不会遍历全部配方。
 
-厨锅和砧板配方不一样：它们的结果和容器是实打实的 `ItemStack`，必须等 CraftEngine 物品加载完才能注册。 FarmersDelight 自己也是把配方加载推迟到 `CraftEngineReloadEvent` 的，你也在同一个事件里注册，并在之后每次 CE 重载时重新注册。
+厨锅和砧板配方不一样：它们的结果和容器是实打实的 `ItemStack`，必须等 CraftEngine 物品加载完才能注册。请改从 FarmersDelight 的 `FarmersDelightWarmupEvent` 注册：它在 CE 建好物品后触发一次，每次 `/ce reload` 之后也会再触发；CraftEngine 自己的重载事件触发得太早，会把它们静默丢弃。
 
 在 `onDisable` 里反注册，免得 `/plugman` 之类的热卸载在书里留下一个死类型：
 

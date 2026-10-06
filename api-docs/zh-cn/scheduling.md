@@ -8,20 +8,17 @@ icon: square-kanban
 
 FarmersDelight 同时支持 Paper 与 Folia。它内部的调度适配层会判断当前服务端，并相应选择全局、区域或实体 调度器。`FarmersDelightApi` 上有三个方法把这套适配暴露给附属，而 `com.huidu.farmersdelight.api.scheduler.ApiTask` 是重复任务返回给你的句柄。
 
-用这些封装，附属才能在 `plugin.yml` 里写 `folia-supported: true` 而不必自己写一套 Folia 反射。对应的 feature id 是 `scheduler`。
+用这些封装，附属才能在 `paper-plugin.yml` 里写 `folia-supported: true` 而不必自己写一套 Folia 反射。对应的 feature id 是 `scheduler`。
 
-## 这几个调用不是「软空操作」——必须用 `isAvailable()` 把门
+## 这几个调用要用 `isAvailable()` 把门
 
-每个调度入口都是先取 `FarmersDelightPlugin.getInstance()`、只对**这个实例**判空，然后直接调 `plugin.scheduler()`。实例是在 FarmersDelight 的 `onLoad` 里赋上的，而 `SchedulerAdapter` 要到 `onEnable` 中段才构建，并在 `onDisable` 里被置回 `null`。只要那个字段是 `null`，`scheduler()` 就抛 `IllegalStateException("Scheduler is not available")`。
+每个调度入口都通过 `PluginAccess.pluginOrNull()` 取插件实例——它只在 FarmersDelight **已加载且已启用**时才返回实例——然后调 `plugin.scheduler()`。只要 `SchedulerAdapter` 字段是 `null`，`scheduler()` 就抛 `IllegalStateException("Scheduler is not available")`。
 
-也就是说，在「插件实例已存在、但适配层还不存在」的窗口里，`runAtLocation`、`runLaterAtLocation`、 `runRepeating`、`isFolia()` 和 `awardCraftingExperience` 会**直接抛异常——既不会空操作，也不会返回兜底值**。 两个具体窗口：
+正因为走的是这个查找，`runAtLocation`、`runLaterAtLocation`、`runRepeating`、`isFolia()` 和 `awardCraftingExperience` 在 FarmersDelight 不存在、enabled 标志尚未置位、以及 `onDisable` 把它清回 `false` 之后都是软空操作（`runRepeating` 返回 `ApiTask.NOOP`）——包括 `/reload` 守卫中止和整个禁用之后的时段。它们**唯一**会抛异常的窗口在 FarmersDelight 自己的 `onEnable` 内部：`enabled` 在靠前的位置置 `true`，比适配层的构建早几条语句，在这两点之间 `pluginOrNull()` 已经把实例交给你，而 `scheduler()` 仍然会抛。
 
-* FarmersDelight 的 `onLoad` 之后、`onEnable` 里构建适配层之前——其中也包括 FarmersDelight 自己的 `/reload` 守卫在适配层构建前就中止 `onEnable` 的情况；
-* FarmersDelight 的 `onDisable` 跑完之后，直到本次 JVM 会话结束。
+声明了必需依赖的附属在自己的 `onEnable` 里观察不到这个窗口——Bukkit 会先把 FarmersDelight 的 `onEnable` 跑完。只有 FarmersDelight enable **过程中**就会执行的代码才够得着，比如更早注册的某个监听器。真处在这种位置的话，把活挪到 `FarmersDelightWarmupEvent` 或 `FarmersDelightReloadEvent` 里做，别放在自己的 enable 里。
 
-每个方法内部那道判空只覆盖「FarmersDelight 根本没被加载」这一种情况。对附属来说，真正能堵住上面两个窗口的是 `isAvailable()`，因为它查的是 enabled 标志而不只是实例：`enabled` 是 `onDisable` 的第一条语句就置 `false` 的， 排在字段拆除之前；而在 `onLoad` 到 `onEnable` 之间的整段空档里它本来就是 `false`。下文各方法条目里写的 「FarmersDelight 未加载时是空操作」请按字面理解&#x4E3A;_&#x672A;加载_，而不&#x662F;_&#x672A;启用_。
-
-关于 `isAvailable()` 有一点得说清楚：`enabled` 是在 FarmersDelight `onEnable` 靠前的位置置 `true` 的，比适配层 的构建还早几条语句，所以在 FarmersDelight 自己启动的过程中，存在一小段 `isAvailable()` 已经为 `true`、而 `scheduler()` 仍会抛异常的区间。声明了 `depend: [FarmersDelight]` 的附属在自己的 `onEnable` 里观察不到它—— Bukkit 会先把 FarmersDelight 的 `onEnable` 跑完。只有在 FarmersDelight enable **过程中**就会执行的代码里才够 得着，比如更早注册的某个监听器。真处在这种位置的话，把活挪到 `FarmersDelightWarmupEvent` 或 `FarmersDelightReloadEvent` 里做，别放在自己的 enable 里。
+`isAvailable()` 查的是同一个 enabled 标志，用它把门就能让调用避开那个窗口。下文各方法条目里写的「FarmersDelight 未加载时是空操作」请按字面理解为*未加载或未启用*。
 
 ## `ApiTask`
 

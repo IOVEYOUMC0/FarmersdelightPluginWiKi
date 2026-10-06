@@ -102,9 +102,10 @@ cooking_recipes:
   time-based content, data another plugin feeds in).
 
 **When you do need runtime registration:** the result and container are `ItemStack`s, so CraftEngine items
-must already be loaded. FarmersDelight itself defers its recipe load to `CraftEngineReloadEvent`; do the same
-and re-register on every later CE reload. This is the shape of a hand-written registrar (BAC's cooking-pot
-recipes used to be read this way; they now live in its pack, so treat this as API usage only):
+must already be loaded. Register from FarmersDelight's `FarmersDelightWarmupEvent`, which fires once CE has
+built its items and again after every `/ce reload`. CraftEngine's own reload event fires too early — a recipe
+that names a custom item there is silently dropped. This is the shape of a hand-written registrar (BAC's
+cooking-pot recipes used to be read this way; they now live in its pack, so treat this as API usage only):
 
 ```java
 public final class ExampleCookingPotRecipes implements Listener {
@@ -113,7 +114,7 @@ public final class ExampleCookingPotRecipes implements Listener {
     private final Set<String> registeredIds = new LinkedHashSet<>();
 
     @EventHandler
-    public void onCraftEngineReload(CraftEngineReloadEvent event) {
+    public void onFarmersDelightWarmup(FarmersDelightWarmupEvent event) {
         register();
     }
 
@@ -138,7 +139,7 @@ public final class ExampleCookingPotRecipes implements Listener {
             }
             ItemStack result = ExampleItems.create(resultId);
             if (result == null) {
-                continue; // CraftEngine items not ready yet; a later CraftEngineReloadEvent retries.
+                continue; // CraftEngine items not ready yet; a later warmup retries.
             }
             result.setAmount(Math.max(1, section.getInt("result-count", 1)));
             String containerId = section.getString("container");
@@ -169,8 +170,8 @@ public final class ExampleCookingPotRecipes implements Listener {
 }
 ```
 
-Three things this pattern gets right and a naive one does not: it is **idempotent** (both `onEnable` and the
-startup `CraftEngineReloadEvent` may call it), it **skips** entries whose CraftEngine items are not loaded yet
+Three things this pattern gets right and a naive one does not: it is **idempotent** (both `onEnable` and
+`FarmersDelightWarmupEvent` may call it), it **skips** entries whose CraftEngine items are not loaded yet
 so a later reload can retry them, and it **unregisters** ids that vanished from the config instead of leaving
 orphans in the pot.
 

@@ -92,25 +92,11 @@ CrabbersDelight、BrewinAndChewin、BarbequesDelight 与 EndsDelight 的厨锅�
   **仍会被叠加读取**，同 id 以插件文件为准——游戏内的酒桶配方编辑器写的就是这个文件。所以旧文件可以留着当覆盖层
   （内容与数据包默认值相同，不会改变结果），也可以删掉改用数据包版本；改动数据包里的配方同样要 `/ce reload all`。
 
-### 附属的厨锅 / 砧板 / 特殊配方搬进了数据包
-
-CrabbersDelight、BrewinAndChewin、BarbequesDelight 与 EndsDelight 的厨锅、砧板与特殊配方不再放在
-`plugins/<附属>/recipes/*.yml`，而是随各自的数据包发布，位于
-`plugins/CraftEngine/resources/<附属>/configuration/farmersdelight/`，根键分别是 `cooking_recipes`、`cutting_recipes`、
-`special_recipes`。配方 id 与内容都没变，只是摆放位置和生效方式变了：
-
-- 旧文件 `plugins/<附属>/recipes/{cooking_pot_recipes,cutting_board_recipes,special_recipes}.yml` **不再被读取**，
-  可以删掉。若你在里面改过配方，先把改动搬到上面那个数据包目录，再 `/ce reload all`（或重启）。
-  升级时新文件会由插件自动释放；已存在的同名文件不会被覆盖。
-- 改这些配方要 `/ce reload all`（或重启），不再是 `/fd reload`：数据包内容由 CraftEngine 在加载数据包时读取。
-- 各附属自己的配方（Brewin' And Chewin 的酒桶发酵与倾倒、BarbequesDelight 的烧烤与串制）同样搬进了数据包，位置是
-  `plugins/CraftEngine/resources/<附属>/configuration/recipes/`。它们多了一层：`plugins/<附属>/recipes/<同名文件>.yml`
-  **仍会被叠加读取**，同 id 以插件文件为准——游戏内的酒桶配方编辑器写的就是这个文件。所以旧文件可以留着当覆盖层
-  （内容与数据包默认值相同，不会改变结果），也可以删掉改用数据包版本；改动数据包里的配方同样要 `/ce reload all`。
-
 ### 战利品注入数据包
 
-首次启用时装进每个世界，之后就不再动它——你后续对数据包文件的编辑会在插件更新后保留。见 [首要配置项](first-config.md)。
+升级时会把旧的 FarmersDelight 战利品数据包从每个世界移除——其中的伤害类型文件会先迁移到伤害数据包，不会丢失。
+战利品注入现在是 CraftEngine 资源包数据：编辑 FarmersDelight 包里的 `vanilla_loots.yml`，再执行 `/ce reload all`。
+见 [首要配置项](first-config.md)。
 
 ## 升级清单
 

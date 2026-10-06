@@ -23,7 +23,7 @@ CE YAML contains no comments. Edited files stay data only, and this page is the 
 reference. Do not use Bukkit `/reload`; it leaves CE registries and scheduled work in an undefined state.
 
 After `/ce reload`, cutting-board and skillet displays are rebuilt in small per-tick batches. Tune
-`performance.reload-visual-refreshes-per-tick` in `config.yml` if you need a slower or faster recovery pass;
+`performance.budgets.reload-visual-refreshes-per-tick` in `config.yml` if you need a slower or faster recovery pass;
 the default is 32 and it does not load chunks.
 
 ## Common block-list syntax

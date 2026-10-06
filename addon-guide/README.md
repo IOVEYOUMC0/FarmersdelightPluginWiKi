@@ -59,7 +59,6 @@ several lifecycle points:
 | ------ | ----------------------- |
 | **`onEnable`** | Load `config.yml` + language files, register its CraftEngine block behaviours and item functions (so the pack parses), register its **special-recipe cards**, mob-drop / knife-drop rules, and its Bukkit listeners. All of these resolve items lazily, so they are safe before CE finishes loading. |
 | **`FarmersDelightWarmupEvent`** | Fires once CraftEngine items are loaded (first boot, and again after every `/ce reload`). Addons register their **advancements** (icons resolve now) and their **cooking-pot / cutting-board recipes** into FarmersDelight here. |
-| **`CraftEngineReloadEvent`** | Re-registers recipes after a CraftEngine reload. |
 | **`FarmersDelightReloadEvent`** (`/fd reload all`) | Re-syncs the addon's config-driven state. |
 
 An addon that would otherwise register the same content both eagerly (at `onEnable`) and again on warmup
@@ -117,8 +116,9 @@ fluid → pour + ripening), the **ice crate**, and four custom drink effects.
   its tipsy amount into BreweryX's system.
 * **Cheese aging cards** — `flaxen_cheese_aging` / `scarlet_cheese_aging` appear in the recipe book.
 
-**Config (`config.yml`):** `coaster`, `keg`, `temperature`, `booze-effects`, `raging`, `sweet-heart`,
-`numbed-hearts`, `tipsy`, `bossbar`, `craftengine-resources`, `language`.
+**Config (`config.yml`):** `keg`, `temperature`, `booze-effects`, `raging`, `sweet-heart`,
+`numbed-hearts`, `tipsy`, `bossbar`, `performance`, `craftengine-resources`, `language`. The coaster has its
+own `coaster.yml`.
 
 ***
 
@@ -181,7 +181,7 @@ on-land effect), collectible **notes / message-in-a-bottle**, and cutting-board 
 * **Cards** — crab-trap loot (per bait), worm bin and tackle-box bait descriptions.
 
 **Config (`config.yml`):** `crab-trap`, `automatic-lure`, `barbed-lure`, `tackle-box`, `notes`,
-`fish-plaque`, `fishing-gear-enchants`, `craftengine-resources`, `language`. Villager and wandering
+`fishing-gear-enchants`, `craftengine-resources`, `language`. Villager and wandering
 trades live in the separate editable `trades.yml` file. This addon is not released yet, so no legacy
 configuration migration or backup is provided.
 
@@ -240,7 +240,7 @@ villager AI.
 | `language` | Language file VD reads for its own console messages (`lang/en_us.yml`, `lang/zh_cn.yml`). |
 | `debug` | Verbose console logging for the AI tweaks. |
 | `custom-crops.enabled` | Master switch for the CraftEngine crop support. |
-| `crops` | Each farmable crop → its `seed`, optional extra `soils`, `harvest-mode` (`break` / `pick` / `tall`), `water` fluid + `water-source-only`, and `plant-block`. |
+| `crops` | Each farmable crop → its `seed`, optional extra `soils`, `harvest-mode` (`break` / `pick` / `tall`), `water` fluid, and `plant-block`. |
 | `disabled-crops` | Blacklist layered on top of `crops`. |
 | `extra-soils` | Soils **every** listed crop may be planted on (vanilla farmland is always allowed). Ships with `farmersdelight:rich_soil_farmland`. |
 | `harvest-drops` | Per-crop drop list (`item:count`). |

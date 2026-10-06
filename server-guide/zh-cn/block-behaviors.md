@@ -21,7 +21,7 @@ FarmersDelight 在此基础上补足 CE 本身不提供的有状态玩法：工�
 CE YAML 有意保持无注释。将它当作纯数据文件，本页才是字段说明。不要使用 Bukkit 的 `/reload`；它会让 CE 注册表和已调度任务处于不确定状态。
 
 执行 `/ce reload` 后，砧板和煎锅显示会按每 tick 的小批次重建。若需要更慢或更快的恢复过程，可在 `config.yml` 调整
-`performance.reload-visual-refreshes-per-tick`；默认值为 32，且不会加载区块。
+`performance.budgets.reload-visual-refreshes-per-tick`；默认值为 32，且不会加载区块。
 
 ## 通用方块列表写法
 

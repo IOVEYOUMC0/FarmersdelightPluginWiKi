@@ -89,8 +89,9 @@ cooking_recipes:
   `advtag:<组>`。组在加载时展平；引用的组未知、被丢弃或为空时该配方加载失败，而不是静默地匹配不到任何东西。见[安装](../../server-guide/zh-cn/install.md)。
 - 只有配方需要**运行时**决定时才走下面的 Java 路径（读数据库、按玩家或时间变化、由别的插件在运行时喂数据）。
 
-**需要动态注册时**：结果和容器是 `ItemStack`，所以 CraftEngine 物品必须已经加载完。FarmersDelight 自己也是把配方加载推迟到
-`CraftEngineReloadEvent` 的，你照做，并在之后每次 CE 重载时重新注册。下面是手写注册器的骨架（BAC 的厨锅配方过去就是这么读的，
+**需要动态注册时**：结果和容器是 `ItemStack`，所以 CraftEngine 物品必须已经加载完。改从 FarmersDelight 的
+`FarmersDelightWarmupEvent` 注册：它在 CE 建好物品后触发一次，每次 `/ce reload` 之后也会再触发。CraftEngine 自己的重载
+事件触发得太早，在那里注册的配方一旦引用自定义物品就会被静默丢弃。下面是手写注册器的骨架（BAC 的厨锅配方过去就是这么读的，
 现在它们在数据包里，这段仅作 API 用法示例）：
 
 ```java
@@ -100,7 +101,7 @@ public final class ExampleCookingPotRecipes implements Listener {
     private final Set<String> registeredIds = new LinkedHashSet<>();
 
     @EventHandler
-    public void onCraftEngineReload(CraftEngineReloadEvent event) {
+    public void onFarmersDelightWarmup(FarmersDelightWarmupEvent event) {
         register();
     }
 
@@ -125,7 +126,7 @@ public final class ExampleCookingPotRecipes implements Listener {
             }
             ItemStack result = ExampleItems.create(resultId);
             if (result == null) {
-                continue; // CraftEngine items not ready yet; a later CraftEngineReloadEvent retries.
+                continue; // CraftEngine items not ready yet; a later warmup retries.
             }
             result.setAmount(Math.max(1, section.getInt("result-count", 1)));
             String containerId = section.getString("container");
@@ -156,7 +157,7 @@ public final class ExampleCookingPotRecipes implements Listener {
 }
 ```
 
-这个骨架比朴素写法多做对了三件事：它是**幂等的**（`onEnable` 和启动时的 `CraftEngineReloadEvent` 都可能调到它）；它会
+这个骨架比朴素写法多做对了三件事：它是**幂等的**（`onEnable` 和 `FarmersDelightWarmupEvent` 都可能调到它）；它会
 **跳过**那些 CraftEngine 物品还没加载好的条目，留给后续重载重试；它还会**反注册**配置里已经消失的 id，而不是在锅里留下一堆
 孤儿配方。
 

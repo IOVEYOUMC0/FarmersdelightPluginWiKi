@@ -29,7 +29,7 @@ if (!FarmersDelightApi.get().isAvailable()) {
 }
 ```
 
-BrewinAndChewin **没有**这么做——它的 `onEnable` 从 `/reload` 守卫经 `saveDefaultConfig()` 和自己的配置 bootstrap，直接走到 `registerAddonBlockNamespace("brewinandchewin")`，整个方法里没有任何 `isAvailable()` 关卡。它靠的是 `plugin.yml` 里的 `depend: [CraftEngine, FarmersDelight]` 来保证加载顺序，`api.isAvailable()` 只在一个运行期站点（`CoasterManager`）出现，不在启动路径上。这里请照模板抄，不要照 BrewinAndChewin 抄：硬 `depend` 只能保证 FarmersDelight **先被 enable**，保证不了它 enable **成功**。
+BrewinAndChewin 也这么做：它的 `onEnable` 先过自己的热重载守卫，然后立刻用 `isAvailable()` 把关，检查不过就 `disablePlugin(this)`——半启用的附属比直接禁用更糟。必需依赖只能保证 FarmersDelight **先被加载**，保证不了它 enable **成功**，这正是这道关卡存在的理由。依赖写在 `paper-plugin.yml` 的 `dependencies.server` 下（`CraftEngine` 与 `FarmersDelight`，都是 `required: true`），不使用 `depend` / `softdepend`。
 
 有些 api 方法内部已经会在它为 false 时静默返回（`registerCookingPotRecipe`、`registerCuttingBoardRecipe`、 `createItemDisplay` 等自己就查），但这个检查很便宜，而静默失败比显式提前返回糟糕得多。另一些——所有调度类 入口——不是静默返回而是**抛异常**，见调度页。
 
@@ -37,7 +37,9 @@ BrewinAndChewin **没有**这么做——它的 `onEnable` 从 `/reload` 守卫�
 
 当 FarmersDelight 的调度适配层判定当前是 Folia 服务端时返回 true。只有在你确实需要按线程模型分支时才用它 ——调度封装本身在两种服务端上都会做正确的事。
 
-**它未必返回 `false`，也可能抛异常。** 实现是 `plugin != null && plugin.scheduler().isFolia()`：判空只判了 `FarmersDelightPlugin.getInstance()`，没有判 调度适配层。而 `FarmersDelightPlugin.scheduler()` 在适配层字段为 `null` 时抛 `IllegalStateException("Scheduler is not available")`。实例是在 `onLoad` 里赋的，适配层要到 `onEnable` 中段 才构建，并在 `onDisable` 里被置回 `null`——所以在这两个窗口里，`isFolia()` 抛异常而不是返回 `false`。 `runAtLocation`、`runLaterAtLocation`、`runRepeating` 和 `awardCraftingExperience` 是同一个陷阱，它们的判空 也都只判实例。先用 `isAvailable()` 把门（它查的是 enabled 标志），这几个方法就都安全。
+**它可能在 FarmersDelight 自己启动的过程中抛异常。** 实现是 `plugin != null && plugin.scheduler().isFolia()`，其中 `plugin` 取自 `PluginAccess.pluginOrNull()`。只要适配层字段是 `null`，`scheduler()` 就抛 `IllegalStateException("Scheduler is not available")`。`pluginOrNull()` 只在 FarmersDelight **已加载且已启用**时才返回实例：enabled 标志在 `onEnable` 靠前的位置置 `true`，比适配层的构建早几条语句，并在 `onDisable` 里被置回 `false`。所以 `isFolia()` 唯一会抛异常的窗口就在 `onEnable` **内部**、`enabled = true` 与适配层构建之间。`/reload` 守卫中止会在置 `true` 之前返回，`onDisable` 之后该标志已经是 `false`，这两种情况下它都返回 `false` 而不是抛异常。
+
+`runAtLocation`、`runLaterAtLocation`、`runRepeating` 和 `awardCraftingExperience` 走同一个 `pluginOrNull()` 查找：在 FarmersDelight 不存在、尚未启用或已经禁用时都是软空操作（`runRepeating` 返回 `ApiTask.NOOP`）。只有 `enabled = true` 到适配层构建之间那个窗口会抛异常，而声明了必需依赖的附属在自己的 `onEnable` 里观察不到它。调用前仍然用 `isAvailable()` 把门。
 
 ## 给接口本身做版本
 

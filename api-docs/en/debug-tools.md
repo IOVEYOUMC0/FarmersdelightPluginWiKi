@@ -127,20 +127,16 @@ lowercases it on registration, so return it already lowercase to avoid surprises
 Called for `/fd debugtools place <name> [count] [spacing] [layers]` when `<name>` is not one of
 FarmersDelight's built-in targets. Return how many blocks actually went into the world.
 
-What the command has already done to the arguments before you see them:
+The command lays out the grid itself and calls `place(...)` once per prepared cell, so every call receives:
 
-- `count` is `max(1, requested)`, defaulting to 64.
-- `spacing` is clamped to the range 1..16, defaulting to 1.
-- `layers` is `max(1, requested)`, defaulting to 1.
-- `origin` is the player's location, normalized to block coordinates.
-- An undo batch has been opened, so every `undo.capture(...)` you make joins it.
+- `count`, `spacing` and `layers` all equal to `1` for that cell;
+- `origin` one block **below** the prepared cell — fill `origin` raised by one on Y;
+- an undo batch already open, so every `undo.capture(...)` you make joins it.
 
-**Important:** FarmersDelight's own `max-place-count` cap is applied to its built-in targets, but the
-extension path passes you the clamped `count`, `spacing` and `layers` directly — the cap is *not* applied on
-your behalf. Bound your own placement, or an admin typing a large count gets exactly what they asked for.
-
-The placement pattern is your choice. Both shipped implementations use `grid = ceil(sqrt(count))` with
-`spacing` between cells and `layers` stacked on Y, which is what the built-ins do too.
+The grid comes from the admin's `count` / `spacing` / `layers` arguments, and the number of prepared cells is
+capped by `max-place-count`, so one command can never ask you for more blocks than that. The cell is empty and
+editable, and a capture aimed at anything else is rejected. Fill the cell, return how many blocks actually went
+into the world, and the placement pattern inside it is yours to decide.
 
 Call `undo.capture(loc)` **before** mutating each target block. `UndoSink` is a functional interface with a
 single `capture(Location)`; FarmersDelight snapshots the block state at that location into the current undo

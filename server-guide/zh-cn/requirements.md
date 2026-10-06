@@ -14,20 +14,22 @@ Folia 感知的封装。
 | 要求 | 取值 |
 | --- | --- |
 | 服务端 | Paper 或 Folia（或 Paper 分支：Purpur、Pufferfish、Leaf） |
-| Minecraft | **1.21.4 或更高**（1.21.x 线） |
-| `api-version` | `1.21.4` |
-| Java | **21 或更高** |
+| Minecraft | **1.21.5 或更高**（1.21.x 线） |
+| `api-version` | `1.21.5` |
+| Java | **21 或更高** —— 插件自身下限；MC 26.x 服务端需要 **Java 25** |
 
-插件针对 **Paper 1.21.4** 构建与测试，声明的 `api-version` 是 `1.21.4`，所以 1.21.4 是下限。更新的构建没问题；
-低于 1.21.4 不支持——插件用到了 Paper 1.21.4 才加入的 item_model 与数据组件 API。
+构建使用 Paper **1.21.5** API 编译，插件声明的 `api-version` 是 `1.21.5`，所以 1.21.5 是下限。更新的构建没问题；
+低于 1.21.5 不支持。
 
-Java 21 是硬要求——jar 编译到 Java 21 字节码级别，旧版 JRE 加载不了。用 CraftEngine 和现代 Paper 本来就需要的那套
-Java 21+ 运行时即可。
+Java 21 是插件本身的硬要求——jar 编译到 Java 21 字节码级别，旧版 JRE 加载不了。用 CraftEngine 和现代 Paper 本来就
+需要的那套 Java 21+ 运行时即可。注意 Paper 要求 MC 26.x 服务端使用 **Java 25**，会直接拒绝 Java 21，所以这类服务端
+请用 Java 25 运行。
 
 ## CraftEngine 是硬依赖
 
 FarmersDelight 是一个 **CraftEngine 移植**。它提供的每个方块、物品、配方、模型都是以 CraftEngine 内容形式定义的。
-`plugin.yml` 的 `depend:` 里列了 CraftEngine，这意味着：
+`paper-plugin.yml` 的 `dependencies.server` 里列了 CraftEngine（`required: true`、`load: AFTER`、
+`join-classpath: true`，即本插件直接解析它的类），这意味着：
 
 - 必须安装 CraftEngine，否则 FarmersDelight 根本不会启用；
 - 服务端会**自动**在 FarmersDelight 之前加载 CraftEngine——加载顺序不需要你操心；
@@ -39,7 +41,7 @@ FarmersDelight 是一个 **CraftEngine 移植**。它提供的每个方块、物
   （187 个类、595 个成员，无一缺失，也没有未实现的接口方法），配方/进度/数据包段落数量与启动日志逐项相同。
 - 核对的边界：上面是**链接层**（类与方法是否都在）加启动结果的核对，客户端表现没有在 26.8.2/26.9 上逐项实机验证；
   更旧的 26.8 及以前也没有核对过。
-- Minecraft 26.3 目前不可用：CraftEngine 26.9.1 在 26.3 上注入方块即失败并直接关服，等 CraftEngine 支持后再说。
+- 随包配置已带上 Minecraft 26.3 及以上的世界生成定义，但 26.3 上的实机行为尚未在真实服务端重新核对；把 26.3 视为待验证，而不是不支持。
 
 ## 可选集成（软依赖）
 

@@ -6,7 +6,7 @@ FarmersDelight is a Paper/Folia plugin built on CraftEngine. An addon is a **sep
 runs in the same JVM, declares FarmersDelight as a hard dependency, and calls into FarmersDelight's Java API
 in process. There is no network protocol and no command bridge — you compile against a jar and call methods.
 
-This page covers the build wiring, the plugin.yml contract, what belongs in `onEnable`, and the lifecycle
+This page covers the build wiring, the manifest contract, what belongs in `onEnable`, and the lifecycle
 guards every addon is expected to install.
 
 ## Only `com.huidu.farmersdelight.api.**` is stable
@@ -126,22 +126,37 @@ back in. An addon with tests adds the same coordinate to `testImplementation` as
 Addons target Java 21 and `options.release.set(21)`, and their `compileOnly` CraftEngine artifacts come from
 Maven as before.
 
-## plugin.yml
+## paper-plugin.yml
 
-Use `depend`, not `softdepend`. CraftEngine must have defined its items/blocks and FarmersDelight must have
-built its api-backed services before your `onEnable` runs:
+Declare CraftEngine and FarmersDelight as required server dependencies — not as `depend`/`softdepend`.
+CraftEngine must have defined its items/blocks and FarmersDelight must have built its api-backed services
+before your `onEnable` runs:
 
 ```yaml
 name: FDAddonTemplate
 version: '${version}'
 main: com.example.fdaddon.FDAddonTemplate
-api-version: '1.21'
+api-version: '1.21.5'
 folia-supported: true
 description: Example addon template for the FarmersDelight (CraftEngine) plugin.
 authors:
   - YourName
-depend: [CraftEngine, FarmersDelight]
+
+dependencies:
+  server:
+    CraftEngine:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    FarmersDelight:
+      load: BEFORE
+      required: true
+      join-classpath: true
 ```
+
+`join-classpath: true` means your plugin resolves the dependency's classes itself (direct imports,
+`Class.forName`, or a bundled bridge doing so on its behalf). Optional integrations use the same section with
+`required: false` — BrewinAndChewin lists `BreweryX` that way.
 
 Notes on this file, all taken from the shipping addons:
 
@@ -149,7 +164,6 @@ Notes on this file, all taken from the shipping addons:
   access through them can honestly claim Folia support.
 - Neither FDAddonTemplate nor BrewinAndChewin registers a command of its own. FarmersDelight drives reloads
   (`/fd reload all`) and recipe browsing (`/fd recipe book`) for registered addons.
-- Optional integrations go in `softdepend` (BrewinAndChewin lists `BreweryX` there).
 
 ## onLoad
 
@@ -189,10 +203,10 @@ public void onEnable() {
     // Count this addon's CraftEngine blocks in FarmersDelight's block-state usage report.
     FarmersDelightApi.get().registerAddonBlockNamespace("fdaddon");
 
-    // Recipe types, recipes, buffs, listeners ... (see the other pages)
+    // Recipe types, buffs, listeners ... (see the other pages). Recipes that must be resolved at runtime
+    // are registered from a FarmersDelightWarmupEvent handler, not here.
     FarmersDelightApi.get().registerRecipeType(new ExampleRecipeType());
     getServer().getPluginManager().registerEvents(new ExampleReloadListener(this), this);
-    registerRecipes();
 
     // Folia-safe repeating task; keep the handle so onDisable can cancel it.
     heartbeat = FarmersDelightApi.get().runRepeating(this::onHeartbeat, 20L, 20L * 60L);
@@ -208,10 +222,11 @@ public void onEnable() {
 ### Recipes must wait for CraftEngine items
 
 `FarmersDelightItems.create(...)` returns `null` while CraftEngine has not finished its deferred item-load
-pass, so recipe registration cannot simply run once at enable. Both real addons register in two places: once
-during `onEnable` (covers the case where CraftEngine finished first) and again from a listener on
-CraftEngine's `CraftEngineReloadEvent`. The same listener handles FarmersDelight's `FarmersDelightReloadEvent`
-so `/fd reload all` re-syncs the addon:
+pass, so runtime recipe registration cannot run at enable. Register it from a listener on FarmersDelight's
+`FarmersDelightWarmupEvent`, which fires once CraftEngine has built its items — on the first boot and again
+after every `/ce reload`. Do **not** use CraftEngine's own reload event: it fires before CE's items are built,
+so any recipe naming a custom item is silently dropped. The same listener handles FarmersDelight's
+`FarmersDelightReloadEvent` so `/fd reload all` re-syncs the addon:
 
 ```java
 public final class ExampleReloadListener implements Listener {
@@ -228,8 +243,8 @@ public final class ExampleReloadListener implements Listener {
     }
 
     @EventHandler
-    public void onCraftEngineReload(CraftEngineReloadEvent event) {
-        plugin.registerRecipes();
+    public void onFarmersDelightWarmup(FarmersDelightWarmupEvent event) {
+        // CraftEngine items are built now: register runtime recipes and anything else that resolves them.
     }
 }
 ```
@@ -295,7 +310,7 @@ is exactly why this guard is needed in addition to the next one.
 ### 2. `PluginManagerGuard` — refuse PlugMan-style commands
 
 `com.huidu.farmersdelight.api.util.PluginManagerGuard` is a ready-made `Listener` you register with your own
-plugin name (as it appears in `plugin.yml`). The whole public surface:
+plugin name (as it appears in `paper-plugin.yml`). The whole public surface:
 
 ```java
 public final class PluginManagerGuard implements Listener {

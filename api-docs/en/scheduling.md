@@ -7,37 +7,30 @@ on and picks the global, region or entity scheduler accordingly. Three methods o
 that adapter to addons, and `com.huidu.farmersdelight.api.scheduler.ApiTask` is the handle you get back for
 the repeating one.
 
-Using these helpers is what lets an addon put `folia-supported: true` in its `plugin.yml` without writing its
+Using these helpers is what lets an addon put `folia-supported: true` in its `paper-plugin.yml` without writing its
 own Folia reflection. The feature id is `scheduler`.
 
-## These calls are not soft no-ops — gate them on `isAvailable()`
+## Gate these calls on `isAvailable()`
 
-Every scheduling entry point resolves `FarmersDelightPlugin.getInstance()`, null-checks **that**, and then
-calls `plugin.scheduler()`. The instance is assigned in FarmersDelight's `onLoad`; the `SchedulerAdapter` is
-built partway through `onEnable` and set back to `null` during `onDisable`. `scheduler()` throws
-`IllegalStateException("Scheduler is not available")` whenever that field is `null`.
+Every scheduling entry point resolves the plugin through `PluginAccess.pluginOrNull()` — which returns the
+instance only while FarmersDelight is loaded **and** enabled — and then calls `plugin.scheduler()`. `scheduler()`
+throws `IllegalStateException("Scheduler is not available")` whenever the `SchedulerAdapter` field is `null`.
 
-So in the window where the plugin instance exists but the adapter does not, `runAtLocation`,
-`runLaterAtLocation`, `runRepeating`, `isFolia()` and `awardCraftingExperience` **throw — they do not
-no-op and they do not return a fallback**. Two concrete windows:
+Because of that lookup, `runAtLocation`, `runLaterAtLocation`, `runRepeating`, `isFolia()` and
+`awardCraftingExperience` are soft no-ops (`runRepeating` returns `ApiTask.NOOP`) while FarmersDelight is
+absent, before its enabled flag is set, and after `onDisable` clears it again — the `/reload`-guard abort and
+the whole post-disable period included. The **one** window where they throw instead is inside FarmersDelight's
+own `onEnable`: `enabled` is set `true` near the top, a few statements *before* the adapter is constructed, so
+between those two points `pluginOrNull()` already hands you the instance while `scheduler()` still throws.
 
-- between FarmersDelight's `onLoad` and the adapter's construction in `onEnable` — which includes the case
-  where FarmersDelight's own `/reload` guard aborts `onEnable` before the adapter is ever built;
-- after FarmersDelight's `onDisable` has run, for the rest of the JVM session.
+An addon that declares a required dependency cannot observe that window from its own `onEnable` — Bukkit
+finishes FarmersDelight's `onEnable` first. It is reachable only from something that runs *during*
+FarmersDelight's enable, such as a listener registered even earlier. If you are in that position, do the work
+from `FarmersDelightWarmupEvent` or `FarmersDelightReloadEvent` instead of from your own enable.
 
-The null-check inside each method only covers "FarmersDelight was never loaded at all". `isAvailable()` is the
-check that closes both windows for an addon, because it tests the enabled flag and not just the instance:
-`enabled` is set `false` as the very first statement of `onDisable`, ahead of the field teardown, and it is
-`false` for the whole `onLoad`-to-`onEnable` gap. The per-method notes below say "no-op when FarmersDelight is
-not loaded"; read that as *not loaded*, not as *not enabled*.
-
-One honest caveat on `isAvailable()`: `enabled` is set `true` near the top of FarmersDelight's `onEnable`, a
-few statements *before* the adapter is constructed, so there is a brief interval during FarmersDelight's own
-startup where `isAvailable()` is already `true` and `scheduler()` would still throw. An addon that declares
-`depend: [FarmersDelight]` cannot observe it from its own `onEnable` — Bukkit finishes FarmersDelight's
-`onEnable` first. It is reachable only from something that runs *during* FarmersDelight's enable, such as a
-listener registered even earlier. If you are in that position, do the work from
-`FarmersDelightWarmupEvent` or `FarmersDelightReloadEvent` instead of from your own enable.
+`isAvailable()` tests the same enabled flag, so gating on it keeps your calls out of the throwing window. The
+per-method notes below say "no-op when FarmersDelight is not loaded"; read that as *not loaded or not
+enabled*.
 
 ## `ApiTask`
 

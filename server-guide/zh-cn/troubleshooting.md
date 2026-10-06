@@ -41,8 +41,8 @@ debug:
 
 | 现象 | 可能原因 | 解决 |
 | --- | --- | --- |
-| FarmersDelight 从不启用，日志说缺依赖 | 没装 CraftEngine | 安装与服务器匹配的 CraftEngine **26.8.2 及以上**（26.8.2/26.9/26.9.1 已核对）；它是硬 `depend`。 |
-| 插件加载失败，报版本不支持 / 类错误 | 服务端低于 MC 1.21.4 或 Java 低于 21 | 用 **Paper/Folia 1.21.4+** 跑在 **Java 21+** 上。 |
+| FarmersDelight 从不启用，日志说缺依赖 | 没装 CraftEngine | 安装与服务器匹配的 CraftEngine **26.8.2 及以上**（26.8.2/26.9/26.9.1 已核对）；它是 `paper-plugin.yml` 里 `required: true` 的必需依赖。 |
+| 插件加载失败，报版本不支持 / 类错误 | 服务端低于 MC 1.21.5 或 Java 低于 21 | 用 **Paper/Folia 1.21.5+** 跑在 **Java 21+**；MC 26.x 服务端需要 **Java 25**。 |
 | 自定义物品 / 方块显示紫黑贴图 | 客户端没用上当前资源包 | 执行 **`/ce reload all`** 重建包（单独的 `/ce reload` 不会）；确认玩家接受了包。见 [资源包](resource-pack.md)。 |
 | 手持煎锅交互报 `ObfuscatedItemModelProcessor` / `NoClassDefFoundError` | CraftEngine 26.9.1 不再提供旧的客户端模型处理器 | 更新到本次 FarmersDelight 构建后完整重启；插件会回退服务端物品模型并只记录一次警告，再执行 **`/ce reload all`** 重建资源包。 |
 | `/ce item give ... farmersdelight:cooking_pot` 报未知物品 | CraftEngine 内容没解析 | 查控制台有无 CraftEngine 行为报错（[确认行为已加载](verifying.md)）；修好点名的方块配置；`/ce reload`。 |
@@ -62,7 +62,7 @@ debug:
 
 关闭 `skillet.handheld.progress-display.enabled` 后，外观不变时不再周期构建和发送显示副本，原版库存同步仍保留烹饪外观。关闭 `skillet.handheld.enabled` 停止手持烹饪，也会跳过后续自动模型生成。
 
-放置煎锅默认每 4 tick 最多轮询 512 个已记录的锅；超过 `skillet.tick-budget` 会延后处理，烹饪也可能变慢。烟雾和声音先判定是否触发，再查询区块观察者；默认概率下约 87.3% 的轮次可跳过查询。`performance.chunk-effect-packet-budget` 限制的是每区块每 tick 的特效广播次数，每次仍会发送给范围内的多名玩家，不能把它视为总网络包上限。密集烹饪区可降低 `skillet.effects.viewer-distance`、特效概率或关闭特效，再通过采样确认收益。
+放置煎锅默认每 4 tick 最多轮询 512 个已记录的锅；超过 `skillet.tick-budget` 会延后处理，烹饪也可能变慢。烟雾和声音先判定是否触发，再查询区块观察者；默认概率下约 87.3% 的轮次可跳过查询。`performance.budgets.chunk-effect-packet-budget` 限制的是每区块每 tick 的特效广播次数，每次仍会发送给范围内的多名玩家，不能把它视为总网络包上限。密集烹饪区可降低 `skillet.effects.viewer-distance`、特效概率或关闭特效，再通过采样确认收益。
 
 ## 按功能采样性能
 
@@ -83,7 +83,7 @@ debug:
 
 功能计时在实际执行线程上进行，统计在采样窗口内开始并完成的调用，包含被调用逻辑；`handheld_display` 可能已计入 `handheld`，各行不能相加。厨锅调度轮次在 Paper 上包含同步更新，在 Folia 上主要包含调度提交，不能作为区域执行成本。纳秒计时测量的是经过时间，会受线程停顿影响；这些结果不是 CPU 占用、全服 MSPT 或总网络流量。需要调用栈、GC 和全服瓶颈时使用服务端已有的 spark。
 
-`-PdebugTools=true` 构建会额外生成 `farmersdelight-1.0.2-debug.jar`，包含 `/fd debugtools` 和 `/fd debug` 造景工具；普通包仍为 `farmersdelight-1.0.2.jar`。两者是同一个插件，只安装其中一个。
+`-PdebugTools=true` 构建会额外生成 `farmersdelight-<version>-debug.jar`，包含 `/fd debugtools` 和 `/fd debug` 造景工具；普通包仍为 `farmersdelight-<version>.jar`。两者是同一个插件，只安装其中一个。
 
 小规模手动测试可用 `/fd debugtools test cooking_pot 64 200`、`skillet`、`stove` 或 `all`。它在玩家附近分批创建测试工作站并自动采样；每批最多处理 16 个位置。用 `/fd debugtools undo` 清理，或用 `/fd debugtools stop` 停止尚未完成的批次。手持路径使用 `/fd debugtools test handheld 1 200`，需要主手煎锅、副手可烹饪食材和附近热源；它使用玩家当前物品，不替换背包内容。
 

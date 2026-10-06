@@ -77,16 +77,22 @@ Wiki（以及开发者文档的 *配方发现* 页）。
 
 > 配方的解锁进度以**配方 id** 为键。重命名配方 id 会重置它的发现进度。见 [迁移与升级](migration.md)。
 
-## 原版战利品注入
+## 随包安装的数据包
 
 ```yaml
-loot-injection:
+datapacks:
+  tags-enabled: true
+enchantments:
+  install-datapack: true
+damage-type:
   install-datapack: true
 ```
 
-首次启用时，FarmersDelight 会安装一个数据包，把它的物品注入原版的箱子 / 生物 / 草丛战利品表。如果你自己或用别的插件
-管理战利品表，设为 `false`。数据包需要重启（或对数据包执行 `/reload`）才生效，而且你后续对数据包文件的改动会在插件更新
-后保留。
+`datapacks.tags-enabled` 会把通用物品标签写进主世界的 `datapacks/` 目录，并共享给所有世界；
+`enchantments.install-datapack` 安装背刺附魔，`damage-type.install-datapack` 安装炉灶灼烧伤害类型。注册表数据只在
+启动时读取一次，所以改动需要重启服务器；`/fd reload enchant` 与 `/fd reload damage` 可重新安装这两个数据包。你
+对已安装文件的改动会在插件更新后保留。战利品注入不再是一个开关——它是 FarmersDelight 的 CraftEngine 资源包内容的
+一部分，编辑 `vanilla_loots.yml` 后执行 `/ce reload all`。
 
 ## 进度
 

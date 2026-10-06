@@ -84,17 +84,23 @@ affects the book display; it never blocks crafting at a station. `locked-display
 > Recipe unlock progress is keyed by **recipe id**. Renaming a recipe id resets discovery for it. See
 > [Migration & upgrades](migration.md).
 
-## Vanilla loot injection
+## Data packs shipped with the plugin
 
 ```yaml
-loot-injection:
+datapacks:
+  tags-enabled: true
+enchantments:
+  install-datapack: true
+damage-type:
   install-datapack: true
 ```
 
-On first enable, FarmersDelight installs a datapack that injects its items into vanilla chest / mob / grass
-loot tables. Set to `false` if you manage loot tables yourself or with another plugin. The datapack needs a
-restart (or `/reload` of data packs) to take effect, and your later edits to the datapack files are preserved
-across plugin updates.
+`datapacks.tags-enabled` writes the common-item tags into the primary world's `datapacks/` folder and shares
+them with every world; `enchantments.install-datapack` installs the backstabbing enchantment, and
+`damage-type.install-datapack` installs the stove-burn damage type. Registry data is read once at startup, so
+a change needs a server restart; `/fd reload enchant` and `/fd reload damage` reinstall the two packs. Admin
+edits to already-installed files survive plugin updates. Loot injection is no longer a switch — it is part of
+the FarmersDelight CraftEngine pack, so edit `vanilla_loots.yml` and run `/ce reload all`.
 
 ## Advancements
 

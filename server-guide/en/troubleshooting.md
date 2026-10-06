@@ -45,8 +45,8 @@ surfaces it without turning debug on.
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
-| FarmersDelight never enables; log says a dependency is missing | CraftEngine not installed | Install a server-compatible CraftEngine **26.8.2 or newer** (26.8.2/26.9/26.9.1 verified); it is a hard `depend`. |
-| Plugin fails to load with an unsupported-version / class error | Server below MC 1.21.4 or Java below 21 | Run **Paper/Folia 1.21.4+** on **Java 21+**. |
+| FarmersDelight never enables; log says a dependency is missing | CraftEngine not installed | Install a server-compatible CraftEngine **26.8.2 or newer** (26.8.2/26.9/26.9.1 verified); it is a required dependency (`required: true` in `paper-plugin.yml`). |
+| Plugin fails to load with an unsupported-version / class error | Server below MC 1.21.5 or Java below 21 | Run **Paper/Folia 1.21.5+** on **Java 21+**; a Minecraft 26.x server requires **Java 25**. |
 | Custom items/blocks show purple-and-black textures | Client not using the current resource pack | Run **`/ce reload all`** to rebuild the pack (plain `/ce reload` won't); make sure the player accepted the pack. See [Resource pack](resource-pack.md). |
 | Handheld skillet interaction reports `ObfuscatedItemModelProcessor` / `NoClassDefFoundError` | CraftEngine 26.9.1 no longer ships the old client model processor | Install this FarmersDelight build and fully restart; the plugin falls back to the server-side item model and logs one warning, then run **`/ce reload all`** to rebuild the resource pack. |
 | `/ce item give ... farmersdelight:cooking_pot` says unknown item | CraftEngine content didn't parse | Check console for a CraftEngine behavior error ([Verifying](verifying.md)); fix the named block config; `/ce reload`. |
@@ -66,7 +66,7 @@ Handheld cooking checks only active cooking sessions and stops its timer when id
 
 Disabling `skillet.handheld.progress-display.enabled` stops periodic display construction and packets while the model stays unchanged; ordinary inventory sync still preserves the cooking appearance. Disabling `skillet.handheld.enabled` stops handheld cooking and skips subsequent automatic model generation.
 
-Placed skillets poll up to 512 tracked pans every 4 ticks by default. Exceeding `skillet.tick-budget` delays processing and may slow cooking. Smoke and sound are rolled before querying chunk viewers; the default probabilities skip this query on about 87.3% of polls. `performance.chunk-effect-packet-budget` caps effect broadcasts per chunk per tick; each broadcast still reaches multiple nearby players, so this is not a total network packet cap. For dense cooking areas, reduce `skillet.effects.viewer-distance`, lower effect probabilities, or disable effects, then measure the result with a profiler.
+Placed skillets poll up to 512 tracked pans every 4 ticks by default. Exceeding `skillet.tick-budget` delays processing and may slow cooking. Smoke and sound are rolled before querying chunk viewers; the default probabilities skip this query on about 87.3% of polls. `performance.budgets.chunk-effect-packet-budget` caps effect broadcasts per chunk per tick; each broadcast still reaches multiple nearby players, so this is not a total network packet cap. For dense cooking areas, reduce `skillet.effects.viewer-distance`, lower effect probabilities, or disable effects, then measure the result with a profiler.
 
 ## Profile individual features
 
@@ -87,7 +87,7 @@ Each feature retains the latest 4096 calls for percentiles; counts, totals and m
 
 Feature timing runs on the executing thread and counts calls that start and finish within the profile. Timings include callees: `handheld_display` may already be included in `handheld`, so rows are not additive. Pot dispatch passes include synchronous updates on Paper but mainly task submission on Folia. Elapsed-time measurements include thread pauses and are not CPU usage, server MSPT or total network traffic. Use the server's existing spark profiler for call stacks, GC and server-wide bottlenecks.
 
-Building with `-PdebugTools=true` produces `farmersdelight-1.0.2-debug.jar` with the `/fd debugtools` and `/fd debug` scene tools. Release builds produce `farmersdelight-1.0.2.jar`. These are the same plugin: install only one.
+Building with `-PdebugTools=true` produces `farmersdelight-<version>-debug.jar` with the `/fd debugtools` and `/fd debug` scene tools. Release builds produce `farmersdelight-<version>.jar`. These are the same plugin: install only one.
 
 For a small manual load, use `/fd debugtools test cooking_pot 64 200`, `skillet`, `stove` or `all`. It creates nearby test stations in slices and starts sampling; each slice handles at most 16 positions. Use `/fd debugtools undo` to clean up or `/fd debugtools stop` to stop an unfinished batch. Test the handheld path with `/fd debugtools test handheld 1 200`; hold a skillet, cookable food and stand near a heat source. It uses the current held items and does not replace the inventory.
 

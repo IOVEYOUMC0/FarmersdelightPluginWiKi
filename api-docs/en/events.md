@@ -593,12 +593,12 @@ Two fire sites, and the reason string differs between them:
 
 1. **`FarmersDelightPlugin.reloadAll()`** — fires with reason `"reloadAll"` after configs, recipes and language
    files have all been re-read.
-2. **`FarmersDelightCommand.executeReload`** — fires for every `/fd reload <target>` *except* `all`, with the
-   normalized target as the reason: `"config"`, `"gui"`, `"lang"`, `"language"`, `"languages"`, `"recipes"`,
-   `"recipe"`, `"advancements"`, `"advancement"`. The `all` target is skipped here precisely because
-   `reloadAll()` already fired it.
+2. **The `/fd reload <target>` command** — fires for every target *except* `all` and `recipes`, with the
+   normalized target as the reason: `"config"`, `"gui"`, `"lang"`, `"advancements"`, `"loot"`, `"enchant"`,
+   `"damage"` and `"tags"`. The `all` target is skipped here precisely because `reloadAll()` already fired it.
 
-So a partial reload gives you a narrow reason and a full reload gives you `"reloadAll"` — never `"all"`.
+A recipe-file reload fires its own reason, `"reloadRecipes"`. So a partial reload gives you a narrow reason, a
+recipe reload gives you `"reloadRecipes"`, and a full reload gives you `"reloadAll"` — never `"all"`.
 
 ### What it carries
 
@@ -611,8 +611,8 @@ the main/global thread.
 
 This is the hook that lets an addon ship **no command of its own** — both Brewin' And Chewin' and
 ExpandedDelight rely on it entirely. Note that recipes you registered survive a reload, but recipes that depend
-on CraftEngine items should also be re-registered on CraftEngine's own `CraftEngineReloadEvent`, since CE items
-only resolve after CE has loaded.
+on CraftEngine items must be registered from `FarmersDelightWarmupEvent` instead, since CE items only resolve
+after CE has loaded — CraftEngine's own reload event fires too early and silently drops them.
 
 ### Example
 

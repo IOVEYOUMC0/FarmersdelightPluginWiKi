@@ -86,8 +86,9 @@ call `refreshRecipeType(type.id())`. `findRecipesProducing(item)` then returns F
 `JumpTarget`s from reverse indexes without scanning recipe collections on each click.
 
 Cooking-pot and cutting-board recipes are different: their `ItemStack` result and container have to exist, so
-they must be registered once CraftEngine items are loaded. FarmersDelight itself defers its recipe load to
-`CraftEngineReloadEvent`; register yours from the same event and re-register on every later CE reload.
+they must be registered once CraftEngine items are loaded. Register them from FarmersDelight's
+`FarmersDelightWarmupEvent`, which fires once CE has built its items and again after every `/ce reload`;
+CraftEngine's own reload event fires too early and silently drops them.
 
 Unregister on `onDisable` so a `/plugman`-style unload does not leave a dead type in the book:
 

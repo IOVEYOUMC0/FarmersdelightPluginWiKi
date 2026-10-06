@@ -2,11 +2,11 @@
 [简体中文](../zh-cn/compat-utilities.md)
 # Version compatibility helpers
 
-`com.huidu.farmersdelight.api.util` contains the small helpers that exist so an addon can support Minecraft
-1.21.4 through current builds from a single compiled jar. `CompatAttributes` and `CompatItemMeta` paper over
+`com.huidu.farmersdelight.api.util` contains the small helpers that exist so an addon can support the whole
+supported Minecraft range from a single compiled jar. `CompatAttributes` and `CompatItemMeta` paper over
 Bukkit API changes; `TooltipUtils` and `CeItemInterop` deal with CraftEngine's own item wrapper.
 
-The supported floor is 1.21.4, so both compatibility shims now resolve on every supported server. They are
+The supported floor is 1.21.5, so both compatibility shims now resolve on every supported server. They are
 kept because they are published API and because they still absorb the attribute-registry rename and any
 future removal of `setItemModel`.
 
@@ -60,7 +60,7 @@ can handle; for a lookup this small, a self-contained copy in the addon is the s
 | `isSupported()` | `true` when the running server has `ItemMeta.setItemModel`. |
 | `setItemModel(ItemMeta meta, NamespacedKey key)` | Applies the `item_model` component, or does nothing. |
 
-`ItemMeta.setItemModel` exists only on Minecraft 1.21.4 and newer, which is the supported floor, so the
+`ItemMeta.setItemModel` exists from Minecraft 1.21.4 on, which is below the supported floor, so the
 reflective lookup (resolved once into a static field) succeeds on every supported server. The shim is kept so
 an addon compiled against an older api jar keeps working, and so the call degrades instead of throwing if a
 fork removes the method.

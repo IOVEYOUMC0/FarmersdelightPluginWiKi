@@ -32,12 +32,12 @@ if (!FarmersDelightApi.get().isAvailable()) {
 }
 ```
 
-BrewinAndChewin does **not** — its `onEnable` goes from the `/reload` guard through `saveDefaultConfig()` and
-its config bootstrap straight into `registerAddonBlockNamespace("brewinandchewin")`, with no `isAvailable()`
-gate anywhere in the method. It relies on `depend: [FarmersDelight]` in its `plugin.yml` to guarantee load
-order instead, and calls `api.isAvailable()` at one runtime site (`CoasterManager`) rather than at startup.
-Follow the template, not BrewinAndChewin, here: a hard `depend` guarantees FarmersDelight *enabled first*, but
-not that its enable *succeeded*.
+BrewinAndChewin does the same: its `onEnable` opens with its own hot-reload guard and then gates on
+`isAvailable()` before anything else, calling `disablePlugin(this)` when the check fails — a half-enabled
+addon is worse than a disabled one. A required dependency only guarantees that FarmersDelight was loaded
+first, not that its enable *succeeded*, which is exactly why the gate is there. Dependencies are declared in
+`paper-plugin.yml` under `dependencies.server` (`CraftEngine` and `FarmersDelight`, both `required: true`);
+`depend` and `softdepend` are not used.
 
 Several api methods already no-op internally when this is false (`registerCookingPotRecipe`,
 `registerCuttingBoardRecipe`, `createItemDisplay` and friends check it themselves), but the check is cheap and
@@ -49,19 +49,20 @@ than no-op; see the scheduling page.
 True when FarmersDelight's scheduler adapter detected a Folia server. Use it only when you need to branch on
 threading model; the scheduling helpers already do the right thing on both.
 
-**It does not simply return `false` when FarmersDelight is unavailable — it can throw.** The implementation is
-`plugin != null && plugin.scheduler().isFolia()`: the null guard is on
-`FarmersDelightPlugin.getInstance()`, not on the adapter. `FarmersDelightPlugin.scheduler()` throws
-`IllegalStateException("Scheduler is not available")` whenever the adapter field is `null`. That field is
-assigned partway through `onEnable` and cleared in `onDisable`, while the instance is assigned back in
-`onLoad` — so in the window between `onLoad` and the adapter's construction (including the case where
-FarmersDelight's own `/reload` guard aborts `onEnable` early), and again after `onDisable`, `isFolia()`
-throws rather than returning `false`.
+**It can throw during FarmersDelight's own startup.** The implementation resolves the plugin through
+`PluginAccess.pluginOrNull()` and is `plugin != null && plugin.scheduler().isFolia()`. `scheduler()` throws
+`IllegalStateException("Scheduler is not available")` whenever the adapter field is `null`. `pluginOrNull()`
+returns the instance only while FarmersDelight is loaded **and** enabled: the enabled flag is set `true` near
+the top of `onEnable`, a few statements before the adapter is constructed, and cleared again in `onDisable`.
+So the one window where `isFolia()` throws is *inside* `onEnable`, between `enabled = true` and the adapter's
+construction. A `/reload`-guard abort returns before `enabled` is set, and after `onDisable` the flag is
+already `false`, so both of those make it return `false` instead of throwing.
 
-`runAtLocation`, `runLaterAtLocation`, `runRepeating` and `awardCraftingExperience` share exactly this trap:
-each null-checks only `getInstance()` and then dereferences `plugin.scheduler()`, so the documented "no-op
-when not loaded" / "returns `ApiTask.NOOP`" behaviour holds only for *never loaded*, not for *loaded but not
-enabled*. Gate on `isAvailable()` — it checks the enabled flag — and all five are safe.
+`runAtLocation`, `runLaterAtLocation`, `runRepeating` and `awardCraftingExperience` resolve the plugin through
+the same `pluginOrNull()` lookup: they are soft no-ops (`runRepeating` returns `ApiTask.NOOP`) whenever
+FarmersDelight is absent, not yet enabled, or already disabled. Only the `enabled = true` →
+adapter-construction gap can throw, and an addon that declares a required dependency cannot observe it from its
+own `onEnable`. Gate on `isAvailable()` before calling any of them.
 
 ## Versioning the surface
 
