@@ -131,3 +131,18 @@ listener, a command handler), never from a field initializer or a `static final`
 * [Blocks and stations](blocks-and-stations.md)
 * [Items](items.md)
 * [Content registration](content-registration.md)
+
+## Addon members belong in their CE pack
+
+Declare custom item membership in the owning addon's `items.<id>.settings.tags`. FD merges CE tags with vanilla common mappings for matching and previews. CAB/ED memberships now live in their packs; synchronize their CE `items.yml` when upgrading, since replacing jars does not overwrite existing packs. Operator entries in FD `common-tags.yml` are preserved.
+
+```yaml
+items:
+  example:fish:
+    material: cod
+    settings:
+      tags:
+        - c:foods/raw_fish
+```
+
+Use the existing `FarmersDelightApi.registerCommonTags(source, map)` for vanilla items or runtime mappings; call `unregisterCommonTags(source)` on disable and replace the same source on reload. CE absorbs newly exported vanilla members on the next full start. Pack root `advanced_tags` defines recipe groups (`farmersdelight:advanced_tags` is the parser registry ID) referenced with `advtag:<groupId>`; it does not assign CE `#tag` membership to items. Base `material` does not determine tags.

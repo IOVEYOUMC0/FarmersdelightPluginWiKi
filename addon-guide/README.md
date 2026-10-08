@@ -244,3 +244,7 @@ villager AI.
 > **Config hygiene:** the shipped `config.yml` uses the `extra-soils:` key. An older deployed config that
 > still uses `rich-soil-blocks:` is ignored by the loader — redeploy the current file so rich-soil farmland
 > is recognised as a global soil.
+
+## CAB note data
+
+Placed note furniture reads text, title, author and signed state from the item's custom note data. Edits are saved with the furniture. The current build fixes the furniture dirty flag and restores older furniture that has only its source item; saved edits take precedence. External items with only vanilla BookMeta and no CAB note data are not guaranteed to retain text when placed. Verify a note with multiple lines across placement, editing, chunk reload, a full restart and breaking the furniture. Serialization tests do not replace this server check.

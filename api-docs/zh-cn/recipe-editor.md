@@ -10,6 +10,8 @@ icon: book-copy
 
 内置 `/fd recipe edit pot` 和 `/fd recipe edit board` 会写 FarmersDelight 自己的配方文件，也会回写通过统一 `AddonRecipeFiles` 加载的附属配方文件。数据包提供的配方（`cooking_recipes` / `cutting_recipes` / `special_recipes` 段）没有附属文件可写，编辑器会把修改写进 FD 自己的配方文件，同 id 时 FD 文件优先于数据包。附属若只通过注册 API 提供配方，编辑器会把修改写入 FD 配方文件的 `external-overrides` 覆盖记录；删除覆盖后，附属重新注册的原配方会恢复。这样不猜测附属文件路径，也能让修改在重载和重启后保留。
 
+文件保存到服务器的插件数据目录，不会同步修改源码仓库或原始 CE 包文件。FD 厨锅/砧板使用异步原子文件队列，通用附属编辑器的 `save/delete` 仍是同步契约。当前应等待保存反馈后再离开，避免重复提交；立即退出可能使文件已保存但运行配方未刷新。确认生效可重新打开配方或执行 `/fd reload recipes`；配方解析失败需检查日志。Choice/NBT 等高级结构写回附属 owner 文件前，要确认其 loader 支持相同格式。
+
 ## RecipeEditor
 
 ```java

@@ -26,7 +26,16 @@ Debug builds can create a small, local test load manually:
 
 The command places stations near the player, fills their test state, and starts a matching profile. It processes at most 16 positions per slice so the command does not occupy the server thread for one long operation. `count` is the number of positions and `ticks` is the profile duration (20-12000). Use `/fd debugtools undo` to remove the latest batch and `/fd debugtools stop` to stop an unfinished placement, activation, or handheld test. `all` covers cooking pots, placed skillets and stoves.
 
-For handheld cooking, hold a skillet in the main hand and campfire-cookable food in the off hand near a heat source, then run `/fd debugtools test handheld 1 200`. It does not replace either held item; it starts the real handheld session and samples it. Cooking still consumes the ingredient and delivers the result normally. The session stops automatically when the profile window ends; stop holding right click or use `/fd debugtools stop` to end it early. `undo` does not clean handheld state.
+Use `/fd debugtools test handheld 200 200` for simulated computation load: count independent sessions, without held items, repeated right-clicking or nearby heat. It consumes no player items. The result reports updates, display builds, completions and computation time per simulated tick. It covers slot matching, progress, display copies and completion recipe checks; it excludes networking, experience events, live inventories and Folia region dispatch, and is not the MSPT of 200 real players. It uses the loaded beef campfire recipe time. `stop` reports the partial sample and ends it; logout cleans up. Use `/fd stats profile 200 handheld` and `handheld_display` for real handheld sessions.
+Recommended nested commands:
+
+```text
+/fd debugtools place recipe cooking_pot farmersdelight:beef_stew 4
+/fd debugtools place random all 16
+```
+
+Legacy `placeRecipe` and `placeRecipeRandom` aliases remain. Undo handles your placement batch; standalone activate has no separate undo and consumed or collected outputs are not restored. Stop ends pending batch work or simulation; it is not a full rollback.
+
 
 The `recipe validate` action checks loaded cooking-pot and cutting-board recipes for empty structure,
 missing results/containers, and tags that resolve to no vanilla, CraftEngine, or registered common-tag

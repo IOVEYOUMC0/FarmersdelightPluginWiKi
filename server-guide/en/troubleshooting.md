@@ -91,7 +91,9 @@ Feature timing runs on the executing thread and counts calls that start and fini
 
 Building with `-PdebugTools=true` produces `farmersdelight-<version>-debug.jar` with the `/fd debugtools` and `/fd debug` scene tools. Release builds produce `farmersdelight-<version>.jar`. These are the same plugin: install only one.
 
-For a small manual load, use `/fd debugtools test cooking_pot 64 200`, `skillet`, `stove` or `all`. It creates nearby test stations in slices and starts sampling; each slice handles at most 16 positions. Use `/fd debugtools undo` to clean up or `/fd debugtools stop` to stop an unfinished batch. Test the handheld path with `/fd debugtools test handheld 1 200`; hold a skillet, cookable food and stand near a heat source. It uses the current held items and does not replace the inventory.
+For a small manual load, use `/fd debugtools test cooking_pot 64 200`, `skillet`, `stove` or `all`. It creates nearby test stations in slices and starts sampling; each slice handles at most 16 positions. Use `/fd debugtools undo` to clean up or `/fd debugtools stop` to stop an unfinished batch.
+
+Use `/fd debugtools test handheld 200 200` for simulated computation load: count independent sessions, without held items, repeated right-clicking or nearby heat. It consumes no player items. The result reports updates, display builds, completions and computation time per simulated tick. It covers slot matching, progress, display copies and completion recipe checks; it excludes networking, experience events, live inventories and Folia region dispatch, and is not the MSPT of 200 real players. It uses the loaded beef campfire recipe time. `stop` reports the partial sample and ends it; logout cleans up. Use `/fd stats profile 200 handheld` and `handheld_display` for real handheld sessions.
 
 ## The right reload for the job
 

@@ -130,3 +130,18 @@ public static final String COMMON_CROPS_CABBAGE        = "c:crops/cabbage";
 * [方块与工作站](blocks-and-stations.md)
 * [物品](items.md)
 * [内容注册](content-registration.md)
+
+## 附属成员由自己的 CE 包声明
+
+自定义物品优先在所属附属的 `items.<id>.settings.tags` 中添加标签，FD 合并 CE 标签与原版公共映射用于匹配和预览。CAB/ED 成员已迁回各自包；升级需同步对应 CE `items.yml`，换 JAR 不会覆盖已有包。FD `common-tags.yml` 保留服主自定义，不自动清理旧附属成员。
+
+```yaml
+items:
+  example:fish:
+    material: cod
+    settings:
+      tags:
+        - c:foods/raw_fish
+```
+
+原版物品或运行期映射使用已有 `FarmersDelightApi.registerCommonTags(source, map)`，disable 时 `unregisterCommonTags(source)`，重载替换同 source。CE 吸收新导出的原版成员需要下次完整启动。CE 包根键 `advanced_tags` 是集中配方分组（`farmersdelight:advanced_tags` 是解析器注册 ID），使用 `advtag:<组ID>` 引用；它不等同于 CE `#tag`，不自动给物品加标签。载体 `material` 也不代表标签身份。

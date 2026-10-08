@@ -14,6 +14,8 @@ recipe registered only through the API, the editor stores a persistent `external
 FarmersDelight's recipe file. Removing that override lets the addon's next registration take effect again,
 without guessing an addon file path.
 
+Files are saved under server plugin data folders; saving does not synchronize a source checkout or the original CE pack. FD pot/board saves use an async atomic file queue; generic addon `save/delete` still has a synchronous contract. Wait for feedback before leaving and avoid repeated saves: immediate logout can leave the file saved without refreshing runtime recipes. Reopen the recipe or run `/fd reload recipes` to check application and inspect logs for parsing failures. Before writing Choice/NBT structures to an addon owner file, check that its loader supports the same format.
+
 ## RecipeEditor
 
 ```java

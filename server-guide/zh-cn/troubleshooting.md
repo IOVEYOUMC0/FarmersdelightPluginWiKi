@@ -87,7 +87,9 @@ debug:
 
 `-PdebugTools=true` 构建会额外生成 `farmersdelight-<version>-debug.jar`，包含 `/fd debugtools` 和 `/fd debug` 造景工具；普通包仍为 `farmersdelight-<version>.jar`。两者是同一个插件，只安装其中一个。
 
-小规模手动测试可用 `/fd debugtools test cooking_pot 64 200`、`skillet`、`stove` 或 `all`。它在玩家附近分批创建测试工作站并自动采样；每批最多处理 16 个位置。用 `/fd debugtools undo` 清理，或用 `/fd debugtools stop` 停止尚未完成的批次。手持路径使用 `/fd debugtools test handheld 1 200`，需要主手煎锅、副手可烹饪食材和附近热源；它使用玩家当前物品，不替换背包内容。
+小规模手动测试可用 `/fd debugtools test cooking_pot 64 200`、`skillet`、`stove` 或 `all`。它在玩家附近分批创建测试工作站并自动采样；每批最多处理 16 个位置。用 `/fd debugtools undo` 清理，或用 `/fd debugtools stop` 停止尚未完成的批次。
+
+手持计算负载使用 `/fd debugtools test handheld 200 200`：按数量模拟独立会话，无需手持物品、持续右键或附近热源，不消耗玩家物品。输出更新、显示构建、完成次数和每模拟 tick 计算耗时；仅覆盖槽位匹配、进度、显示副本及配方完成核对，不包含网络、经验事件、真实背包或 Folia 多区域派发，不能当作 200 位真实玩家的 MSPT。模拟使用已加载的生牛肉营火配方原始时间；`stop` 输出当前结果并结束，退出时清理。真实手持链路继续用 `/fd stats profile 200 handheld` 和 `handheld_display` 采样。
 
 ## 对症选择重载命令
 

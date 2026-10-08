@@ -23,7 +23,16 @@ debug 构建可以在小范围手动制造测试负载：
 
 命令会在玩家附近分批放置测试工作站、填入测试内容、启动对应功能采样；每轮最多处理 16 个位置，避免命令本身长时间占用服务器线程。`count` 是测试位置数，`ticks` 是采样时长（20-12000）。完成后使用 `/fd debugtools undo` 清理最近一批，使用 `/fd debugtools stop` 停止尚未完成的放置、激活或手持测试。`all` 只包含厨锅、放置煎锅和炉灶。
 
-手持烹饪单独测试：主手拿煎锅，副手拿可在营火上烹饪的食材，站在热源附近后执行 `/fd debugtools test handheld 1 200`。它不会替换手上的物品，只启动真实手持会话并采样；完成烹饪仍会正常消耗食材并产生结果。采样窗口结束后会自动停止测试会话；也可以停止持续右键或使用 `/fd debugtools stop` 提前结束。不要用 `undo` 清理手持状态。
+手持计算负载使用 `/fd debugtools test handheld 200 200`：按数量模拟独立会话，无需手持物品、持续右键或附近热源，不消耗玩家物品。输出更新、显示构建、完成次数和每模拟 tick 计算耗时；仅覆盖槽位匹配、进度、显示副本及配方完成核对，不包含网络、经验事件、真实背包或 Folia 多区域派发，不能当作 200 位真实玩家的 MSPT。模拟使用已加载的生牛肉营火配方原始时间；`stop` 输出当前结果并结束，退出时清理。真实手持链路继续用 `/fd stats profile 200 handheld` 和 `handheld_display` 采样。
+推荐层级指令：
+
+```text
+/fd debugtools place recipe cooking_pot farmersdelight:beef_stew 4
+/fd debugtools place random all 16
+```
+
+旧 `placeRecipe`、`placeRecipeRandom` 别名保留。undo 只处理自己的放置批次；独立 activate 没有独立撤销，已领取/消耗的产物不会恢复。stop 只停止待执行批次或模拟，不是完整回滚。
+
 
 `recipe validate` 会检查已加载的厨锅和砧板配方是否为空、是否缺少成品/容器，以及标签是否解析不到任何原版物品、CraftEngine 物品或已注册的公共标签成员。解析阶段失败的配方仍会由常规 `recipe.load_failed` 日志报告。
 
