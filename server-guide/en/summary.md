@@ -13,4 +13,5 @@
 * [Block behavior configuration](block-behaviors.md)
 * [Verifying behaviours loaded](verifying.md)
 * [Troubleshooting](troubleshooting.md)
+* [Performance diagnosis & tuning](performance.md)
 * [Migration & upgrades](migration.md)

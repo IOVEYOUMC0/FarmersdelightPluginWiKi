@@ -157,6 +157,8 @@ advancements:
 村民 / 流浪商人交易位于 `plugins/FarmersDelight/world-data.yml`，删掉其中一个条目即可禁用该交易。堆肥、熔炉燃料、宠物食物和食物 Buff
 关联位于 CraftEngine 物品配置中。CE 配置有意保持无注释，字段说明见[方块行为配置](block-behaviors.md)。第一天基本用不到。
 
+性能预算的默认值、调节步骤和取舍见[性能排查与调节](performance.md)。
+
 ## 下一步
 
 [确认行为已加载 →](verifying.md)

@@ -45,7 +45,7 @@ surfaces it without turning debug on.
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
-| FarmersDelight never enables; log says a dependency is missing | CraftEngine not installed | Install a server-compatible CraftEngine **26.8.2 or newer** (26.8.2/26.9/26.9.1 verified); it is a required dependency (`required: true` in `paper-plugin.yml`). |
+| FarmersDelight never enables; log says a dependency is missing | CraftEngine not installed | Install a server-compatible CraftEngine **26.8.2 or newer** (linkage checked for 26.8.2/26.9/26.9.1; see [Requirements](requirements.md)); it is a required dependency (`required: true` in `paper-plugin.yml`). |
 | Plugin fails to load with an unsupported-version / class error | Server below MC 1.21.5 or Java below 21 | Run **Paper/Folia 1.21.5+** on **Java 21+**; a Minecraft 26.x server requires **Java 25**. |
 | Custom items/blocks show purple-and-black textures | Client not using the current resource pack | Run **`/ce reload all`** to rebuild the pack (plain `/ce reload` won't); make sure the player accepted the pack. See [Resource pack](resource-pack.md). |
 | Handheld skillet interaction reports `ObfuscatedItemModelProcessor` / `NoClassDefFoundError` | CraftEngine 26.9.1 no longer ships the old client model processor | Install this FarmersDelight build and fully restart; the plugin falls back to the server-side item model and logs one warning, then run **`/ce reload all`** to rebuild the resource pack. |
@@ -57,8 +57,10 @@ surfaces it without turning debug on.
 | A recipe you deleted came back after an update | `recipes.merge-missing-bundled` re-added it | Keep `merge-missing-bundled: false` if you delete recipes on purpose. See [Migration](migration.md). |
 | A new setting from an update seems to do nothing | Reading a stale value | Config auto-migration reconciles keys on startup; if you hand-edited, confirm the key name matches the shipped `config.yml`. |
 | Edited a shipped CE resource but the change didn't apply | Edit not picked up | Run `/ce reload all` (config edits alone can use `/ce reload`, but model/texture changes need the `all` pack rebuild). If you *deleted* a file expecting it to stay gone, note that `craftengine-resources.auto-completion: true` restores deleted files — set it `false` to keep deletions. |
-| Console warns about active block / cooking-pot counts | Performance thresholds crossed | Warnings only, nothing is blocked. Tune `performance.*` thresholds or the per-station `tick-budget`. |
+| Console warns about active block / cooking-pot counts | Performance thresholds crossed | Logging only; raising `performance.warnings` thresholds saves no runtime work. Profile before tuning budgets; see [Performance diagnosis & tuning](performance.md). |
 | Errors after a `/reload` or PlugMan action | Hot-reload tore down live references | Never hot-reload. `/stop` and start again, or use `/fd reload` / `/ce reload`. |
+
+For repeatable profiling steps and budget tradeoffs, see [Performance diagnosis & tuning](performance.md).
 
 ## Multiplayer skillet load
 

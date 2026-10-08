@@ -49,8 +49,7 @@ CraftEngine 资源提供物品、方块、配方和标签，通过 FarmersDeligh
 | Barbeque's Delight | 烤架、食材盆、烤串调味、托盘 | `grill`、`ingredients-basin`、`seasonings` |
 | Villagers' Delight | 让农民村民识别和种植 CE 作物 | `crops`、`extra-soils`、`harvest-drops` |
 
-Expanded Delight（上游作者 `ianm1647`）：**还没有移植仓**（`Reference/` 下只有脚手架），因此**本指南不覆盖它**。
-本指南不为它作任何许可主张；上表与本节都不含它的许可条目。
+Expanded Delight（上游作者 `ianm1647`）正在移植，第一阶段作物已完成；食物、工作站和奶酪玩法仍待实现，尚不属于已发布附属。上表列出当前附属，不能把此移植中的工程视为完整可用的 Expanded Delight。
 
 Crabber's Delight 的村民与流浪商人交易单独写在插件目录的 `trades.yml` 中。该附属尚未发布，因此不提供旧版配置迁移或备份。
 

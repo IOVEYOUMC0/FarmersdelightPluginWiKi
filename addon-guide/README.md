@@ -150,17 +150,7 @@ paired block), End knives, and mob drops from End creatures.
 *Additional crops & cooking — a port of Expanded Delight by ianm1647 (the upstream author). Namespace
 `expandeddelight`.*
 
-> **Scope:** there is **no port repository for Expanded Delight yet** — the only
-> trace is a scaffold under `Reference/` — so the guide **does not cover it**.
-> Nothing here is a licence claim for it, and the notes below describe the intended port (content mapping and
-> config shape) rather than a shipped addon.
-
-**Adds:** extra crops, foods, a workstation and cheese content. The world-generation parts of the original
-mod are intentionally omitted (a plugin cannot add worldgen); everything craftable/plantable is ported.
-
-**Config (`config.yml`):** `food-effects`, `craftengine-resources`, `language`.
-
-***
+> **Scope:** the port is in progress. The first crop phase is complete; food, workstations and cheese mechanics remain unfinished. It is not part of the released addon set. The tables above describe the current addons, not a complete Expanded Delight release.
 
 ## Crabber's Delight (CD)
 
@@ -217,8 +207,8 @@ reload.
 
 *Farmer-villager AI — huidu's own plugin. Namespace `villagersdelight`.*
 
-Unlike the other addons, VillagersDelight is **NMS-based, not a CraftEngine pack** — it ships one jar per
-Minecraft version and teaches **farmer villagers to recognise and farm CraftEngine crops** (FarmersDelight
+Unlike the other addons, VillagersDelight is **NMS-based, not a CraftEngine pack** — its universal launcher selects the bundled
+NMS implementation for the server version and teaches **farmer villagers to recognise and farm CraftEngine crops** (FarmersDelight
 crops, rich-soil farmland, and any crop you declare) while preserving all vanilla / Purpur / third-party
 villager AI.
 

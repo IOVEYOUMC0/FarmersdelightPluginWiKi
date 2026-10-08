@@ -17,4 +17,5 @@ icon: grid-4
 * [方块行为配置](block-behaviors.md)
 * [确认行为已加载](verifying.md)
 * [故障排查](troubleshooting.md)
+* [性能排查与调节](performance.md)
 * [迁移与升级](migration.md)

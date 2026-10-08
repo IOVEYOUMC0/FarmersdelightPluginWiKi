@@ -8,8 +8,7 @@ icon: list-check
 
 ## Server software
 
-FarmersDelight runs on **Paper** and on **Folia**. Folia is fully supported — the plugin declares
-`folia-supported: true` and routes its scheduling through Folia-aware helpers.
+FarmersDelight runs on **Paper** and on **Folia**. The plugin declares `folia-supported: true` and uses Folia-aware scheduling helpers. Validate large loads and cross-region interactions on your actual server version.
 
 | Requirement | Value |
 | --- | --- |
@@ -38,17 +37,12 @@ itself), which means:
 - on startup FarmersDelight waits for CraftEngine to finish parsing its items and blocks before it registers
   recipes and content.
 
-Install a CraftEngine build compatible with your server. This repository compiles against the official Maven
-**CraftEngine 26.9.1** API, and the server-side CraftEngine versions verified against a live server are
-**26.8.2, 26.9 and 26.9.1**:
+Install a CraftEngine build compatible with your server. FarmersDelight compiles against the official Maven **CraftEngine 26.9.1** API.
 
-- 26.8.2 and newer is enough: across those three versions this plugin and every addon resolve the same
-  CraftEngine classes and members (187 classes, 595 members, none missing, no unimplemented interface method),
-  and the recipe, advancement and pack-section counts in the startup log are identical.
-- Scope of that check: linkage (whether the classes and members exist) plus the startup result. Client-side
-  behaviour was not re-verified in game on 26.8.2/26.9, and releases older than 26.8.2 were not checked.
-- The shipped configs already carry the Minecraft 26.3+ world-generation definitions, but behaviour on a real
-  26.3 server has not been re-verified; treat 26.3 as unverified rather than unsupported.
+- The current build's CraftEngine symbols were checked against **26.8.2, 26.9 and 26.9.1**. This confirms referenced classes and methods are present; it does not prove every feature works in game.
+- Earlier builds also had startup checks on these versions. The latest CE experience/item-source changes and performance changes have not been verified on a live server. Test the configured providers, item data and cross-region interactions before upgrading a production server.
+- CraftEngine 26.9.2 is used as a source reference; it is not a live-server compatibility result. Older versions were not checked.
+- Shipped configs include Minecraft 26.3+ world-generation definitions, but current behaviour on a real 26.3 server remains unverified.
 
 ## Optional integrations (soft dependencies)
 

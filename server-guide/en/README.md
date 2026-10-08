@@ -31,7 +31,8 @@ for the shipped block and item definitions, [First config tweaks](first-config.m
 6. **[Verifying behaviours loaded](verifying.md)** — how to read a CraftEngine behavior error, which is a
    signal that a block's config is wrong, not a crash.
 7. **[Troubleshooting](troubleshooting.md)** — symptom → cause → fix, plus where the logs are.
-8. **[Migration & upgrades](migration.md)** — what carries over from a fresh install or an update, and why some
+8. **[Performance diagnosis & tuning](performance.md)** — Repeatable measurements and the cost of each tuning knob.
+9. **[Migration & upgrades](migration.md)** — what carries over from a fresh install or an update, and why some
    shipped files are never overwritten.
 
 ## The 60-second version

@@ -170,6 +170,8 @@ pet food and food-buff assignments are in the CraftEngine item configuration. Cr
 comment-free; their field reference is in [Block behavior configuration](block-behaviors.md). You will rarely
 need them on day one.
 
+See [Performance diagnosis & tuning](performance.md) for the current budget defaults and tuning tradeoffs.
+
 ## Next
 
 [Verifying behaviours loaded →](verifying.md)

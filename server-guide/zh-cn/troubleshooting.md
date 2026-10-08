@@ -41,7 +41,7 @@ debug:
 
 | 现象 | 可能原因 | 解决 |
 | --- | --- | --- |
-| FarmersDelight 从不启用，日志说缺依赖 | 没装 CraftEngine | 安装与服务器匹配的 CraftEngine **26.8.2 及以上**（26.8.2/26.9/26.9.1 已核对）；它是 `paper-plugin.yml` 里 `required: true` 的必需依赖。 |
+| FarmersDelight 从不启用，日志说缺依赖 | 没装 CraftEngine | 安装与服务器匹配的 CraftEngine **26.8.2 及以上**（26.8.2/26.9/26.9.1 已核对链接兼容，见[环境要求](requirements.md)）；它是 `paper-plugin.yml` 里 `required: true` 的必需依赖。 |
 | 插件加载失败，报版本不支持 / 类错误 | 服务端低于 MC 1.21.5 或 Java 低于 21 | 用 **Paper/Folia 1.21.5+** 跑在 **Java 21+**；MC 26.x 服务端需要 **Java 25**。 |
 | 自定义物品 / 方块显示紫黑贴图 | 客户端没用上当前资源包 | 执行 **`/ce reload all`** 重建包（单独的 `/ce reload` 不会）；确认玩家接受了包。见 [资源包](resource-pack.md)。 |
 | 手持煎锅交互报 `ObfuscatedItemModelProcessor` / `NoClassDefFoundError` | CraftEngine 26.9.1 不再提供旧的客户端模型处理器 | 更新到本次 FarmersDelight 构建后完整重启；插件会回退服务端物品模型并只记录一次警告，再执行 **`/ce reload all`** 重建资源包。 |
@@ -53,8 +53,10 @@ debug:
 | 更新后被删的配方又回来了 | `recipes.merge-missing-bundled` 把它加回来了 | 若你是故意删配方，保持 `merge-missing-bundled: false`。见 [迁移](migration.md)。 |
 | 更新带来的新设置好像没作用 | 读到了旧值 | 配置自动迁移会在启动时对齐键名；若你手改过，确认键名与随包 `config.yml` 一致。 |
 | 改了随包 CE 资源但没生效 | 改动没被拾取 | 执行 `/ce reload all`（只改配置可用 `/ce reload`，但模型 / 贴图改动需要 `all` 来重建包）。若你是**删**了某文件想让它一直消失，注意 `craftengine-resources.auto-completion: true` 会还原被删文件——设成 `false` 才能保留删除。 |
-| 控制台警告活跃方块 / 烹饪锅数量 | 越过性能阈值 | 仅警告，什么都不阻止。调 `performance.*` 阈值或各工作站的 `tick-budget`。 |
+| 控制台警告活跃方块 / 烹饪锅数量 | 越过性能阈值 | 只记录警告；提高 `performance.warnings` 阈值不会减少运行负载。先采样再调预算，见[性能排查与调节](performance.md)。 |
 | `/reload` 或 PlugMan 操作后报错 | 热重载把活引用拆了 | 永远不要热重载。`/stop` 再开，或用 `/fd reload` / `/ce reload`。 |
+
+可重复的采样步骤和预算取舍见[性能排查与调节](performance.md)。
 
 ## 多人煎锅负载
 

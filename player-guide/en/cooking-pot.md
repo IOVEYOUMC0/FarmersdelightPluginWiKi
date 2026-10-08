@@ -42,7 +42,7 @@ water bucket leaves a `minecraft:bucket` in the crafting grid when the pot is ma
 
 A **hopper** counts as a "conductor": if a hopper sits directly under the pot, the
 heat source one block further down (below the hopper) still heats the pot. This lets
-you feed ingredients in through the hopper while heating from below.
+you extract finished meals below while heating from further down. Feed ingredients from above and containers such as bowls from the sides.
 
 ## The cooking interface
 
@@ -108,6 +108,8 @@ needed ingredients out of your inventory and into the pot for you.
 Leftover containers from some recipes (like a bowl or a bottle) are returned to you
 rather than destroyed.
 
+A successful player pickup settles the pot's accumulated recipe experience. Later pickups do not award the same batch again; hopper extraction awards no player experience. The server owner chooses the [reward channels](../../server-guide/en/first-config.md).
+
 ## Comparator output
 
 A cooking pot emits a **redstone comparator signal**. The strength scales with how
@@ -118,8 +120,7 @@ comparators.
 ## Tips
 
 - Keep the heat source lit — the pot pauses if the fire goes out.
-- A hopper under the pot can auto-feed ingredients; a hopper beside/under the output
-  can pull finished meals for a simple auto-kitchen.
+- Hoppers above feed ingredients, hoppers at the sides feed containers, and a hopper below pulls finished output for a simple auto-kitchen.
 - Use `/fd recipe` and the craftable filter to plan meals from what you already have.
 - Meals restore much more hunger and saturation than raw ingredients, and many give a
   short buff — cooking is almost always worth the effort over eating raw.
