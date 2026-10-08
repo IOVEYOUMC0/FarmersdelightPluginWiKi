@@ -122,7 +122,7 @@ station knows where its placeholder comes from.
 
 ## GuiWriteBack: may this snapshot still be committed?
 
-Every container GUI hands each viewer its own snapshot inventory, and vanilla applies a click a tick later, so
+Each container GUI hands its viewers independent inventory snapshots, so
 a write-back carries a value that may have been painted before the station's ticker ran. Committing it blindly
 hands back an item the station already spent, or erases one that arrived meanwhile — **the item exists twice or
 vanishes**.
@@ -158,6 +158,9 @@ public boolean refreshAll(Inventory view, IntPredicate skipPending);
 public boolean refreshSlot(Inventory view, int rawSlot);
 public boolean syncAll(Inventory view);
 public boolean syncSlot(Inventory view, int rawSlot);
+public int[] commitOnly(Inventory view);
+public boolean commitOnly(Inventory view, int rawSlot);
+public void repaintFrom(Inventory view, int[] rawSlots, IntFunction<ItemStack> storedByIndex);
 public int storeIndex(int rawSlot);                       // -1 when the slot holds no contents
 ```
 
@@ -201,8 +204,7 @@ public interface Controller {
 * `stored` must be a pure read. The kernel calls it for every paint and again inside a commit; recording
   something there (a "last seen" field, a dirty flag) would make painting a store mutation.
 * `store` owns cloning and normalisation: it receives whatever the cell held, including a `null` where a
-  placeholder icon stood, and must clone what it keeps and store `null` rather than an empty stack. The engine
-  never hands the store a live stack.
+  placeholder icon stood, and must clone what it keeps and store `null` rather than an empty stack. The store must keep a copy and never alias the view's mutable stack.
 * `storeLock()` **is really used**: the kernel takes it for every store access and for the per-cell paint
   record. It must be a real object, never `null`, and it is reentrant — the usual caller shape (a click handler
   that wraps its whole read-modify-write in the same lock) is unaffected.
@@ -216,19 +218,12 @@ public interface Controller {
 
 This is the part that cannot be skipped on Folia.
 
-* `fill`, `refreshAll` and `refreshSlot` only write the **viewer's** inventory, so they must run on the region
-  that owns the viewer.
-* `syncAll` and `syncSlot` read the store and write it back. They run **under `Controller.storeLock()`**, which
-  the kernel takes for every store access and for the paint record — so a caller on the viewer's region cannot
-  interleave with a ticker on the store's region.
-* **The engine never dispatches.** It never calls a scheduler, never reads a world and never moves work between
-  regions. If the viewer and the store are in different regions, arranging that is the caller's job: schedule
-  each side with the api's scheduler helpers (`FarmersDelightApi.runAtLocation` / `runLaterAtLocation`, see
-  [Scheduling](scheduling.md)). On Folia "viewer region ≠ store region" is the normal case, not an edge case.
-
-A container that ignores this either writes the viewer's inventory from the wrong thread or blocks the store's
-region on a cross-region read — which is why the split above is part of the published contract rather than an
-implementation detail.
+* `fill`, `refreshAll` and `refreshSlot` read the store and write the live view. `syncAll`, `syncSlot` and `commitOnly` read the live view and access the store. The caller must own both the viewer and the store.
+* `commitOnly` omits repainting but still calls `view.getItem`; it cannot be dispatched to a different store region.
+* `repaintFrom` paints copied store values on the viewer's EntityScheduler. Check that the original view is still open and keep the same persistent kernel so subsequent commits use its baseline.
+* Each view keeps its own cloned baseline, advanced after a successful commit. `storeLock()` protects plugin data and does not grant Folia ownership.
+* The caller must implement a complete cross-region transaction or reject the edit and close the view. FD cooking pots and CAB containers reject edits outside the container owner. Accepted clicks commit synchronously; cancelled drags recheck the view, owner and cursor before committing on the next tick.
+* The engine never dispatches. A rejected task, retired player or unloaded world never permits an inline retry on an unrelated region.
 
 ## Shape of a station using it
 
@@ -239,8 +234,8 @@ if (layout != null) {
             new GuiSlotGroup("bait", 0, 1, "bait_icon"),
             new GuiSlotGroup("catch", 1, 3, null));
 
-    kernel.fill(view);                                   // viewer's region
-    // ... later, from the store's region or under storeLock():
+    kernel.fill(view);                                   // caller owns viewer and store
+    // ... later, on the same owner, under storeLock() for the read/modify/write:
     kernel.syncSlot(view, rawSlot);
 }
 ```

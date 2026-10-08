@@ -68,6 +68,8 @@ The master switch for the hopper ↔ station bridge (cooking pot, cutting board,
 with your other plugins, **turn this master switch off first** to isolate the problem, then re-enable and tune
 each station's own `allow-hopper: true/false` in `config.yml`.
 
+CrabbersDelight crab traps and worm bins use native hopper containers independently of the FD station switch above. A hopper pointing down from above inserts bait/compost; a hopper below extracts products. Amount and cooldown follow server settings (defaults: one item per transfer and eight ticks), including redstone locking and inventory move events. Tackle box furniture has no hopper access.
+
 ## Recipe discovery (locked recipe books)
 
 ```yaml

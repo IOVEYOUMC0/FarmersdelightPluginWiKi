@@ -100,7 +100,7 @@ public record GuiSlotGroup(String type, int storeStart, int count, @Nullable Str
 
 ## GuiWriteBack：这份快照还能提交吗？
 
-每个容器 GUI 都给查看者一份自己的快照库存，而原版是在一个 tick 之后才应用点击，所以要写回的值可能是在工作站 ticker 跑之前画上去的。盲目提交会把工作站已经花掉的物品还回来，或者把期间收到的物品抹掉 —— **物品不是变成两份，就是凭空消失**。
+每个容器 GUI 都给查看者独立的快照库存；ticker 或其他查看者可能在视图打开期间修改权威库存，所以写回前必须校验绘制基线。盲目提交会把工作站已经花掉的物品还回来，或者把期间收到的物品抹掉 —— **物品不是变成两份，就是凭空消失**。
 
 ```java
 public static boolean mayCommit(@Nullable ItemStack stored, @Nullable ItemStack paintedBaseline);
@@ -130,10 +130,13 @@ public boolean refreshAll(Inventory view, IntPredicate skipPending);
 public boolean refreshSlot(Inventory view, int rawSlot);
 public boolean syncAll(Inventory view);
 public boolean syncSlot(Inventory view, int rawSlot);
+public int[] commitOnly(Inventory view);
+public boolean commitOnly(Inventory view, int rawSlot);
+public void repaintFrom(Inventory view, int[] rawSlots, IntFunction<ItemStack> storedByIndex);
 public int storeIndex(int rawSlot);                       // 该槽不装内容时返回 -1
 ```
 
-内核负责每个容器 GUI 都要重复的那部分：把配置格子映射到存储下标、记住每个格子是从什么画出来的、拒绝过期写回并把被拒的格子按存储重绘、以及「编辑仍在途中」的跳过规则。
+内核负责每个容器 GUI 都要重复的那部分：把配置格子映射到存储下标、按每个 view 保存独立的绘制基线副本，成功提交后推进该 view 的基线、拒绝过期写回并把被拒的格子按存储重绘、以及「编辑仍在途中」的跳过规则。
 
 * `fill` 先给布局不使用的每个格子画背景，再画各组存储值（空格子画占位物）。
 * `refreshAll` 把所有配置格子按存储重绘；`refreshAll(view, skipPending)` 跳过 `skipPending` 接受的格子 —— 编辑仍在途中的格子拥有玩家即将取走的那份值，按存储重绘会让物品显示两次并被发放两次。
@@ -161,7 +164,7 @@ public interface Controller {
 ```
 
 * `stored` 必须是纯读取。每次绘制内核都会调用它，提交时还会再调用一次；在那里记录东西（一个「上次所见」字段、一个脏标记）等于让绘制变成对存储的修改。
-* `store` 负责克隆与归一化：它收到的可能是格子里原来的任何东西，包括占位物位置传来的 `null`，必须克隆自己保留的内容，并且存 `null` 而不是空 stack。引擎从不把活的 stack 交给存储。
+* `store` 负责克隆与归一化：它收到的可能是格子里原来的任何东西，包括占位物位置传来的 `null`，必须克隆自己保留的内容，并且存 `null` 而不是空 stack。存储必须保留副本，不能与 view 的可变 stack 共享引用。
 * `storeLock()` **真的会被使用**：内核在每次访问存储以及读写每格绘制记录时都会获取它。它必须是真正的对象、绝不为 `null`，而且是可重入的 —— 常见调用形态（点击处理器把整段读-改-写包在同一把锁里）不受影响。
 * `markDirty()` 在提交改变了存储时被调用，好让工作站把方块实体标脏。内核每次 `syncAll` 调用一次，`syncSlot` 只在真正提交时调用。
 * `mayCommit` 默认走 `GuiWriteBack.mayCommit`。只给提交策略确实不同的工作站（例如带符号的增量）才覆盖它 —— **更弱的覆盖正是一个容器开始复制物品的方式。**
@@ -170,11 +173,11 @@ public interface Controller {
 
 这是 Folia 上不能跳过的一段。
 
-* `fill`、`refreshAll`、`refreshSlot` 只写**查看者**的库存，因此必须在拥有该查看者的区域上运行。
-* `syncAll` 与 `syncSlot` 读存储并写回。它们在 **`Controller.storeLock()`** 之下运行 —— 内核在每次访问存储以及读写绘制记录时都会获取它，所以在查看者区域上的调用方不可能与存储区域上的 ticker 交错。
-* **引擎自身不派发。** 它从不调用调度器、从不读世界、从不把工作跨区域搬运。如果查看者与存储分属不同区域，安排这件事是调用方的责任：用 api 的调度辅助（`FarmersDelightApi.runAtLocation` / `runLaterAtLocation`，见[调度](scheduling.md)）分别调度两侧。在 Folia 上「查看者区域 ≠ 存储区域」是常态，不是边角情况。
-
-忽略这一点的容器，要么从错误的线程写查看者的库存，要么让存储所在区域阻塞在一次跨区域读取上 —— 这正是上面这条拆分属于已发布契约、而不是实现细节的原因。
+* `fill`、`refreshAll`、`refreshSlot` 会读取存储并写实时 view；`syncAll`、`syncSlot` 和 `commitOnly` 会读取实时 view 并访问存储。调用线程必须同时拥有查看者和存储的区域。
+* `commitOnly` 只省略回绘，仍会调用 `view.getItem`；不能直接把它派发到另一区域。
+* `repaintFrom` 使用已复制的存储快照，只在查看者 EntityScheduler 上执行；须确认仍打开原 view，并使用同一个持久 kernel 记录基线。
+* `storeLock()` 只保护插件数据，不授予 Folia 归属权限。跨区域编辑需由调用方实现完整事务，或在交互前拒绝并关闭视图。FD 厨锅和 CAB 容器采用后者；已接受的点击同步持久化，取消的拖拽在下一 tick 校验 view、归属和光标后才提交。
+* 引擎不调度任务。派发失败、玩家退休或世界卸载时，不能退回调用线程访问对象。
 
 ## 使用它的工作站长什么样
 
@@ -185,8 +188,8 @@ if (layout != null) {
             new GuiSlotGroup("bait", 0, 1, "bait_icon"),
             new GuiSlotGroup("catch", 1, 3, null));
 
-    kernel.fill(view);                                   // 查看者所在区域
-    // ... 之后，在存储所在区域、或在 storeLock() 之内：
+    kernel.fill(view);                                   // 同时拥有查看者与存储的区域
+    // ... 之后，在同一归属区域内，持有 storeLock() 完成读-改-写：
     kernel.syncSlot(view, rawSlot);
 }
 ```
