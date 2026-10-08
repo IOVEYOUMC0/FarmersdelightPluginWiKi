@@ -593,13 +593,13 @@ public final class BrewinWarmupListener implements Listener {
 
 | 触发点                                                  | `getSource()`     | `getLocation()` | 说明                                                                    |
 | ---------------------------------------------------- | ----------------- | --------------- | --------------------------------------------------------------------- |
-| `FarmersDelightPlugin.callCookingPotExperienceEvent` | `"cooking_pot"`   | **恒为 null**     | 使用五参构造器。由 `CookingPotBlockBehavior`（从方块取餐）与 `CookingPotGui`（从输出槽取餐）进入 |
+| `CookingPotBlockEntity.awardUsedRecipes` | `"cooking_pot"` | 炖锅位置 | 成功取餐后一次性结清累计台账，基数是配方经验 × 完成次数；在玩家实体调度器触发 |
 | `StoveManager.finishCooking`                         | `"stove"`         | 炉灶方块            | 仅当匹配到营火配方**且**该槽位记录了归属者时                                              |
 | `SkilletManager.finishCooking`                       | `"skillet"`       | 煎锅方块            | 仅当煎锅记录了归属者时                                                           |
 | `CuttingBoardBlockBehavior.processCutting`           | `"cutting_board"` | 切菜板             | `getBaseExperience()` **硬编码为 0.0f**——切菜板不结算经验                         |
 | `FarmersDelightApi.awardCraftingExperience`          | 调用方传入的值           | 调用方传入的位置        | 附属应走的路径                                                               |
 
-炖锅那处 location 为 null 是真实缺口：插件在那里仍使用五参兼容构造器，而该构造器以 `null` 委托。请始终对 `getLocation()` 做 null 判断。
+炖锅现在传入方块位置；五参兼容构造器及未提供位置的调用方仍可返回 `null`。请始终对 `getLocation()` 做 null 判断。
 
 切菜板那处对锁很讲究：事件在方块实体监视器**内部构造**，以便快照到一致的状态，但被交回外层、在释放监视器 **之后**才派发，因此没有任何第三方监听器运行在那把锁之下。
 
@@ -623,19 +623,19 @@ public ProfessionCookingExperienceEvent(UUID playerId, String playerName, String
 
 ### 从自己的工作站触发
 
-无需直接构造：调用 API 会顺带掉落原版经验球（受炖锅经验配置控制）、发放 AuraSkills 经验，然后替你 触发事件：
+无需直接构造：调用 API 会顺带掉落原版经验球（受炖锅经验配置控制）、发放已配置的 CE 技能 / 旧 raw AuraSkills 经验，然后替你 触发事件：
 
 ```java
 FarmersDelightApi.get().awardCraftingExperience(player, dropLocation, resultItem, xp, "keg");
 ```
 
-签名为 `void awardCraftingExperience(Player player, Location location, ItemStack result, double baseExperience, String source)`。它是 Folia 安全的——整个方法体跑在 `plugin.scheduler().runAt(location, ...)` 内，因此事件到达的是拥有该位置的 region，而不是你的调用线程。
+签名为 `void awardCraftingExperience(Player player, Location location, ItemStack result, double baseExperience, String source)`。它会复制结果和位置，经验球在工作站区域生成，技能奖励及事件在玩家实体调度器执行。非有限或负数基数被拒绝，零基数仍会触发事件。
 
 ### 取消与线程
 
 不可取消——监听器运行时经验已经决定好了，在 API 那个触发点上甚至已经发放。
 
-线程随触发点而异：工作站的几处在拥有该工作站方块的 region 线程上触发；API 那处在你传入位置所属的 region 上 触发。
+厨锅和 API 事件在玩家实体调度器触发；炉灶、煎锅、砧板事件在工作站区域触发。不要据此假定当前线程拥有玩家或其他位置。
 
 ### 示例
 

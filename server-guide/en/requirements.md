@@ -57,8 +57,7 @@ the plugin is present. Everything works without any of them.
 
 - **PlaceholderAPI** — exposes the `%farmersdelight_buff_...%` placeholders (listed in
   [Custom buffs](../../api-docs/en/buffs.md)).
-- **AuraSkills** — lets cooking experience be credited as a skill instead of vanilla XP orbs
-  (`experience-reward.mode` in `config.yml`).
+- **CE XP / item integrations** — reuse registered providers for AuraSkills, MMOCore, Jobs and external items such as ItemsAdder, Nexo and MMOItems. See [First config tweaks](first-config.md). Raw AuraSkills rewards retain their dedicated API path.
 - **UltimateAdvancementAPI** — drives the advancement tab UI.
 - **Land / claim plugins** — WorldGuard, GriefPrevention, Lands, Towny, Residence, and a long list of others
   are recognised through a bundled protection layer, so station use and harvesting respect claims. No setup is

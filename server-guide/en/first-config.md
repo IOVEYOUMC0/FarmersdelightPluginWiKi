@@ -70,6 +70,47 @@ each station's own `allow-hopper: true/false` in `config.yml`.
 
 CrabbersDelight crab traps and worm bins use native hopper containers independently of the FD station switch above. A hopper pointing down from above inserts bait/compost; a hopper below extracts products. Amount and cooldown follow server settings (defaults: one item per transfer and eight ticks), including redstone locking and inventory move events. Tackle box furniture has no hopper access.
 
+## Cooking XP and CE levelers
+
+```yaml
+experience-reward:
+  mode: levelers
+  levelers:
+    - plugin: mmocore
+      target: cooking
+      multiplier: 1.0
+```
+
+Use the provider name registered by CE for `plugin` and the actual skill, profession or job ID for `target`. Target case and separators are preserved. The example requires a MMOCore profession/collection skill named `cooking`; it does not award character main-level XP. Availability follows CE's registrations. The CE 26.9.2 reference includes `auraskills`, `aureliumskills`, `ecojobs`, `ecoskills`, `jobs`, `mmocore`, `mcmmo` and `minecraft`.
+
+| mode | Reward |
+| --- | --- |
+| `vanilla` (default) | Vanilla XP orbs |
+| `auraskills` | The legacy `auraskills` section |
+| `levelers` | The CE `levelers` list |
+| `both` | Orbs + skill rewards; a generic `auraskills` entry replaces the legacy AuraSkills section |
+| `none` | No rewards; the read-only settlement event still fires |
+
+Each entry accepts fixed `amount` (overrides the multiplier), `multiplier` (recipe base × multiplier) and `chance` (0–1, or percentages above 1). The base must be finite and positive; amounts cannot be negative or infinite. Missing providers or unavailable targets never switch to a different reward.
+
+The cooking pot settles its accumulated recipe XP **after a successful player take**. The first take clears the current ledger; subsequent takes cannot award it again. Hopper extraction does not claim player XP. Fixed amounts and chance apply per settlement. Addon stations using the FD XP API, including kegs, share this configuration. Cutting boards have no recipe XP base. Ordinary AuraSkills rewards use CE; legacy `raw: true` retains direct raw-XP semantics. CE's `minecraft` provider gives integer XP directly, unlike the probabilistically rounded orbs in `vanilla` mode; configuring it under `both` awards both channels.
+
+Orbs spawn on the station's region scheduler. Skill rewards and cooking-pot/API events run on the player's entity scheduler. Reusing CE does not make a third-party plugin Folia compatible.
+
+## External item sources
+
+CE's registered `ItemSource` providers can supply FD ingredients, tools, containers and results: for example `itemsadder:myfoods:rice`, `nexo:rice_knife` and `mmoitems:AXE:TEST`. The first colon separates the provider name; the remainder is the original item ID. Keep its case and colons.
+
+Sources referenced by recipes bind automatically. To recognize held items in the editor before any recipe references them, add this to FD `config.yml`:
+
+```yaml
+external-item-sources: [itemsadder, nexo, oraxen]
+```
+
+Legacy `mmoitems:TYPE:ID` recognition is always retained. Identity order is CE ID, legacy MMOItems data, bound external sources sorted by provider name, then vanilla material. External items cannot satisfy their base material's vanilla ID or tags. Tags come from CE declarations or the FD tag API; CE's `recipe.ingredient-sources` only controls CE recipes.
+
+A missing source/template returns `null` and never creates a vanilla substitute. Editor inputs/tools match the real identity; results and data-bearing containers retain full snapshots. Existing ID-only MMOItems recipes rebuild through CE. Results are fixed templates built at recipe load, not fresh player-specific or random results for each craft. Apply source configuration with `/fd reload all`; CE reload also clears bindings and icon caches.
+
 ## Recipe discovery (locked recipe books)
 
 ```yaml

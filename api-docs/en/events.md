@@ -714,15 +714,13 @@ Five fire sites, one per station plus the addon entry point. Their payloads diff
 
 | Site | `getSource()` | `getLocation()` | Notes |
 | --- | --- | --- | --- |
-| `FarmersDelightPlugin.callCookingPotExperienceEvent` | `"cooking_pot"` | **always null** | Uses the five-argument constructor. Reached from `CookingPotBlockBehavior` (taking a meal from the block) and `CookingPotGui` (taking from the output slot) |
+| `CookingPotBlockEntity.awardUsedRecipes` | `"cooking_pot"` | the pot location | Successful takes settle the accumulated recipe XP × craft count once; fires on the player entity scheduler |
 | `StoveManager.finishCooking` | `"stove"` | the stove block | Only when a campfire recipe matched *and* the slot has a recorded owner |
 | `SkilletManager.finishCooking` | `"skillet"` | the skillet block | Only when the skillet has a recorded owner |
 | `CuttingBoardBlockBehavior.processCutting` | `"cutting_board"` | the board | `getBaseExperience()` is **hard-coded 0.0f** — the cutting board credits no experience |
 | `FarmersDelightApi.awardCraftingExperience` | whatever the caller passed | the caller's location | The supported route for addons |
 
-The cooking-pot site giving a null location is a real gap: the plugin still uses the five-argument
-compatibility constructor there, and that constructor delegates with `null`. Always null-check
-`getLocation()`.
+The cooking pot now supplies its location. The compatibility constructor and callers without a location can still supply `null`; always null-check `getLocation()`.
 
 The cutting-board site is careful about locking: the event is *constructed* inside the block entity's monitor,
 so it snapshots consistent state, but is handed back and *dispatched* after the monitor is released, so no
@@ -752,24 +750,21 @@ public ProfessionCookingExperienceEvent(UUID playerId, String playerName, String
 ### Firing it from your own station
 
 There is no need to construct it directly: the API call also drops the vanilla XP orbs (gated by the
-cooking-pot XP config) and awards AuraSkills XP, then fires the event for you:
+cooking-pot XP config) and awards configured CE leveler / legacy raw AuraSkills XP, then fires the event for you:
 
 ```java
 FarmersDelightApi.get().awardCraftingExperience(player, dropLocation, resultItem, xp, "keg");
 ```
 
 Signature: `void awardCraftingExperience(Player player, Location location, ItemStack result,
-double baseExperience, String source)`. It is Folia-safe — the whole body runs inside
-`plugin.scheduler().runAt(location, ...)`, so the event arrives on the region owning that location, not on your
-calling thread.
+double baseExperience, String source)`. It clones the result and location, spawns orbs on the station region, and dispatches skill rewards plus the event on the player entity scheduler. Non-finite or negative bases are rejected; zero still produces an event.
 
 ### Cancellation and threading
 
 Not cancellable — the experience is already decided, and at the API site already awarded, by the time listeners
 run.
 
-Thread varies by site: the station sites fire on the region thread owning the station block; the API site fires
-on the region owning the location you passed.
+Cooking-pot and API events fire on the player entity scheduler. Stove, skillet and cutting-board events fire on their station region; do not assume that a station event owns the player or another location.
 
 ### Example
 

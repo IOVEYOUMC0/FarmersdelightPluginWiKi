@@ -23,13 +23,13 @@ public static boolean      isCustomItem(ItemStack item);
 public static String       customIdOf(ItemStack item);
 ```
 
-`idOf` —— 若该 stack 是 CraftEngine 自定义物品则返回其自定义 id，否则返回小写的 `minecraft:<material>`；空气或 null 返回 `null`。
+`idOf` —— 按 CE ID → 旧 `mmoitems:TYPE:ID` → 已绑定 CE 外部来源 → 小写 `minecraft:<material>` 解析；空气或 null 返回 `null`。
 
-`create` —— 从带命名空间的 id 构造 stack。先查 CraftEngine 自定义物品注册表，再查 Bukkit 材质注册表；两者都解析 不到时返回 `null`。
+`create` —— 先查 CE 自定义物品，再通过指定 `ItemSource` 构造外部物品，原版 ID 查 Bukkit 材质。来源或模板不存在时返回 `null`，不生成原版替代物。外部格式与来源绑定见[首要配置项](../../server-guide/zh-cn/first-config.md)。
 
-`matchesId` —— `item` 是否解析为 `itemId`，id 比较不区分大小写。一个重要语义：CraftEngine 自定义物品**只**用自定义 id 标识，绝不用它的底层原版材质，所以底层是 `minecraft:bowl` 的自定义物品**不会**匹配 `"minecraft:bowl"`。
+`matchesId` —— CE、旧 MMOItems 和原版 ID 保留不区分大小写的比较；其他外部来源的原始 ID 区分大小写，来源名转小写。CE/外部物品只匹配其真实身份，不匹配载体的原版 ID。
 
-`idsOf` —— 该 stack 能解析到的所有带命名空间 id：自定义 id 和 / 或原版材质 id。空气或 null 返回空集合。
+`idsOf` —— 该 stack 能解析到的所有带命名空间 id：CE/外部真实 id 和 / 或原版材质 id。该辅助集合保留载体用于配置，不代表配方匹配会接受载体。空气或 null 返回空集合。
 
 `isCustomItem` / `customIdOf` —— 是否为 CraftEngine 自定义物品，以及它的自定义 id（纯原版材质或空 stack 返回 `null`）。
 

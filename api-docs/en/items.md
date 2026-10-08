@@ -23,17 +23,13 @@ public static boolean      isCustomItem(ItemStack item);
 public static String       customIdOf(ItemStack item);
 ```
 
-`idOf` — the CraftEngine custom id if the stack has one, else `minecraft:<material>` lowercased, else
-`null` for a null/air stack.
+`idOf` — resolves CE ID → legacy `mmoitems:TYPE:ID` → bound CE external source → lowercased `minecraft:<material>`. Returns `null` for null/air.
 
-`create` — builds a stack from a namespaced id. Tries CraftEngine's custom item registry first, then the
-Bukkit material registry. Returns `null` when the id resolves to neither.
+`create` — tries CE custom items, then the requested CE `ItemSource`; vanilla IDs use the Bukkit material registry. A missing source/template returns `null`, never a vanilla substitute. See [First config tweaks](../../server-guide/en/first-config.md) for formats and source binding.
 
-`matchesId` — true when `item` resolves to `itemId`. Case-insensitive on the id. Important semantic: a
-CraftEngine custom item is identified **only** by its custom id, never by its base vanilla material, so
-a custom item whose base is `minecraft:bowl` does *not* match `"minecraft:bowl"`.
+`matchesId` — CE, legacy MMOItems and vanilla IDs retain case-insensitive comparison. Other external IDs preserve provider-specific case; provider names are lowercased. CE/external items match their real identity, never their base material's vanilla ID.
 
-`idsOf` — every namespaced id the stack resolves to: the custom id and/or the vanilla material id. An
+`idsOf` — every namespaced id the stack resolves to: the authoritative CE/external id and/or the vanilla material id. This helper set includes the base material for configuration; recipe matching does not. An
 empty set for null/air.
 
 `isCustomItem` / `customIdOf` — whether the stack is a CraftEngine custom item, and its custom id

@@ -137,18 +137,10 @@ come from somewhere else. The result's quantity comes from `resultCount()`, not 
 
 The clone is small, but the item's **identity** is preserved in full, and the three slot kinds save differently:
 
-* **Input / tool / container slots** save an identity string, not an item snapshot: CraftEngine custom items
-  store their CE item id (`farmersdelight:straw`), MMOItems items store `mmoitems:<type>:<id>`
-  (e.g. `mmoitems:AXE:TEST`), everything else stores the vanilla id (`minecraft:stone_axe`); `#ns:tag` tags and
-  `a|b` choices are supported too. These strings stay readable in the recipe file and are rebuilt back into
-  display items when the editor reloads the recipe.
-* **Result slots** save the **full item** (all components / NBT), serialized as an `{item, count, nbt}` object,
-  so ordinary items carrying custom NBT (enchantments, custom names) survive the edit round-trip. **MMOItems
-  items are the exception**: their identity is uniquely determined by `mmoitems:<type>:<id>`, so they are saved
-  as that id string (`result: mmoitems:AXE:TEST` or `{item: mmoitems:AXE:TEST}`) and rebuilt through the
-  MMOItems plugin API on load — no NBT snapshot is written for them.
+* **Input / tool slots** retain CE or external source identities such as `itemsadder:myfoods:rice` and `mmoitems:AXE:TEST`, without automatically capturing random external template attributes. Unregistered items with extra NBT may use `{item, nbt}` for exact matching; explicitly configured snapshots are preserved. Tags and choices remain supported.
+* **Result / container slots** retain a full `{item, count?, nbt}` snapshot for external items, including MMOItems data. Loading a snapshot does not reroll attributes. Default CE items rebuild from their definitions; ordinary vanilla items only need snapshots for extra data. Existing ID-only external recipes still rebuild through the CE source.
 
-Identity resolution order is: CE item id → `mmoitems:<type>:<id>` → vanilla id — mutually exclusive, first hit wins.
+Identity order is CE ID → legacy `mmoitems:TYPE:ID` → bound CE external source → vanilla material. Original external IDs retain case and colons. See [First config tweaks](../../server-guide/en/first-config.md) for source binding.
 
 ## NumericField
 

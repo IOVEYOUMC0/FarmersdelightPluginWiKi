@@ -65,6 +65,47 @@ hopper-interactions:
 
 CrabbersDelight 的蟹笼和蚯蚓箱使用原生漏斗容器，不受上面的 FD 工作站开关控制。上方朝下的漏斗输入鱼饵/堆肥，下方漏斗抽取产物；数量与冷却遵循服务端配置（默认每次 1 个、8 tick），红石锁定和库存移动事件生效。钓具箱家具不支持漏斗。
 
+## 烹饪经验与 CE 技能来源
+
+```yaml
+experience-reward:
+  mode: levelers
+  levelers:
+    - plugin: mmocore
+      target: cooking
+      multiplier: 1.0
+```
+
+`plugin` 使用 CE 注册的名称，`target` 按目标插件的实际技能、职业或工作 ID 填写，保留大小写和分隔符。示例中的 `cooking` 需要在 MMOCore 中存在，它是 profession/collection skill，不是角色主等级。支持哪些插件以 CE 当前注册结果为准；参考 CE 26.9.2 包括 `auraskills`、`aureliumskills`、`ecojobs`、`ecoskills`、`jobs`、`mmocore`、`mcmmo` 和 `minecraft`。
+
+| mode | 奖励 |
+| --- | --- |
+| `vanilla`（默认） | 原版经验球 |
+| `auraskills` | 旧 `auraskills` 配置中的奖励 |
+| `levelers` | `levelers` 列表中的 CE 奖励 |
+| `both` | 经验球 + 技能奖励；列表有 `plugin: auraskills` 时，它替代旧 AuraSkills 配置 |
+| `none` | 关闭奖励，仍发出只读结算事件 |
+
+每项可设 `amount` 固定量（优先于倍率）、`multiplier`（配方基数 × 倍率）和 `chance`（0–1，或大于 1 的百分数）。基数须为有限正数，数量不能为负或无穷。缺 provider 或目标不可用时不替换成其他奖励。
+
+厨锅在**成功取餐后**领取其累计配方经验：第一次玩家取餐结清当前台账，后续取餐不会重复发放；漏斗取走产物不领取玩家经验。固定量和概率按一次结算计算。酒桶等使用 FD 公共经验 API 的附属共用该配置，砧板没有配方经验基数。普通 AuraSkills 奖励经 CE；旧 `raw: true` 保留直接添加 raw XP 的语义。CE 的 `minecraft` provider 直接给玩家整数经验，与 `vanilla` 的小数概率舍入经验球不同；`both` 中再配它会同时获得两个通道。
+
+经验球在工作站区域生成，技能奖励和厨锅/API 结算事件在玩家实体调度器执行。CE 接口复用不保证第三方插件本身兼容 Folia。
+
+## 外部物品来源
+
+CE 已注册的 `ItemSource` 可直接用于 FD 配方输入、工具、容器和结果：例如 `itemsadder:myfoods:rice`、`nexo:rice_knife`、`mmoitems:AXE:TEST`。第一个冒号前是来源名，余下是原始物品 ID；不要把冒号改为下划线，或把原始 ID 全转小写。
+
+配方引用的来源会自动绑定。要在尚无相关配方时识别编辑器中的手持物品，可在 FD `config.yml` 添加：
+
+```yaml
+external-item-sources: [itemsadder, nexo, oraxen]
+```
+
+MMOItems 始终保留旧 `mmoitems:TYPE:ID` 识别。身份优先 CE ID、旧 MMOItems 数据，然后已绑定外部来源（按来源名排序），最后原版材质。外部物品不会匹配其载体的原版 ID 或原版标签。标签须由 CE 内容声明或 FD 标签 API 注册；CE 的 `recipe.ingredient-sources` 只管理 CE 自己的配方。
+
+来源或模板缺失时构造返回 `null`，不会替换为同材质原版物品。编辑器输入/工具以真实身份匹配，结果及需要保留数据的容器保存完整快照；已有仅 ID 的 MMOItems 配方继续由 CE 构造。当前支持加载时生成的固定模板，不在每次制作时构造玩家专属或随机属性结果。修改来源配置后用 `/fd reload all`；CE 重载也会清除旧绑定和图标缓存。
+
 ## 配方发现（锁定配方书）
 
 ```yaml

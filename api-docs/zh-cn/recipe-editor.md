@@ -115,10 +115,10 @@ public EditableRecipe load(String id) {
 
 副本虽小，**身份**是完整保留的，而且三种槽的保存策略不同：
 
-* **输入 / 工具 / 容器槽**保存的是身份字符串而不是物品快照：CraftEngine 自定义物品存它的 CE 物品 id （`farmersdelight:straw`）、MMOItems 物品存 `mmoitems:<类型>:<id>`（如 `mmoitems:AXE:TEST`）、其余存原版 id （`minecraft:stone_axe`），此外还有 `#ns:tag` 标签和 `a|b` 或选。这些字符串写进配方文件后保持可读， 加载回编辑器时按 id 重建展示物品。
-* **结果槽**保存**完整物品**（含全部组件 / NBT），写盘时以 `{item, count, nbt}` 对象形式序列化，普通带自定义 NBT 的物品（附魔、自定义名字等）编辑往返不丢。**MMOItems 物品例外**：它们的身份由 `mmoitems:<类型>:<id>` 唯一确定，写盘时同样存 id 字符串（`result: mmoitems:AXE:TEST` 或 `{item: mmoitems:AXE:TEST}`），加载时调用 MMOItems 插件 API 重建，不落 NBT 快照。
+* **输入 / 工具槽**保留 CE 或外部来源身份（例如 `itemsadder:myfoods:rice`、`mmoitems:AXE:TEST`），不自动附带外部模板的随机属性。普通未注册物品的额外 NBT 可存为 `{item, nbt}` 并精确匹配；显式配置的快照同样保留。支持标签和或选。
+* **结果 / 容器槽**对外部物品保留 `{item, count?, nbt}` 完整快照，包含 MMOItems 数据；加载快照时不重新随机构造。CE 默认物品由定义重建，普通原版物品仅在带额外数据时需要快照。已有只写外部 ID 的配方仍通过 CE 来源重建。
 
-身份解析顺序是：CE 物品 id → `mmoitems:<类型>:<id>` → 原版 id —— 三者互斥，取第一个命中的。
+身份优先 CE ID → 旧 `mmoitems:TYPE:ID` → 已绑定 CE 外部来源 → 原版材质。原始外部 ID 保留大小写及冒号。来源配置见[首要配置项](../../server-guide/zh-cn/first-config.md)。
 
 ## NumericField
 
