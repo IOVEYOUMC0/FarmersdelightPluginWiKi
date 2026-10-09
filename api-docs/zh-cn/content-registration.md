@@ -76,7 +76,7 @@ FarmersDelight 自己的注册 pass 会按 kind 调用 `ContentRegistration.appl
 
 `Bridge`、`apply(Kind)`、`installBridge(Bridge)` 与 `resetForTests()` 都是 `@ApiStatus.Internal`。它们存在的意义是让这套记账与校验能在没有运行 CraftEngine 的情况下被测试；生产代码从不调用它们，附属也不应调用。
 
-和其它 api 类一样，请**在方法体内**调用这些方法 —— `onEnable`、监听器、命令处理器。不要在附属的字段初始化、静态块或 `static final` 常量里引用 `ContentRegistration`：那会让这个类在附属的类初始化期被加载，而附属跑在自己的类加载器下，一旦那里失败（`NoClassDefFoundError`），初始化会被中止，你正在装配的东西会被静默禁用。`CompatAttributes` 上的同一条规则见[版本兼容工具](compat-utilities.md)。
+和其它 api 类一样，请**在方法体内**调用这些方法 —— `onEnable`、监听器、命令处理器。不要在附属的字段初始化、静态块或 `static final` 常量里引用 `ContentRegistration`：那会让这个类在附属的类初始化期被加载，而附属跑在自己的类加载器下，一旦那里失败（`NoClassDefFoundError`），初始化会被中止，你正在装配的东西会被静默禁用。
 
 ## 可用性
 

@@ -6,64 +6,56 @@ icon: code-branch
 
 # 版本兼容工具
 
-`com.huidu.farmersdelight.api.util` 里的小工具类存在的意义只有一个：让附属用同一个编译产物跑在全部受支持的 Minecraft 版本上。`CompatAttributes` 与 `CompatItemMeta` 抹平 Bukkit API 变更；`TooltipUtils` 与 `CeItemInterop` 处理 CraftEngine 自己的物品包装类。
+`com.huidu.farmersdelight.api.util` 提供 CE 物品互操作、可选性能计时和已发布的兼容接口。最低支持 Paper 1.21.5；新代码直接使用该版本已有的 Bukkit/Paper API。`CompatAttributes` 与 `CompatItemMeta` 保留签名供旧附属调用，内部已移除反射。
 
-支持下限已经是 1.21.5，所以两个兼容垫片在全部受支持的服务端上都能解析成功。保留它们的理由有二：它们是已发布的 API；它们仍然吸收属性注册表改名，以及未来 `setItemModel` 被移除的可能。
+同包的 `DebugToolExtension` 与 `DebugToolRegistry` 见[调试工具](debug-tools.md)，`PluginManagerGuard` 见[快速上手](getting-started.md)。
 
-同包下的 `DebugToolExtension` 与 `DebugToolRegistry` 见[调试工具](debug-tools.md)，`PluginManagerGuard` 见 [快速上手](getting-started.md)。
+## PerformanceProbe
 
-这些类由 FarmersDelight 提供，附属直接使用即可。
+`PerformanceProbe.begin(Operation)` 在对应计时未开启时返回 `null`，不读时钟或分配样本；开启时返回实现 `AutoCloseable` 的 `Sample`。Java 的 try-with-resources 允许资源为 null，异常退出也会记录耗时。Sample 单次记录，旧会话结束后不会写入新会话；同一样本由同一执行线程关闭。
+
+`item(ItemStack)` / `items(ItemStack[])` 直接调用 CE 原有 codec；`holder(Inventory)` 固定使用 Paper 的 `getHolder(false)`。这些帮助方法不调度、不改线程归属或锁，不代表可在后台访问实时库存。附属只导入 `api.util.PerformanceProbe`，与本轮 FD 一起更新。
+
+```java
+import com.huidu.farmersdelight.api.util.PerformanceProbe;
+
+try (PerformanceProbe.Sample ignored = PerformanceProbe.begin(PerformanceProbe.Operation.SERIALIZATION)) {
+    // Keep the original serialization and error handling here.
+}
+```
+
+`Operation` 包含 `SERIALIZATION`、`ITEM_SERIALIZATION`、`SERIALIZATION_LOCK`、`INVENTORY_HOLDER`。锁样本在进入 synchronized 前开始，进入后的第一行关闭，不把编码算作等待。Facade `FarmersDelightApi.get().performanceTiming(operation)` 返回绑定当前会话的 recorder，未采样/插件不可用时返回 null；不得长期缓存。使用方式见[调试工具](debug-tools.md)。
 
 ## CompatAttributes
 
-`@ApiStatus.Internal`、`@ApiStatus.NonExtendable`，final，两个公开常量。
+`@ApiStatus.Internal` 的 `MAX_HEALTH` 与 `ATTACK_SPEED` 现在直接对应 Bukkit 的属性常量。新附属使用 `Attribute.MAX_HEALTH`、`Attribute.ATTACK_SPEED`，不需要注册表探测或另一份兼容工具。`getAttribute` 仍可能因实体不支持该属性而返回 null。
 
 ```java
-public static final Attribute MAX_HEALTH;
-public static final Attribute ATTACK_SPEED;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+
+AttributeInstance maxHealth = player.getAttribute(Attribute.MAX_HEALTH);
+if (maxHealth == null) return;
 ```
-
-Minecraft 改过属性注册表的命名：旧服务端的枚举常量是 `GENERIC_MAX_HEALTH`、注册表键是 `generic.max_health`，新服务端 改成了 `MAX_HEALTH` 和 `max_health`。代码里直接写死任何一边的枚举常量，都会导致这个类在另一边加载失败。
-
-解析顺序是：先按新写法、再按旧写法查 `Registry.ATTRIBUTE`，都拿不到再退回反射取字段。全程不直接引用任何版本特定的 枚举常量，所以在所有受支持的版本上都能正常加载。
-
-**当运行的服务端两种写法都没有时，常量为 null。** 传给 `getAttribute` 之前必须判空。BAC 的真实写法：
-
-```java
-AttributeInstance maxHealthAttr = player.getAttribute(CompatAttributes.MAX_HEALTH);
-if (maxHealthAttr == null) return;
-```
-
-**`@ApiStatus.Internal` 在这里不是装饰，请只在方法体内引用这些常量。** 它们是静态字段，一旦你在自己的字段初始化、静态块或 `static final` 常量里写到其中一个，这个类就会在**你自己的附属**类初始化期被加载。附属跑在自己的类加载器下，那里一旦失败（`NoClassDefFoundError`），初始化会被中止，你正在装配的东西会被静默禁用 —— 插件能加载，功能却永远不会生效。写在方法体里，这次加载就落在他处理得了的路径上；而对这么小的一个查询来说，在附属里自带一份拷贝仍然更稳妥。
 
 ## CompatItemMeta
 
-`@ApiStatus.NonExtendable`，final，两个静态方法。
+| 方法 | 行为 |
+| --- | --- |
+| `isSupported()` | 支持范围内恒为 true；保留旧签名。 |
+| `setItemModel(ItemMeta meta, NamespacedKey key)` | meta/key 为 null 时不操作；其它情况直接调用 Paper API。 |
 
-| 方法                                               | 行为                                         |
-| ------------------------------------------------ | ------------------------------------------ |
-| `isSupported()`                                  | 当前服务端有 `ItemMeta.setItemModel` 时返回 `true`。 |
-| `setItemModel(ItemMeta meta, NamespacedKey key)` | 应用 `item_model` 组件，或者什么都不做。                |
-
-`ItemMeta.setItemModel` 从 Minecraft 1.21.4 起就存在，早于支持下限，所以反射查找（只解析一次，缓存在静态字段里）在全部受支持的服务端上都会成功。保留这个垫片，是为了让按旧 api jar 编译的附属继续可用，也为了在某个分支移除该方法时降级而不是抛异常。
-
-`setItemModel` 在三种情况下会**静默地什么都不做**：方法不可用、`meta` 为 null、`key` 为 null。它还会吞掉 `ReflectiveOperationException`。它不抛异常也不报告失败，而且没有返回值，所以你无法从调用结果判断模型到底有没有设上。
-
-BAC 的真实调用只对 key 的解析做了保护，版本差异完全交给这个静默 no-op 吸收，同时独立设置 custom model data，让旧版 服务端也有东西可渲染：
+新代码直接使用 `meta.setItemModel(modelKey)`。旧兼容接口不再吞掉调用错误。自定义模型数字使用 `CustomModelDataComponent`；不再使用过时的整数 setter。
 
 ```java
-if (customModelData != null) {
-    meta.setCustomModelData(customModelData);
-}
-if (itemModel != null && !itemModel.isBlank()) {
-    NamespacedKey modelKey = NamespacedKey.fromString(itemModel.toLowerCase(Locale.ROOT));
-    if (modelKey != null) {
-        CompatItemMeta.setItemModel(meta, modelKey);
-    }
-}
-```
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
+import java.util.List;
 
-`isSupported()` 是留给"需要切到另一套完全不同的降级方案"的场景。目前没有任何调用方用它——所有真实调用点都直接依赖那个 静默 no-op。
+CustomModelDataComponent data = meta.getCustomModelDataComponent();
+data.setFloats(List.of(customModelData.floatValue()));
+meta.setCustomModelDataComponent(data);
+meta.setItemModel(modelKey);
+```
 
 ## CeItemInterop
 

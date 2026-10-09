@@ -82,6 +82,10 @@ A player with `farmersdelight.admin` can run `/fd stats profile 200 all`, approx
 | `handheld_display` | Display refresh including copy construction and submission, excluding network-thread sending |
 | `skillet` | One placed skillet update including called effects and serving logic |
 | `stove` | One stove cooking update, excluding entity burns |
+| `serialization` | Live container saves plus the three timings below; parked-tag passthrough skips live saves |
+| `item_serialization` | CE item NBT encoding in instrumented paths |
+| `serialization_lock` | Instrumented save-lock acquisition, excluding outer locks already held |
+| `inventory_holder` | Instrumented `getHolder(false)` queries |
 
 For example, use `/fd stats profile 600 handheld` for handheld load, then `/fd stats profile 600 handheld_display` for display refreshes. Duration is clamped to 20-12000 ticks; defaults are 200 ticks and `all`. Results include calls, calls per second, total/average/maximum time and P95. Times are milliseconds; call rates use actual elapsed time. Zero calls means the feature did not execute during that window, not that it is free.
 

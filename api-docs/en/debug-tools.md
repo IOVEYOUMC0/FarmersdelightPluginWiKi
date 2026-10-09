@@ -41,6 +41,20 @@ The `recipe validate` action checks loaded cooking-pot and cutting-board recipes
 missing results/containers, and tags that resolve to no vanilla, CraftEngine, or registered common-tag
 members. Parse failures are still reported by the normal `recipe.load_failed` logger.
 
+## Profile saves and serialization
+
+```text
+/fd debugtools profile serialization 600
+/fd debugtools stop
+/fd stats
+```
+
+Requires a debug build and `farmersdelight.admin`; release builds can use `/fd stats profile 600 serialization`. The debug entry defaults to 600 ticks and accepts 20-12000. Only one server-wide session runs at a time, capturing executing calls across regions rather than filtering by the initiating player.
+
+Results cover live container saves, item NBT encoding, instrumented save-lock acquisition and holder queries with snapshots disabled. Rows show calls, average, P95, maximum and total time. Save hooks cover FD, BAC, CAB and BBQD; parked-tag passthrough skips live-save timing. Encoding can also occur in other instrumented paths such as item packing; lock timings exclude an outer lock already held by the caller.
+
+Operate normally and wait for autosave; opening a GUI does not guarantee persistence. Zero calls mean the path did not execute in the window, so extend the duration if needed. No save, chunk unload or reload is forced, and inventory contents are unchanged. `/fd stats` retains results after stopping. Nested rows are not additive MSPT and exclude whole CE chunk encoding, compression and disk writes. Use spark alongside these measurements for call stacks and GC.
+
 ## Availability: this only runs on a debug build
 
 `/fd debugtools` exists only in the debug build of FarmersDelight; on a normal release build the command class

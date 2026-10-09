@@ -31,10 +31,24 @@ debug 构建可以在小范围手动制造测试负载：
 /fd debugtools place random all 16
 ```
 
-旧 `placeRecipe`、`placeRecipeRandom` 别名保留。undo 只处理自己的放置批次；独立 activate 没有独立撤销，已领取/消耗的产物不会恢复。stop 只停止待执行批次或模拟，不是完整回滚。
+旧 `placeRecipe`、`placeRecipeRandom` 别名保留。undo 只处理自己的放置批次；独立 activate 没有独立撤销，已领取/消耗的产物不会恢复。stop 停止待执行批次、模拟任务和当前测试采样，不是完整回滚。
 
 
 `recipe validate` 会检查已加载的厨锅和砧板配方是否为空、是否缺少成品/容器，以及标签是否解析不到任何原版物品、CraftEngine 物品或已注册的公共标签成员。解析阶段失败的配方仍会由常规 `recipe.load_failed` 日志报告。
+
+## 保存和序列化采样
+
+```text
+/fd debugtools profile serialization 600
+/fd debugtools stop
+/fd stats
+```
+
+需要 debug 构建和 `farmersdelight.admin`；普通构建可用 `/fd stats profile 600 serialization`。debug 入口默认 600 tick，允许 20-12000 tick。采样器全服只运行一个会话，记录各区域真实调用，不按发起玩家筛选。
+
+四类结果是实时容器保存、物品 NBT 编码、已接入保存锁的获取耗时和关闭快照的 holder 查询；输出调用数、平均、P95、最大和累计耗时。保存入口覆盖 FD、BAC、CAB、BBQD；停放标签直接写回不进入实时保存计时。物品编码也可能发生在打包等其它已接入路径，锁获取不覆盖外层早已持有的锁。
+
+正常操作并等待自动保存即可；打开 GUI 本身不保证触发持久化。窗口内没有执行的路径显示零调用，需要时延长采样。命令不主动保存、卸载或重载区块，不改库存。停止后仍可用 `/fd stats` 查看结果。各行会嵌套，不能相加为 MSPT，也不包含 CE 整个区块编码、压缩及磁盘写入；配合 spark 定位调用栈和 GC。
 
 ## 前提：只有 debug 构建才会真的跑
 

@@ -18,6 +18,20 @@ icon: gauge
 
 插件采样的功能行包含下层调用，不能直接相加。它测的是经过时间；网络提交不等于实际发送，各区域计时也不等于全服 MSPT。零调用通常意味着该功能在窗口内没有执行。
 
+## 保存和序列化采样
+
+```text
+/fd debugtools profile serialization 600
+/fd debugtools stop
+/fd stats
+```
+
+需要 debug 构建和 `farmersdelight.admin`；普通构建可用 `/fd stats profile 600 serialization`。debug 入口默认 600 tick，允许 20-12000 tick。采样器全服只运行一个会话，记录各区域真实调用，不按发起玩家筛选。
+
+四类结果是实时容器保存、物品 NBT 编码、已接入保存锁的获取耗时和关闭快照的 holder 查询；输出调用数、平均、P95、最大和累计耗时。保存入口覆盖 FD、BAC、CAB、BBQD；停放标签直接写回不进入实时保存计时。物品编码也可能发生在打包等其它已接入路径，锁获取不覆盖外层早已持有的锁。
+
+正常操作并等待自动保存即可；打开 GUI 本身不保证触发持久化。窗口内没有执行的路径显示零调用，需要时延长采样。命令不主动保存、卸载或重载区块，不改库存。停止后仍可用 `/fd stats` 查看结果。各行会嵌套，不能相加为 MSPT，也不包含 CE 整个区块编码、压缩及磁盘写入；配合 spark 定位调用栈和 GC。
+
 ## 预算的作用与取舍
 
 以下是新安装的默认值，已有服务器以实际 `plugins/FarmersDelight/config.yml` 为准。修改这些 FD 参数后用 `/fd reload config`；替换插件 JAR 需要完整重启。

@@ -2,90 +2,56 @@
 [简体中文](../zh-cn/compat-utilities.md)
 # Version compatibility helpers
 
-`com.huidu.farmersdelight.api.util` contains the small helpers that exist so an addon can support the whole
-supported Minecraft range from a single compiled jar. `CompatAttributes` and `CompatItemMeta` paper over
-Bukkit API changes; `TooltipUtils` and `CeItemInterop` deal with CraftEngine's own item wrapper.
+`com.huidu.farmersdelight.api.util` provides CE item interop, optional timing and published compatibility interfaces. Paper 1.21.5 is the minimum; new code uses Bukkit/Paper APIs already available there. `CompatAttributes` and `CompatItemMeta` retain existing signatures with direct implementations.
 
-The supported floor is 1.21.5, so both compatibility shims now resolve on every supported server. They are
-kept because they are published API and because they still absorb the attribute-registry rename and any
-future removal of `setItemModel`.
+See [debug tools](debug-tools.md) for `DebugToolExtension` and `DebugToolRegistry`, and [getting started](getting-started.md) for `PluginManagerGuard`.
 
-`DebugToolExtension` and `DebugToolRegistry` also live in this package but are covered in
-[Debug tools](debug-tools.md). `PluginManagerGuard` is covered in [Getting started](getting-started.md).
+## PerformanceProbe
 
-These are the single shared implementations. Do not keep your own copy — BAC originally did, and its local
-`CompatAttributes` / `CompatItemMeta` are now thin delegating shims kept only so its existing imports still
-resolve.
+`PerformanceProbe.begin(Operation)` returns `null` when the operation is not sampled, without reading a clock or allocating a sample. Active samples implement `AutoCloseable`; Java try-with-resources accepts null and records exceptional exits. Each sample records once and cannot pollute a later session. Close a sample on its executing thread.
+
+`item(ItemStack)` / `items(ItemStack[])` delegate to CE's existing codec; `holder(Inventory)` always uses Paper `getHolder(false)`. These helpers do not schedule work, change ownership or replace locks, and do not authorize asynchronous live-inventory access. Addons import only `api.util.PerformanceProbe` and must update alongside this FD build.
+
+```java
+import com.huidu.farmersdelight.api.util.PerformanceProbe;
+
+try (PerformanceProbe.Sample ignored = PerformanceProbe.begin(PerformanceProbe.Operation.SERIALIZATION)) {
+    // Keep the original serialization and error handling here.
+}
+```
+
+Operations are `SERIALIZATION`, `ITEM_SERIALIZATION`, `SERIALIZATION_LOCK`, and `INVENTORY_HOLDER`. Begin a lock sample before entering synchronized and close it on the first line inside, so encoding is excluded. `FarmersDelightApi.get().performanceTiming(operation)` returns a session-bound recorder, or null while inactive/unavailable; do not retain it long-term. See [debug tools](debug-tools.md).
 
 ## CompatAttributes
 
-`@ApiStatus.Internal`, `@ApiStatus.NonExtendable`, final, two public constants.
+The internal `MAX_HEALTH` and `ATTACK_SPEED` aliases now refer directly to Bukkit constants. New addons use `Attribute.MAX_HEALTH` and `Attribute.ATTACK_SPEED` without registry probing or a separate shim. `getAttribute` still returns null when an entity lacks that attribute.
 
 ```java
-public static final Attribute MAX_HEALTH;
-public static final Attribute ATTACK_SPEED;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+
+AttributeInstance maxHealth = player.getAttribute(Attribute.MAX_HEALTH);
+if (maxHealth == null) return;
 ```
-
-Minecraft renamed the attribute registry entries: older servers expose the enum constant `GENERIC_MAX_HEALTH`
-under the registry key `generic.max_health`, newer ones use `MAX_HEALTH` and `max_health`. Referencing either
-enum constant directly in your code makes the class fail to load on the other side of the rename.
-
-Resolution goes through `Registry.ATTRIBUTE` by key first — modern spelling, then legacy — and falls back to a
-reflective field lookup. No version-specific enum constant is ever referenced directly, so the class loads on
-every supported version.
-
-**A constant is null when the running server exposes neither spelling.** You must null-check before passing it
-to `getAttribute`. This is BAC's real usage:
-
-```java
-AttributeInstance maxHealthAttr = player.getAttribute(CompatAttributes.MAX_HEALTH);
-if (maxHealthAttr == null) {
-    return;
-}
-```
-
-**`@ApiStatus.Internal` is not decoration here — reference these constants only from inside a method body.**
-They are static fields, so naming one from your own field initializer, static block or `static final` constant
-makes this class load during *your* addon's class initialization. An addon runs under its own class loader, and
-a failure there (`NoClassDefFoundError`) aborts that initializer and silently leaves whatever you were wiring
-up disabled — the plugin loads, the feature just never works. A method body keeps the load on a path your addon
-can handle; for a lookup this small, a self-contained copy in the addon is the safer answer still.
 
 ## CompatItemMeta
 
-`@ApiStatus.NonExtendable`, final, two static methods.
-
 | Method | Behaviour |
 | --- | --- |
-| `isSupported()` | `true` when the running server has `ItemMeta.setItemModel`. |
-| `setItemModel(ItemMeta meta, NamespacedKey key)` | Applies the `item_model` component, or does nothing. |
+| `isSupported()` | Always true within the supported range; retained for existing callers. |
+| `setItemModel(ItemMeta meta, NamespacedKey key)` | No operation for null meta/key; otherwise calls the Paper API directly. |
 
-`ItemMeta.setItemModel` exists from Minecraft 1.21.4 on, which is below the supported floor, so the
-reflective lookup (resolved once into a static field) succeeds on every supported server. The shim is kept so
-an addon compiled against an older api jar keeps working, and so the call degrades instead of throwing if a
-fork removes the method.
-
-`setItemModel` is a **silent no-op** in three cases: the method is unavailable, `meta` is null, or `key` is
-null. It also swallows `ReflectiveOperationException`. It never throws and never reports failure, so if the
-model must be visible you cannot detect the miss from the return value — there isn't one.
-
-BAC's real call site guards only the key parsing and lets the no-op absorb the version difference, setting
-custom model data independently so older servers still have something to render:
+New code uses `meta.setItemModel(modelKey)` directly. The compatibility method no longer swallows invocation errors. Use `CustomModelDataComponent` for model numbers rather than the deprecated integer setter.
 
 ```java
-if (customModelData != null) {
-    meta.setCustomModelData(customModelData);
-}
-if (itemModel != null && !itemModel.isBlank()) {
-    NamespacedKey modelKey = NamespacedKey.fromString(itemModel.toLowerCase(Locale.ROOT));
-    if (modelKey != null) {
-        CompatItemMeta.setItemModel(meta, modelKey);
-    }
-}
-```
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
+import java.util.List;
 
-`isSupported()` is there for when you need to branch to a genuinely different fallback instead. No current
-consumer calls it — every real call site relies on the silent no-op.
+CustomModelDataComponent data = meta.getCustomModelDataComponent();
+data.setFloats(List.of(customModelData.floatValue()));
+meta.setCustomModelDataComponent(data);
+meta.setItemModel(modelKey);
+```
 
 ## CeItemInterop
 

@@ -18,6 +18,20 @@ Identify the expensive feature before changing its settings. `performance.warnin
 
 Feature timings include callees and cannot simply be added together. They measure elapsed time. Network submission is not actual transmission, and region timings are not server-wide MSPT. Zero calls usually means the feature did not execute in that window.
 
+## Profile saves and serialization
+
+```text
+/fd debugtools profile serialization 600
+/fd debugtools stop
+/fd stats
+```
+
+Requires a debug build and `farmersdelight.admin`; release builds can use `/fd stats profile 600 serialization`. The debug entry defaults to 600 ticks and accepts 20-12000. Only one server-wide session runs at a time, capturing executing calls across regions rather than filtering by the initiating player.
+
+Results cover live container saves, item NBT encoding, instrumented save-lock acquisition and holder queries with snapshots disabled. Rows show calls, average, P95, maximum and total time. Save hooks cover FD, BAC, CAB and BBQD; parked-tag passthrough skips live-save timing. Encoding can also occur in other instrumented paths such as item packing; lock timings exclude an outer lock already held by the caller.
+
+Operate normally and wait for autosave; opening a GUI does not guarantee persistence. Zero calls mean the path did not execute in the window, so extend the duration if needed. No save, chunk unload or reload is forced, and inventory contents are unchanged. `/fd stats` retains results after stopping. Nested rows are not additive MSPT and exclude whole CE chunk encoding, compression and disk writes. Use spark alongside these measurements for call stacks and GC.
+
 ## Budget effects and tradeoffs
 
 These are fresh-install defaults; existing servers use their actual `plugins/FarmersDelight/config.yml`. Apply FD setting changes with `/fd reload config`. Replacing a plugin JAR requires a full restart.

@@ -110,8 +110,7 @@ Like every other api class, call these methods **from inside a method body** —
 command handler. Do not reference `ContentRegistration` from an addon field initializer, a static block or a
 `static final` constant: that makes the class load during your addon's class initialization, and an addon runs
 under its own class loader, where a failure there (`NoClassDefFoundError`) aborts the initializer and silently
-leaves whatever you were wiring disabled. See [Version compatibility helpers](compat-utilities.md) for the same
-rule on `CompatAttributes`.
+leaves whatever you were wiring disabled.
 
 ## Availability
 
