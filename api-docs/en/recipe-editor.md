@@ -14,11 +14,17 @@ recipe registered only through the API, the editor stores a persistent `external
 FarmersDelight's recipe file. Removing that override lets the addon's next registration take effect again,
 without guessing an addon file path.
 
-Files are saved under server plugin data folders; saving does not synchronize a source checkout or the original CE pack. FD pot/board saves use an async atomic file queue; generic addon `save/delete` still has a synchronous contract. Wait for feedback before leaving and avoid repeated saves: immediate logout can leave the file saved without refreshing runtime recipes. Reopen the recipe or run `/fd reload recipes` to check application and inspect logs for parsing failures. Before writing Choice/NBT structures to an addon owner file, check that its loader supports the same format.
+Files are saved under plugin data folders and do not synchronize a source checkout or original CE pack. FD pot/board and BAC keg saves use an async atomic file queue; runtime refresh is independent of player survival. Native FD feedback waits for publication and checks the saved definition. Failure retains the draft; the file may already be written, so inspect logs and the actual recipe. AddonRecipeFiles reuses the production Choice/NBT and multiple-tool parsers. Buttons are locked while saving and old callbacks close only their corresponding window. Escape/cancel retains up to eight session drafts per player; reopen the same editor to resume. Logout or reload clears drafts.
 
 ## RecipeEditor
 
 ```java
+import com.huidu.farmersdelight.api.recipe.EditableRecipe;
+import com.huidu.farmersdelight.api.recipe.NumericField;
+import org.jetbrains.annotations.ApiStatus;
+import java.util.List;
+import java.util.function.Consumer;
+
 @ApiStatus.OverrideOnly
 public interface RecipeEditor {
     List<String> itemSlotLabels();
@@ -26,6 +32,14 @@ public interface RecipeEditor {
     EditableRecipe load(String id);
     boolean save(EditableRecipe draft);
     boolean delete(String id);
+    default boolean saveAsync(EditableRecipe draft, Consumer<Boolean> completion) {
+        completion.accept(save(draft));
+        return true;
+    }
+    default boolean deleteAsync(String id, Consumer<Boolean> completion) {
+        completion.accept(delete(id));
+        return true;
+    }
 }
 ```
 
@@ -67,13 +81,12 @@ public boolean save(EditableRecipe draft) {
     if (draft == null || draft.id() == null || draft.id().isBlank() || draft.result() == null) {
         return false;
     }
-    store.put(draft.id(), draft);
+    store.put(draft.id(), draft.copy());
     return true;
 }
 ```
 
-`save` runs on the clicking player's region thread. BAC writes its YAML inline there, which is acceptable for a
-rare admin action; do not do anything long-running.
+`save/delete` are legacy synchronous entry points. The default async methods still call them and suit an in-memory implementation. Disk-backed editors should override `saveAsync/deleteAsync` and use the queue below.
 
 ### delete(String id)
 
@@ -205,3 +218,21 @@ your own admins:
 A stable editor instance is worth keeping if you cache drafts in memory across opens, as the template does —
 `RecipeType.editor()` is queried on every open, so returning a new instance each time discards anything the
 previous one held.
+
+## Async file saving contract
+
+False from `saveAsync/deleteAsync` means the operation was not queued. After returning true, call completion once with the operation result. Completion may run on any thread; FD's GUI hops back to the player scheduler. The implementation receives EditableRecipe.copy(); storage must also copy mutable drafts rather than keep the live editor object as a saved definition.
+
+RecipeEditorFiles.saveAsync(file, path, body, preservedFields, reload, completion) uses the shared queue. Parsing, merging preserved fields from current contents, local edits and atomic replacement run asynchronously. Reload and completion run on FD's global scheduler, independent of player survival. Null body deletes an entry. Invalid YAML is refused; preserved fields are read under the file transaction lock.
+
+```java
+import com.huidu.farmersdelight.api.recipe.RecipeEditorFiles;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+RecipeEditorFiles.saveAsync(file, List.of("keg_recipes", recipeId), body,
+        Set.of("result-amount"), recipes::load, completion);
+```
+
+Reload must synchronously publish the addon's recipes. If it only schedules future work, report success after actual publication through your own lifecycle. FD cannot infer that lifecycle. A stopped or overloaded queue returns false and the GUI unlocks while retaining the draft.

@@ -108,7 +108,7 @@ public interface DebugToolExtension {
         void capture(Location loc);
     }
 
-    default int activate(Player player) { return 0; }
+    default int activateAt(Player player, Location location) { return 0; }
 
     default List<String> status(Player player) { return List.of(); }
 
@@ -191,16 +191,11 @@ public int place(Player player, Location origin, int count, int spacing, int lay
 
 Note the `undo != null` guard — defensive, since the command always supplies a sink today.
 
-### `int activate(Player player)`
+### `int activateAt(Player player, Location location)`
 
-Optional; default returns 0. Called for `/fd debugtools activate <name>`, and **also for every registered
-extension** when the admin runs `/fd debugtools activate all`. Fill your placed blocks with sample state so
-they start ticking, fermenting, cooking — whatever makes them load-bearing for a profiling run — and return
-how many blocks transitioned to an active state. The count is added to the command's total.
+Optional; default returns 0. The command passes only a position captured by the admin's latest test-placement batch. Work is sliced at 16 entries / 2ms after checking chunk residency, region ownership, build permission and the identity left by the operation. Modify that position only and check your own use permission; do not scan a world manager.
 
-FDAddonTemplate keeps its own `ConcurrentHashMap.newKeySet()` of placed locations because its demo block has
-no manager. If your plugin already has a manager that tracks its blocks (as BrewinAndChewin's `KegManager`
-does), iterate that instead of duplicating tracking.
+The deprecated `activate(Player)` remains for binary compatibility and is no longer called by the command. `activate all` also stays within the latest owned batch. Addon placement and activation are currently refused on Folia until the extensions support that scheduling contract.
 
 ### `List<String> status(Player player)`
 
@@ -233,8 +228,7 @@ Two properties of the call site are worth knowing:
 
 - It is invoked on **every registered extension**, not just the one that placed the block. Your
   implementation must no-op cheaply when the location is not one of yours.
-- Exceptions are caught and swallowed (`catch (Throwable ignored)`), so a bug here fails silently rather than
-  aborting the undo. Log your own errors if you want to see them.
+- RuntimeException / LinkageError is logged and stops the undo batch, leaving unfinished entries for retry. The command does not delete a block after addon cleanup fails.
 
 ```java
 @Override
@@ -254,23 +248,11 @@ public void cleanupBeforeUndo(Location location) {
 }
 ```
 
-## Threading
+## Threading and undo scope
 
-All four callbacks are invoked synchronously from the command handler, on the thread executing
-`/fd debugtools`. On Paper that is the main thread. On Folia it is the thread the command dispatches on,
-which owns the *sender's* region — not necessarily the region of the blocks you are about to place several
-hundred metres away.
+Built-in work runs in slices on the player's scheduler and touches only loaded positions owned by that thread. Distant or protected positions are skipped. Paper extension callbacks must finish synchronously; deferred world edits are outside the captured count, identity checks and undo batch.
 
-FarmersDelight's own built-in activation path is explicitly Folia-aware: it collects pending activations and
-re-schedules each one onto the region owning its location. Extensions get no such treatment automatically. If
-your extension touches blocks outside the sender's region on Folia, hop with
-`FarmersDelightApi.get().runAtLocation(loc, ...)` yourself — noting that `place` must then return a count
-before the deferred work has run, and that `undo.capture(loc)` should still happen up front on the command
-thread so the capture joins the current undo batch.
-
-Keep concurrent structures for any state shared between callbacks: `place` may run while a long `activate`
-walks the same set. FDAddonTemplate uses `ConcurrentHashMap.newKeySet()` and iterates a defensive
-`new ArrayList<>(placed)` copy for exactly this reason.
+History holds at most eight batches per player. Undo checks the resulting ID / block data and container-controller identity, preserving later replacements. It cleans up test scenery and cannot recover food already collected or undo external event effects. A programmatic replacement with identical data and no controller cannot be distinguished by state alone. Stop cancels future batch work, simulation and this test's profile; already-running production continues.
 
 ## Related pages
 

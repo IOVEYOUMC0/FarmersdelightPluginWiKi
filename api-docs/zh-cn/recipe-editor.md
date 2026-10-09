@@ -10,11 +10,17 @@ icon: book-copy
 
 内置 `/fd recipe edit pot` 和 `/fd recipe edit board` 会写 FarmersDelight 自己的配方文件，也会回写通过统一 `AddonRecipeFiles` 加载的附属配方文件。数据包提供的配方（`cooking_recipes` / `cutting_recipes` / `special_recipes` 段）没有附属文件可写，编辑器会把修改写进 FD 自己的配方文件，同 id 时 FD 文件优先于数据包。附属若只通过注册 API 提供配方，编辑器会把修改写入 FD 配方文件的 `external-overrides` 覆盖记录；删除覆盖后，附属重新注册的原配方会恢复。这样不猜测附属文件路径，也能让修改在重载和重启后保留。
 
-文件保存到服务器的插件数据目录，不会同步修改源码仓库或原始 CE 包文件。FD 厨锅/砧板使用异步原子文件队列，通用附属编辑器的 `save/delete` 仍是同步契约。当前应等待保存反馈后再离开，避免重复提交；立即退出可能使文件已保存但运行配方未刷新。确认生效可重新打开配方或执行 `/fd reload recipes`；配方解析失败需检查日志。Choice/NBT 等高级结构写回附属 owner 文件前，要确认其 loader 支持相同格式。
+文件保存到服务器插件数据目录，不会同步修改源码仓库或原 CE 包。FD 厨锅/砧板及 BAC 酒桶使用异步原子文件队列；运行配方刷新独立于玩家是否在线。FD 原生保存反馈等待配方发布，并核对保存后的定义；失败仍保留草稿，文件可能已经写入，应检查日志和实际配方。统一 `AddonRecipeFiles` 与主插件复用高级 Choice/NBT、多工具解析。保存中按钮锁定，旧回调只关闭对应窗口。Esc/取消会保留每位玩家最多八份会话草稿，重新打开同一编辑器继续；退出或重载清除草稿。
 
 ## RecipeEditor
 
 ```java
+import com.huidu.farmersdelight.api.recipe.EditableRecipe;
+import com.huidu.farmersdelight.api.recipe.NumericField;
+import org.jetbrains.annotations.ApiStatus;
+import java.util.List;
+import java.util.function.Consumer;
+
 @ApiStatus.OverrideOnly
 public interface RecipeEditor {
     List<String> itemSlotLabels();
@@ -22,6 +28,14 @@ public interface RecipeEditor {
     EditableRecipe load(String id);
     boolean save(EditableRecipe draft);
     boolean delete(String id);
+    default boolean saveAsync(EditableRecipe draft, Consumer<Boolean> completion) {
+        completion.accept(save(draft));
+        return true;
+    }
+    default boolean deleteAsync(String id, Consumer<Boolean> completion) {
+        completion.accept(delete(id));
+        return true;
+    }
 }
 ```
 
@@ -53,12 +67,12 @@ public boolean save(EditableRecipe draft) {
     if (draft == null || draft.id() == null || draft.id().isBlank() || draft.result() == null) {
         return false;
     }
-    store.put(draft.id(), draft);
+    store.put(draft.id(), draft.copy());
     return true;
 }
 ```
 
-`save` 跑在点击玩家的区域线程上。BAC 就在那里直接写 YAML，对这种低频管理操作是可以接受的；但不要在这里做任何耗时 的事。
+`save/delete` 是旧同步入口。默认异步方法仍调用它们，适合内存实现；磁盘存储应覆盖 `saveAsync/deleteAsync`，复用下方文件队列。
 
 ### delete(String id)
 
@@ -177,3 +191,21 @@ FarmersDelightApi.get().openRecipeEditor(player, "fdaddon:example", "example_ste
 | 50      | 删除                            |
 
 如果你像模板那样在内存里跨多次打开缓存草稿，就该持有一个稳定的编辑器实例 —— `RecipeType.editor()` 每次打开都会 查询一遍，每次返回新实例会把上一个实例持有的东西全丢掉。
+
+## 异步文件保存契约
+
+`saveAsync/deleteAsync` 返回 false 仅表示未入队；返回 true 后必须调用 completion 一次，参数表示是否成功。完成回调可以在任意线程，FD 的 GUI 会切回玩家调度器。传给实现的是 `EditableRecipe.copy()`，存储层也应复制对象，不要把可变草稿直接存成已保存定义。
+
+`RecipeEditorFiles.saveAsync(file, path, body, preservedFields, reload, completion)` 复用主插件写队列：文件解析、按当前内容合并保留字段、局部修改和原子替换在异步线程；reload 与回调在主插件全局调度器，玩家退出不阻止刷新。body 为 null 时删除条目。无效 YAML 拒绝覆盖；保留字段的读取发生在该文件事务锁内。
+
+```java
+import com.huidu.farmersdelight.api.recipe.RecipeEditorFiles;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+RecipeEditorFiles.saveAsync(file, List.of("keg_recipes", recipeId), body,
+        Set.of("result-amount"), recipes::load, completion);
+```
+
+reload 必须同步完成自己的配方发布；若只安排未来任务，应自行在实际发布完成后报告成功。主插件不会猜测附属自己的发布生命周期。队列停止或过载时返回 false，GUI 解锁并保留草稿。

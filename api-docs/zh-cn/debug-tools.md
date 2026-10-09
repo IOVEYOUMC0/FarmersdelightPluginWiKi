@@ -94,7 +94,7 @@ public interface DebugToolExtension {
         void capture(Location loc);
     }
 
-    default int activate(Player player) { return 0; }
+    default int activateAt(Player player, Location location) { return 0; }
 
     default List<String> status(Player player) { return List.of(); }
 
@@ -169,11 +169,11 @@ public int place(Player player, Location origin, int count, int spacing, int lay
 
 注意那句 `undo != null` 的防御性判断——目前命令总是会传入 sink。
 
-### `int activate(Player player)`
+### `int activateAt(Player player, Location location)`
 
-可选，默认返回 0。在 `/fd debugtools activate <name>` 时被调用；管理员执行 `/fd debugtools activate all` 时，**每一个已注册扩展**的该方法也都会被调用。把你放下的方块填上样本状态， 让它们真的开始 tick、发酵、烹饪——凡是能让它们在性能分析中承压的状态都行——并返回进入活动状态的方块数。 这个数会计入命令的总计。
+可选，默认返回 0。主插件只向该方法传入管理员最近一批测试放置的坐标，按 16 项 / 2ms 预算切片，先验证加载状态、区域归属、建造权限和操作后的方块身份。只修改该坐标，另行检查附属自己的使用权限；不要遍历全世界 manager。
 
-FDAddonTemplate 自己维护了一个 `ConcurrentHashMap.newKeySet()` 记录放置坐标，因为它的示例方块没有 manager。 如果你的插件本来就有跟踪方块的 manager（比如 BrewinAndChewin 的 `KegManager`），遍历那个 manager 即可，不必再维护一份跟踪。
+旧 `activate(Player)` 保留二进制兼容并标记弃用，调试命令不再调用它。`activate all` 也只处理自己的最近批次。附属放置和激活在 Folia 上暂时拒绝，以免尚未支持跨区域的扩展绕过归属检查。
 
 ### `List<String> status(Player player)`
 
@@ -197,7 +197,7 @@ public List<String> status(Player player) {
 调用点有两个性质值得知道：
 
 * 它会对**所有已注册扩展**调用，而不只是放下这个方块的那一个。所以坐标不属于你时，你的实现必须以很低的 代价直接返回。
-* 异常会被捕获并吞掉（`catch (Throwable ignored)`），所以这里的 bug 是静默失败，不会中断撤销。想看到错误 就自己打日志。
+* RuntimeException / LinkageError 会记录并中止当前撤销批次，保留尚未清理的记录供重试；不会在附属清理失败后继续删除方块。
 
 ```java
 @Override
@@ -217,13 +217,11 @@ public void cleanupBeforeUndo(Location location) {
 }
 ```
 
-## 线程
+## 线程与撤销范围
 
-四个回调都是从命令处理器同步调用的，跑在执行 `/fd debugtools` 的那个线程上。在 Paper 上就是主线程；在 Folia 上是命令分派所在的线程，它拥有的是**命令发起者**的区域——不见得是你即将在几百格外放置方块的那个区域。
+内置工作在玩家所属调度器分片运行，只处理当前线程拥有的已加载坐标；远处或保护拒绝的坐标会跳过。Paper 扩展回调必须同步完成，不要从回调内安排延迟世界修改，否则它不会进入已捕获的计数、身份检查和撤销批次。
 
-FarmersDelight 内置的激活路径是显式做了 Folia 适配的：它先收集待激活项，再逐个重新调度到各自坐标所属的 区域上。扩展不会自动得到这种待遇。如果你的扩展在 Folia 上要碰发起者区域之外的方块，就自己用 `FarmersDelightApi.get().runAtLocation(loc, ...)` 切过去——同时注意 `place` 必须在延后的工作跑完之前就返回 计数，而 `undo.capture(loc)` 仍应在命令线程上提前完成，这样快照才会并入当前的撤销批次。
-
-回调之间共享的状态要用并发结构：`place` 可能与一次耗时的 `activate` 同时在动同一个集合。FDAddonTemplate 用 `ConcurrentHashMap.newKeySet()`，并遍历 `new ArrayList<>(placed)` 的防御性副本，正是出于这个原因。
+撤销历史每位玩家最多八批。undo 核对操作后的 ID / 方块数据及容器 controller 身份，跳过后来替换的对象。它清理测试造景，不回收已经领取的食物、物品或插件外部事件副作用；直接通过其它插件替换为完全相同、无 controller 的方块，无法仅凭状态判断身份。stop 停止后续批次、模拟任务和该测试的采样，不停止已经开始的正常生产。
 
 ## 相关页面
 

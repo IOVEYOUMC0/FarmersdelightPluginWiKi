@@ -112,3 +112,5 @@ Use `/fd debugtools test handheld 200 200` for simulated computation load: count
 ## Next
 
 [Migration & upgrades →](migration.md)
+
+Debug activate processes only your latest placement batch. Undo holds eight batches per player and skips replaced containers. Stop also stops that test's profile. Recipe editing retains session drafts after Escape/cancel; reopen the same editor to resume, before logout or reload clears them. Accepted writes and runtime refresh continue independently of logout. Failed feedback may mean the file was written but publication was not confirmed; inspect the console.
