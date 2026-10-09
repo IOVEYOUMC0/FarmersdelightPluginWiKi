@@ -108,7 +108,7 @@ needed ingredients out of your inventory and into the pot for you.
 Leftover containers from some recipes (like a bowl or a bottle) are returned to you
 rather than destroyed.
 
-A successful player pickup settles the pot's accumulated recipe experience. Later pickups do not award the same batch again; hopper extraction awards no player experience. The server owner chooses the [reward channels](../../server-guide/en/first-config.md).
+A successful player take from the **output slot** settles all accumulated recipe batches, rather than prorating XP by the servings taken. Later takes cannot claim those batches again. Hand serving from the pending meal, moving meals into bowls, and hopper extraction do not claim XP. The ledger is saved with the pot. Breaking the pot releases unclaimed orbs when the server's vanilla reward channel is enabled; it does not grant skill XP. The server owner chooses the [reward channels](../../server-guide/en/first-config.md).
 
 ## Comparator output
 
