@@ -53,6 +53,14 @@ These are fresh-install defaults; existing servers use their actual `plugins/Far
 
 Pots and stoves advance their timers in game ticks, but insufficient budgets can still delay completion processing. Skillet cooking can also slow. Compare gameplay throughput as well as per-tick time when lowering budgets.
 
+## Native CE display culling
+
+Packet item/text displays created through FD's API, including addon displays, automatically join CE's enabled entity culling. `client-optimization.entity-culling.enable` must be supported by the CE build and applied with a full restart. When disabled, FD keeps its distance-based display behavior. No extra FD switch is required.
+
+FD view distance still limits the tracking range. CE's `view-distance`, `ray-tracing`, player settings and rate limiting control distance/occlusion inside that range. Disabling ray tracing stops wall occlusion; seeThrough text keeps its through-wall behavior. Versions supporting `update-display-view-range` can retain hidden entities and restore the latest appearance; older versions remove and respawn them. Do not add newer-only settings to CE 26.8.2.
+
+Test wall occlusion, food/progress changes while hidden, uncovering, two viewers, destruction/unload while hidden and reconnecting. Profile CE's culling thread, actual network traffic and GC with spark while checking display correctness. Lower FD sync time alone does not establish a server-wide performance improvement.
+
 ## Diagnose by scenario
 
 | Scenario | Observe first | Adjustments to try |
