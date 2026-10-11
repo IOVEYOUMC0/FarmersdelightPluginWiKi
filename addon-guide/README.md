@@ -245,16 +245,22 @@ villager AI.
 > still uses `rich-soil-blocks:` is ignored by the loader — redeploy the current file so rich-soil farmland
 > is recognised as a global soil.
 
+## BAC beer and fermentation
+
+Defaults are checked against the MIT release 4.5.0. Beer needs one wheat, wheat seeds and brown mushroom, plus **1000 mB water** (four bottles or one bucket). Keep normal temperature; fermentation takes 9600 ticks, about eight minutes at 20 TPS. The book shows the amount. One bottle is only 250 mB; click again to finish the liquid fill even with ingredients present. Avoid unrelated items in input slots.
+
+Cocoa fudge requires 500 mB milk. Flaxen cheese needs warm temperature and scarlet cheese needs hot. Jerky, kimchi and kippers need no base fluid. Cutting a cheese wheel yields four wedges and reassembly uses four. Kombucha has no default recipe without Farmer's Respite; operators may add an override.
+
+Upgrade with a full stop/restart, comparing the installed `brewinandchewin/configuration/recipes/keg_recipes.yml`, `farmersdelight/cutting_board_recipes.yml` and `items.yml`. Preserve edits; a JAR does not replace existing CE configuration.
+
 ## CAB note data
 
-Unsigned notes now use paper as their carrier, keeping their note model and stack limit of 16. Right-click a supported block face to place one. Right-click a held note in the air or an unsigned placed note to enter private text input. Signed notes open read-only; editing no longer swaps a temporary writable book into the player's hand.
+Unsigned notes use paper, retaining the model and stack limit of 16. Right-click a supported face to place one. Signed notes are read-only. Chat editing is reverted; `!sign`, `!clear` and `!cancel` are no longer note commands. Held and placed notes use the previous book-screen entry.
 
-- Send the body to save it. Literal `\n` becomes a newline; the limit is 255 Unicode code points. The input is not broadcast to other players.
-- Right-click again and send `!sign TITLE` to sign the current body (title limit: 16 code points), `!clear` to clear it, or `!cancel` to abandon the edit.
-- Leaving, changing slots/items, teleporting or opening another inventory cancels editing. Furniture must still be nearby and permitted by protection. Editing a held stack changes one note and returns the remainder.
+**Native editing needs client verification.** Opening a book screen does not prove it is editable; do not rely on unverified editing of placed notes.
 
-The body, title, author and signed state persist with the furniture; saved edits take precedence. Breaking an unchanged note preserves its source metadata so it can stack with an identical original. Older CAB notes with BookMeta-only data use the first page as a fallback. Old writable-book carriers migrate to paper on join, inventory close or item selection, retaining their text and model.
+Text, title, author and signed state persist with furniture; saved data takes precedence. Breaking unchanged notes preserves source metadata for stacking. BookMeta-only old notes use their first page. Legacy writable-book notes migrate to paper, retaining text/model.
 
-Copy a signed note using 1–8 occupied slots of unsigned CAB notes in a crafting grid. A normal click takes one batch; Shift copies as many batches as blank notes and storage capacity allow. The signed source remains, and copy generation advances; a copy of a copy cannot be duplicated again. Number-key and drop actions do not copy notes. Vanilla paper and books are not substitutes for CAB notes.
+Copy a signed note with 1–8 occupied slots of unsigned CAB notes. Normal clicks take one batch; Shift respects blanks and capacity. The source remains and generation advances. Number-key/drop actions do not copy. Vanilla paper/books are not CAB notes.
 
-Upgrade with a full stop and restart. Change the existing CE `crabbersdelight:note.material` in `crabbersdelight/configuration/blocks.yml` to `minecraft:paper`, synchronize the language prompts, rebuild the resource pack and have clients accept it. A new addon JAR does not overwrite an existing content pack. Verify placement/breaking stackability, private editing, signing/copying, chunk reload and a full restart with a player; server-side data tests do not validate client clicks.
+Upgrade with a full stop/restart. Keep `crabbersdelight:note.material: minecraft:paper`, synchronize language resources and rebuild the pack. Verify stacking, signing/copying, chunk reload and restart with a player; server tests do not validate client interactions.
