@@ -93,7 +93,7 @@ Each feature retains the latest 4096 calls for percentiles; counts, totals and m
 
 Feature timing runs on the executing thread and counts calls that start and finish within the profile. Timings include callees: `handheld_display` may already be included in `handheld`, so rows are not additive. Pot dispatch passes include synchronous updates on Paper but mainly task submission on Folia. Elapsed-time measurements include thread pauses and are not CPU usage, server MSPT or total network traffic. Use the server's existing spark profiler for call stacks, GC and server-wide bottlenecks.
 
-Building with `-PdebugTools=true` produces `farmersdelight-<version>-debug.jar` with the `/fd debugtools` and `/fd debug` scene tools. Release builds produce `farmersdelight-<version>.jar`. These are the same plugin: install only one.
+Building with `-PdebugTools=true` produces `farmersdelight-<version>-debug.jar` with the `/fd debugtools` scene tools. Release builds produce `farmersdelight-<version>.jar`. These are the same plugin: install only one.
 
 For a small manual load, use `/fd debugtools test cooking_pot 64 200`, `skillet`, `stove` or `all`. It creates nearby test stations in slices and starts sampling; each slice handles at most 16 positions. Use `/fd debugtools undo` to clean up or `/fd debugtools stop` to stop an unfinished batch.
 

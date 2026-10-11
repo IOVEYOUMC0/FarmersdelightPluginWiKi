@@ -24,20 +24,20 @@ Debug builds can create a small, local test load manually:
 /fd debugtools test all 128 600
 ```
 
-The command places stations near the player, fills their test state, and starts a matching profile. It processes at most 16 positions per slice so the command does not occupy the server thread for one long operation. `count` is the number of positions and `ticks` is the profile duration (20-12000). Use `/fd debugtools undo` to remove the latest batch and `/fd debugtools stop` to stop an unfinished placement, activation, or handheld test. `all` covers cooking pots, placed skillets and stoves.
+The command places stations near the player, fills their test state, and starts a matching profile. It processes at most 16 positions per slice so the command does not occupy the server thread for one long operation. `count` is the number of positions and `ticks` is the profile duration (20-12000). Use `/fd debugtools undo` to remove the latest batch and `/fd debugtools stop` to stop an unfinished placement, activation, or handheld test. `all` expands the loaded capabilities listed below; handheld simulation stays separate.
 
 Use `/fd debugtools test handheld 200 200` for simulated computation load: count independent sessions, without held items, repeated right-clicking or nearby heat. It consumes no player items. The result reports updates, display builds, completions and computation time per simulated tick. It covers slot matching, progress, display copies and completion recipe checks; it excludes networking, experience events, live inventories and Folia region dispatch, and is not the MSPT of 200 real players. It uses the loaded beef campfire recipe time. `stop` reports the partial sample and ends it; logout cleans up. Use `/fd stats profile 200 handheld` and `handheld_display` for real handheld sessions.
 Recommended nested commands:
 
 ```text
-/fd debugtools place recipe cooking_pot farmersdelight:beef_stew 4
-/fd debugtools place random all 16
+/fd debugtools recipe place cooking_pot farmersdelight:beef_stew 4
+/fd debugtools recipe random all 16
 ```
 
-Legacy `placeRecipe` and `placeRecipeRandom` aliases remain. Undo handles your placement batch; standalone activate has no separate undo and consumed or collected outputs are not restored. Stop ends pending batch work or simulation; it is not a full rollback.
+Only canonical commands are accepted. Legacy `placeRecipe`, `placeRecipeRandom`, `place recipe`, `place random`, `/fd debug` and target abbreviations have been removed. Undo cleans your latest batch and leftover basket test entities; consumed or collected items are not recovered. Stop is not a rollback.
 
 
-The `recipe validate` action checks loaded cooking-pot and cutting-board recipes for empty structure,
+The `recipe validate` action checks loaded cooking-pot, cutting-board and integrated addon-station recipes for empty structure,
 missing results/containers, and tags that resolve to no vanilla, CraftEngine, or registered common-tag
 members. Parse failures are still reported by the normal `recipe.load_failed` logger.
 
@@ -65,6 +65,19 @@ release build the registry is mostly **dormant**: `register` still works and not
 
 That is why registering unconditionally is safe, and why both FDAddonTemplate and BrewinAndChewin do exactly
 that in `onEnable` without probing anything.
+
+
+| `all` operation | Actual scope |
+| --- | --- |
+| `place all` | FD pot, skillet, stove, blocked stove, board and basket; loaded BAC keg, BBQD grill/basin/tray and CAB crab_trap/worm_bin |
+| `activate all` / `test all` | Targets with activation support; board needs placement or a recipe setup, and handheld simulation is separate |
+| `recipe place all <id>` / `recipe random all` | Search or sample loaded pot, board, keg, grill and basin recipes; each selected recipe retains its own station |
+
+Placement/test count is the total shared across targets; place multiplies it by layers, capped at 4096 by default. `all` refuses counts smaller than the number of target types. Protected, occupied, unloaded and non-owned positions are skipped. Help and completion show actual capabilities. Recipe grids remain horizontal with spacing 3.
+
+Activation supplies test inputs without bypassing gameplay: worm bins receive one seed; crab traps receive cod bait and still need water and their normal interval; baskets receive one dropped test stack. BBQD tray/basin inputs exercise display work. Basin recipe setup fills its first requirement only: the second belongs in the player's offhand, with a stick in the main hand. Grills still require flipping and kegs require the recipe temperature. Repeated activation does not overwrite occupied storage.
+
+Addon scenes create real workload, but test timing still covers FD instrumented metrics only. Use spark for complete addon station tick costs and `/fd stats addon <name>` for functional counters.
 
 ## `DebugToolRegistry`
 
@@ -114,6 +127,11 @@ package com.huidu.farmersdelight.api.util;
 public interface DebugToolExtension {
 
     String name();
+    default boolean supportsPlacement() { return false; }
+    default boolean supportsActivation() { return false; }
+    default List<String> recipeIds() { return List.of(); }
+    default RecipeSetup recipe(String id, Function<String, ItemStack> resolver) { return null; }
+    record RecipeSetup(List<ItemStack> ingredients, BiPredicate<Player, Location> fill, String hint) { }
 
     int place(Player player, Location origin, int count, int spacing, int layers, UndoSink undo);
 
@@ -133,6 +151,14 @@ public interface DebugToolExtension {
 `@ApiStatus.OverrideOnly` means the opposite of `NonExtendable`: you are expected to implement this interface,
 but you must not call its methods yourself — FarmersDelight is the only caller. Treat the implementation as a
 callback surface.
+
+### Capabilities and recipe preparation
+
+Override `supportsPlacement()` and, when available, `supportsActivation()` to return `true`. Both default to `false`, keeping status-only extensions out of placement completion. Callbacks must stay on the supplied position's owning region and must not scan world managers.
+
+`recipeIds()` returns currently loaded real recipe IDs. `recipe(id, resolver)` resolves every input before any world change. The resolver accepts an item ID or `#tag` and reuses FD's CE, vanilla and family-tag lookup. Return `null` if resolution is incomplete; otherwise return `RecipeSetup(ingredients, fill, hint)`. The fill callback runs after ownership, protection and operation-object checks; verify use permission and empty storage inside your addon. Return `false` on failure so it is not reported as filled. Hints describe tools, fluid and environment requirements.
+
+Override `activateAt(Player, Location, Function<String, ItemStack>)` when activation needs the same resolver. Its default forwards to the two-argument callback.
 
 ### `String name()`
 
@@ -209,7 +235,7 @@ Note the `undo != null` guard — defensive, since the command always supplies a
 
 Optional; default returns 0. The command passes only a position captured by the admin's latest test-placement batch. Work is sliced at 16 entries / 2ms after checking chunk residency, region ownership, build permission and the identity left by the operation. Modify that position only and check your own use permission; do not scan a world manager.
 
-The deprecated `activate(Player)` remains for binary compatibility and is no longer called by the command. `activate all` also stays within the latest owned batch. Addon placement and activation are currently refused on Folia until the extensions support that scheduling contract.
+The deprecated `activate(Player)` remains for binary compatibility and is no longer called by the command. `activate all` also stays within the latest owned batch. Addon placement and activation use one owned position; positions outside the current Folia region are skipped.
 
 ### `List<String> status(Player player)`
 

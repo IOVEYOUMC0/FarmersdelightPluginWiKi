@@ -89,7 +89,7 @@ debug:
 
 功能计时在实际执行线程上进行，统计在采样窗口内开始并完成的调用，包含被调用逻辑；`handheld_display` 可能已计入 `handheld`，各行不能相加。厨锅调度轮次在 Paper 上包含同步更新，在 Folia 上主要包含调度提交，不能作为区域执行成本。纳秒计时测量的是经过时间，会受线程停顿影响；这些结果不是 CPU 占用、全服 MSPT 或总网络流量。需要调用栈、GC 和全服瓶颈时使用服务端已有的 spark。
 
-`-PdebugTools=true` 构建会额外生成 `farmersdelight-<version>-debug.jar`，包含 `/fd debugtools` 和 `/fd debug` 造景工具；普通包仍为 `farmersdelight-<version>.jar`。两者是同一个插件，只安装其中一个。
+`-PdebugTools=true` 构建会额外生成 `farmersdelight-<version>-debug.jar`，包含 `/fd debugtools` 造景工具；普通包仍为 `farmersdelight-<version>.jar`。两者是同一个插件，只安装其中一个。
 
 小规模手动测试可用 `/fd debugtools test cooking_pot 64 200`、`skillet`、`stove` 或 `all`。它在玩家附近分批创建测试工作站并自动采样；每批最多处理 16 个位置。用 `/fd debugtools undo` 清理，或用 `/fd debugtools stop` 停止尚未完成的批次。
 

@@ -21,20 +21,20 @@ debug 构建可以在小范围手动制造测试负载：
 /fd debugtools test all 128 600
 ```
 
-命令会在玩家附近分批放置测试工作站、填入测试内容、启动对应功能采样；每轮最多处理 16 个位置，避免命令本身长时间占用服务器线程。`count` 是测试位置数，`ticks` 是采样时长（20-12000）。完成后使用 `/fd debugtools undo` 清理最近一批，使用 `/fd debugtools stop` 停止尚未完成的放置、激活或手持测试。`all` 只包含厨锅、放置煎锅和炉灶。
+命令会在玩家附近分批放置测试工作站、填入测试内容、启动对应功能采样；每轮最多处理 16 个位置，避免命令本身长时间占用服务器线程。`count` 是测试位置数，`ticks` 是采样时长（20-12000）。完成后使用 `/fd debugtools undo` 清理最近一批，使用 `/fd debugtools stop` 停止尚未完成的放置、激活或手持测试。`all` 按已加载扩展的能力展开，范围见下表；手持模拟需单独运行。
 
 手持计算负载使用 `/fd debugtools test handheld 200 200`：按数量模拟独立会话，无需手持物品、持续右键或附近热源，不消耗玩家物品。输出更新、显示构建、完成次数和每模拟 tick 计算耗时；仅覆盖槽位匹配、进度、显示副本及配方完成核对，不包含网络、经验事件、真实背包或 Folia 多区域派发，不能当作 200 位真实玩家的 MSPT。模拟使用已加载的生牛肉营火配方原始时间；`stop` 输出当前结果并结束，退出时清理。真实手持链路继续用 `/fd stats profile 200 handheld` 和 `handheld_display` 采样。
 推荐层级指令：
 
 ```text
-/fd debugtools place recipe cooking_pot farmersdelight:beef_stew 4
-/fd debugtools place random all 16
+/fd debugtools recipe place cooking_pot farmersdelight:beef_stew 4
+/fd debugtools recipe random all 16
 ```
 
-旧 `placeRecipe`、`placeRecipeRandom` 别名保留。undo 只处理自己的放置批次；独立 activate 没有独立撤销，已领取/消耗的产物不会恢复。stop 停止待执行批次、模拟任务和当前测试采样，不是完整回滚。
+只保留上述命令结构；旧 `placeRecipe`、`placeRecipeRandom`、`place recipe`、`place random`、`/fd debug` 及目标缩写已移除。undo 清理自己的最近测试批次和篮子测试残留实体；已领取/消耗的物品不会恢复。stop 不是完整回滚。
 
 
-`recipe validate` 会检查已加载的厨锅和砧板配方是否为空、是否缺少成品/容器，以及标签是否解析不到任何原版物品、CraftEngine 物品或已注册的公共标签成员。解析阶段失败的配方仍会由常规 `recipe.load_failed` 日志报告。
+`recipe validate` 会检查已加载的厨锅、砧板及已接入附属工作站配方是否为空、是否缺少成品/容器，以及标签是否解析不到任何原版物品、CraftEngine 物品或已注册的公共标签成员。解析阶段失败的配方仍会由常规 `recipe.load_failed` 日志报告。
 
 ## 保存和序列化采样
 
@@ -56,6 +56,19 @@ debug 构建可以在小范围手动制造测试负载：
 
 这就是为什么无条件注册是安全的，也是 FDAddonTemplate 和 BrewinAndChewin 都在 `onEnable` 里直接注册、不做 任何探测的原因。
 
+
+| 命令中的 `all` | 实际范围 |
+| --- | --- |
+| `place all` | FD 厨锅、煎锅、炉灶、遮挡炉灶、砧板、篮子；已加载 BAC 酒桶、BBQD grill/basin/tray、CAB crab_trap/worm_bin |
+| `activate all` / `test all` | 上述具有激活入口的目标；砧板仅放置或配方准备，不包含手持模拟 |
+| `recipe place all <id>` / `recipe random all` | 从厨锅、砧板、酒桶、烤架、配料盆的已加载配方中查找或随机选择；不会把每种工作站各复制一份 |
+
+`place/test` 的数量是批次总数，在目标间轮流分配；`place` 再乘层数，上限默认 4096，达到上限会截断。`all` 数量小于目标种类时拒绝执行；受保护、已有内容、未加载或非当前归属的位置会跳过。Tab 和帮助按实际能力列出目标。配方网格固定高度，每格间距 3。
+
+`activate` 填入测试材料，仍执行正常业务规则：蚯蚓箱投一份种子，捕蟹笼填鳕鱼诱饵但仍需周围有水并等待捕获间隔，篮子生成一份物品触发吸取。BBQD tray/basin 填材料触发展示；配方准备中的盆只填第一需求，第二需求仍需玩家放副手，主手使用木棍。烤架仍需翻面，酒桶仍需满足配方温度；重复激活不覆盖已有内容。
+
+附属场景会创建真实负载，但 `test` 的耗时报告仍只覆盖 FD 已插桩指标；附属工作站 tick 的完整耗时用 spark，`/fd stats addon <name>` 查看功能计数。
+
 ## `DebugToolRegistry`
 
 ```java
@@ -76,7 +89,7 @@ public final class DebugToolRegistry {
 
 * `register` 幂等——同名重复注册会替换掉前一个。`extension` 为 `null`、或其 `name()` 为 `null` 时忽略。
 * `unregister(name)` 必须在你的 `onDisable` 里调用。这张表是静态的，活得比你的插件类加载器久；留下陈旧 条目就等于让一个已经拆掉的 manager 一直可达，并在下一次 `/fd debugtools` 时被调用。
-* `find` 对未知或 `null` 的名字返回 `null`。`registeredNames()` 与 `all()` 返回不可修改视图；命令的 Tab 补全用的就是 `registeredNames()`。
+* `find` 对未知或 `null` 的名字返回 `null`。`registeredNames()` 与 `all()` 返回不可修改视图；命令的 Tab 补全会按声明能力筛选扩展。
 
 ```java
 @Override
@@ -100,6 +113,11 @@ package com.huidu.farmersdelight.api.util;
 public interface DebugToolExtension {
 
     String name();
+    default boolean supportsPlacement() { return false; }
+    default boolean supportsActivation() { return false; }
+    default List<String> recipeIds() { return List.of(); }
+    default RecipeSetup recipe(String id, Function<String, ItemStack> resolver) { return null; }
+    record RecipeSetup(List<ItemStack> ingredients, BiPredicate<Player, Location> fill, String hint) { }
 
     int place(Player player, Location origin, int count, int spacing, int layers, UndoSink undo);
 
@@ -117,6 +135,14 @@ public interface DebugToolExtension {
 ```
 
 `@ApiStatus.OverrideOnly` 与 `NonExtendable` 正好相反：你**应该**实现这个接口，但不应该自己去调用它的方法 ——唯一的调用方是 FarmersDelight。把实现当成回调面来写。
+
+### 能力与配方准备
+
+放置扩展覆写 `supportsPlacement()` 返回 `true`；可填测试输入时再覆写 `supportsActivation()`。默认均为 `false`，仅提供状态的扩展不会出现在放置补全中。放置和激活只触碰给定位置，必须留在它的区域线程，不遍历世界。
+
+`recipeIds()` 返回当前已加载的真实配方 ID。`recipe(id, resolver)` 在改世界之前解析所有输入；`resolver` 接受物品 ID 或 `#tag`，统一复用 FD 的 CE/原版/公共标签解析。未解析完整则返回 `null`；成功返回 `RecipeSetup(ingredients, fill, hint)`。`fill` 在归属、保护和测试对象身份检查后运行，附属仍须校验使用权限和槽位空闲；失败返回 `false`，不会报已填充。材料、流体、工具或环境说明写入 `hint`。
+
+需要同一解析器的激活扩展覆写 `activateAt(Player, Location, Function<String, ItemStack>)`；默认转发给两个参数的 `activateAt`。
 
 ### `String name()`
 
@@ -187,7 +213,7 @@ public int place(Player player, Location origin, int count, int spacing, int lay
 
 可选，默认返回 0。主插件只向该方法传入管理员最近一批测试放置的坐标，按 16 项 / 2ms 预算切片，先验证加载状态、区域归属、建造权限和操作后的方块身份。只修改该坐标，另行检查附属自己的使用权限；不要遍历全世界 manager。
 
-旧 `activate(Player)` 保留二进制兼容并标记弃用，调试命令不再调用它。`activate all` 也只处理自己的最近批次。附属放置和激活在 Folia 上暂时拒绝，以免尚未支持跨区域的扩展绕过归属检查。
+旧 `activate(Player)` 保留二进制兼容并标记弃用，调试命令不再调用它。`activate all` 也只处理自己的最近批次。附属放置和激活按单个归属位置执行；Folia 非当前归属的位置会跳过。
 
 ### `List<String> status(Player player)`
 
