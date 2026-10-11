@@ -247,4 +247,14 @@ villager AI.
 
 ## CAB note data
 
-Placed note furniture reads text, title, author and signed state from the item's custom note data. Edits are saved with the furniture. The current build fixes the furniture dirty flag and restores older furniture that has only its source item; saved edits take precedence. External items with only vanilla BookMeta and no CAB note data are not guaranteed to retain text when placed. Verify a note with multiple lines across placement, editing, chunk reload, a full restart and breaking the furniture. Serialization tests do not replace this server check.
+Unsigned notes now use paper as their carrier, keeping their note model and stack limit of 16. Right-click a supported block face to place one. Right-click a held note in the air or an unsigned placed note to enter private text input. Signed notes open read-only; editing no longer swaps a temporary writable book into the player's hand.
+
+- Send the body to save it. Literal `\n` becomes a newline; the limit is 255 Unicode code points. The input is not broadcast to other players.
+- Right-click again and send `!sign TITLE` to sign the current body (title limit: 16 code points), `!clear` to clear it, or `!cancel` to abandon the edit.
+- Leaving, changing slots/items, teleporting or opening another inventory cancels editing. Furniture must still be nearby and permitted by protection. Editing a held stack changes one note and returns the remainder.
+
+The body, title, author and signed state persist with the furniture; saved edits take precedence. Breaking an unchanged note preserves its source metadata so it can stack with an identical original. Older CAB notes with BookMeta-only data use the first page as a fallback. Old writable-book carriers migrate to paper on join, inventory close or item selection, retaining their text and model.
+
+Copy a signed note using 1–8 occupied slots of unsigned CAB notes in a crafting grid. A normal click takes one batch; Shift copies as many batches as blank notes and storage capacity allow. The signed source remains, and copy generation advances; a copy of a copy cannot be duplicated again. Number-key and drop actions do not copy notes. Vanilla paper and books are not substitutes for CAB notes.
+
+Upgrade with a full stop and restart. Change the existing CE `crabbersdelight:note.material` in `crabbersdelight/configuration/blocks.yml` to `minecraft:paper`, synchronize the language prompts, rebuild the resource pack and have clients accept it. A new addon JAR does not overwrite an existing content pack. Verify placement/breaking stackability, private editing, signing/copying, chunk reload and a full restart with a player; server-side data tests do not validate client clicks.
