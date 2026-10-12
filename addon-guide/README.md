@@ -209,19 +209,28 @@ reload.
 
 Unlike the other addons, VillagersDelight is **NMS-based, not a CraftEngine pack** — its universal launcher selects the bundled
 NMS implementation for the server version and teaches **farmer villagers to recognise and farm CraftEngine crops** (FarmersDelight
-crops, rich-soil farmland, and any crop you declare) while preserving all vanilla / Purpur / third-party
-villager AI.
+crops, rich-soil farmland, and any crop you declare). It replaces specific native behaviours and
+keeps unrelated activities and third-party subclasses. Other AI plugins still need combination testing.
 
 **Registered behaviours:**
 
 * **Farming** — villagers harvest and replant configured CE crops on vanilla farmland, `extra-soils`, or a
   crop's required fluid (rice on water). Harvest drops are configurable per crop.
-* **Pickup** — villagers pick up the configured seeds and foods. VD injects each CE item's base material
-  into the vanilla `villager_picks_up` tag (via a per-world data pack) and filters out the vanilla
-  look-alikes so a villager never grabs a plain item that merely shares that base material.
+* **Pickup** — all professions can pick up configured foods. `pickup.use-datapack-tag: false` uses CE
+  item identities without widening vanilla tags; `true` retains the legacy per-world data pack path.
+  Native items keep native pickup rules; capacity, mob-griefing and pickup events remain enforced.
 * **Sharing** — villagers throw surplus food to a *nearby villager that actually lacks it*. Which items
   count as food, and how much each is worth, comes from the `villager-ai.food.points` table.
-* **Composting** — `compost-items` are added to the villager's composter work-list.
+* **Composting** — configured CE identities extend composter work without modifying global vanilla
+  compost rules. The default reserve is ten per item; explicit operator values are preserved.
+* **Backpack** — eight live villager slots plus a locked ninth slot. Taking/depositing changes the real
+  inventory immediately, and closing never overwrites AI changes. Player and villager must belong
+  to the current region; an invalid session closes instead of queuing an inventory write.
+
+Current builds cover 1.21.5, 1.21.11 and the 26.1.2 NMS anchor; Purpur 26.2 passed native menu and
+scheduled farming/pickup checks. **1.21.9/1.21.10 are currently rejected at startup.** Other patches,
+client clicks, natural village schedules, third-party AI combinations and Folia cross-region play
+need live verification. Update through a full stop/restart; runtime hot-unloading NMS AI is not supported.
 
 **Config (`config.yml`):**
 
