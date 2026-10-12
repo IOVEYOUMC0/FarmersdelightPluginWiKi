@@ -222,13 +222,17 @@ keeps unrelated activities and third-party subclasses. Other AI plugins still ne
 * **Sharing** — villagers throw surplus food to a *nearby villager that actually lacks it*. Which items
   count as food, and how much each is worth, comes from the `villager-ai.food.points` table.
 * **Composting** — configured CE identities extend composter work without modifying global vanilla
-  compost rules. The default reserve is ten per item; explicit operator values are preserved.
+  compost rules. Configured seeds are accepted and the default reserve is ten per item across
+  slots; explicit operator values are preserved. New defaults include cabbage seeds, tomato seeds
+  and rice. Existing lists need those IDs added manually if desired. Native farmers compost surplus
+  wheat/beetroot seeds, not all vegetables in a full backpack. They still need a reachable claimed
+  composter and WORK activity; work checks have a 300-tick cooldown and a random gate.
 * **Backpack** — eight live villager slots plus a locked ninth slot. Taking/depositing changes the real
   inventory immediately, and closing never overwrites AI changes. Player and villager must belong
   to the current region; an invalid session closes instead of queuing an inventory write.
 
 Current builds cover 1.21.5, 1.21.11 and the 26.1.2 NMS anchor; Purpur 26.2 passed native menu and
-scheduled farming/pickup checks. **1.21.9/1.21.10 are currently rejected at startup.** Other patches,
+scheduled farming/pickup plus repeated full-inventory CE composting checks. **1.21.9/1.21.10 are currently rejected at startup.** Other patches,
 client clicks, natural village schedules, third-party AI combinations and Folia cross-region play
 need live verification. Update through a full stop/restart; runtime hot-unloading NMS AI is not supported.
 
