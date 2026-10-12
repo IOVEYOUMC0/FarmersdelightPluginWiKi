@@ -255,12 +255,12 @@ Upgrade with a full stop/restart, comparing the installed `brewinandchewin/confi
 
 ## CAB note data
 
-Unsigned notes use paper, retaining the model and stack limit of 16. Right-click a supported face to place one. Signed notes are read-only. Chat editing is reverted; `!sign`, `!clear` and `!cancel` are no longer note commands. Held and placed notes use the previous book-screen entry.
+Unsigned notes use writable books, retaining their model and stack limit of 16. Right-click in the air while holding one to use the native editor, then save or sign it. Right-click a supported face to place it. All placed notes are read-only; retrieve an unsigned note before editing. Held signed notes are also read-only. There are no chat commands or temporary-book replacements.
 
-**Native editing needs client verification.** Opening a book screen does not prove it is editable; do not rely on unverified editing of placed notes.
+Editing a stack changes one note and returns the unchanged remainder. Main and off hands are supported; changed items or ambiguous hand matching reject the write. The native book screen and closing a client-predicted screen after placement still need player verification.
 
-Text, title, author and signed state persist with furniture; saved data takes precedence. Breaking unchanged notes preserves source metadata for stacking. BookMeta-only old notes use their first page. Legacy writable-book notes migrate to paper, retaining text/model.
+Text, title, author and signed state persist with furniture. Older empty signed saves recover populated source-book pages; intentionally cleared unsigned saves retain the cleared text. Breaking unchanged notes preserves source metadata for stacking. Older paper notes migrate back to writable books, retaining text, model and count.
 
 Copy a signed note with 1–8 occupied slots of unsigned CAB notes. Normal clicks take one batch; Shift respects blanks and capacity. The source remains and generation advances. Number-key/drop actions do not copy. Vanilla paper/books are not CAB notes.
 
-Upgrade with a full stop/restart. Keep `crabbersdelight:note.material: minecraft:paper`, synchronize language resources and rebuild the pack. Verify stacking, signing/copying, chunk reload and restart with a player; server tests do not validate client interactions.
+Upgrade with a full stop/restart. Change the deployed `crabbersdelight:note.material` to `minecraft:writable_book`, preserve other custom settings, and rebuild/send the pack. Verify both hands, stacking, placed read-only content, signing/copying, chunk reload and restart with a player; server tests do not validate client interactions.
