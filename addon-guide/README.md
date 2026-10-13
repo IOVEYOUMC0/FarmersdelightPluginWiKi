@@ -172,7 +172,8 @@ on-land effect), collectible **notes / message-in-a-bottle**, and cutting-board 
   Sneaking pauses buoyancy by default; `life-preserver` in the addon config controls the switch, strength, speed cap
   and sneaking behavior. Flying, gliding and vehicles receive no lift; test with the server's actual anti-cheat.
   A wall fish plaque stores one vanilla fish bucket, preserves its data on restart and returns it to an empty hand.
-  Its display uses an item model, rather than a live animated fish. Conch is a creative-only upstream item.
+  Its item display sits in front of the supporting wall; bucket metadata is retained for retrieval and restart.
+  The display uses an item model, rather than a live animated fish. Conch is a creative-only upstream item.
 * **Seashells** — native dry tripwire / wet kelp models choose seven designs and four Y rotations by position.
   Legacy variant/waterlogged states remain readable; shells have no display objects or renderer offset.
 * **Palm cutting** — palm log yields stripped log plus bark; palm door and trapdoor yield planks.

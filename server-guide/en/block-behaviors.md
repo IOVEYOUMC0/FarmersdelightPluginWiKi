@@ -386,6 +386,8 @@ definitions that existing worlds already use.
 
 ## Random offsets for wild plants and seashells
 
+CE random-position `offset` applies only to display entities. Random model selection and quarter-turn rotations in ordinary block `models` are a separate mechanism, not that position offset.
+
 FD wild cabbages, onions and tomatoes use ordinary block models on sugar-cane states, with no display objects. Wild carrots, potatoes, beetroots and sandy shrubs share one transparent sugar-cane state with CE `state.entity_renderer`. Rice keeps its lower water-capable kelp and upper tripwire carriers with two displays. CAB seashells use native dry tripwire and wet kelp models with no displays or renderer offset. Renderer elements use `offset: {type: XZ, horizontal: 0.25, vertical: 0}`. The coordinate-based shift ignores Y, keeping both rice segments aligned. The carrier still controls logical, support and click positions.
 
 The tested third CE 26.10 snapshot `beef44fd` supports this field; the second `9743c3b0` does not. The shared version name does not identify the capability. Older CE versions ignore the renderer offset and render those displays centered; the three ordinary block models are unaffected. Each visible block using a renderer adds a CE display object with native tracking/culling; load-test large generated areas.
