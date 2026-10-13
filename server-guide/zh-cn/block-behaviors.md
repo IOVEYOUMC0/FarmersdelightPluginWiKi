@@ -353,10 +353,10 @@ custom_cooking_pot_recipes:
 
 ## 野生植物与贝壳的随机偏移
 
-默认 FD 八种野生植物和 CAB 贝壳使用 CE 的 `state.entity_renderer`。显示元素设置 `offset: {type: XZ, horizontal: 0.25, vertical: 0}`，按坐标稳定偏移；XZ 忽略 Y，所以双格稻米不会错开。逻辑、支撑和点击位置仍由载体决定。
+FD 野生卷心菜、洋葱、番茄使用甘蔗承载的普通方块模型，不增加展示对象。新增野生胡萝卜、马铃薯、甜菜和沙灌木共用一格透明甘蔗，使用 CE 的 `state.entity_renderer` 显示；稻米仍为下层含水海带、上层绊线的双层展示，CAB 贝壳也使用展示。显示元素设置 `offset: {type: XZ, horizontal: 0.25, vertical: 0}`，按坐标稳定偏移；XZ 忽略 Y，所以双格稻米不会错开。逻辑、支撑和点击位置仍由载体决定。
 
-本次使用的 CE 26.10 第三份快照 `beef44fd` 支持该字段，第二份 `9743c3b0` 不支持；不能只按相同版本名判断。旧 CE 忽略 offset 并居中显示。每可见格增加一个 CE 展示对象，沿用其追踪/剔除；大规模生成前应压测。
+本次使用的 CE 26.10 第三份快照 `beef44fd` 支持该字段，第二份 `9743c3b0` 不支持；不能只按相同版本名判断。旧 CE 忽略 renderer 的 offset 并居中显示，不影响前三种普通方块模型。使用 renderer 的每可见格增加一个 CE 展示对象，沿用其追踪/剔除；大规模生成前应压测。
 
-单格野菜共享透明 tripwire 状态；稻米和含水贝壳保留可含水载体。不要清空已有状态映射以腾容量。贝壳随机外观由保存的 `variant` 决定，世界生成复用 CE randomized_int_state_provider。
+FD 甘蔗外观共用 11 格，加 Corn 野生玉米为 12 格；其它内容包也会占用同一状态池。不要把原版甘蔗 age=0 设透明，或清空已有状态映射以腾容量。满池时先确认所需方块已恢复加载，备份外观缓存，再用 `/ce clean-cache visual_block_states` 回收未使用外观；不要清理 `all` 或内部方块状态。重新加载配置并生成、发送资源包后生效。贝壳随机外观由保存的 `variant` 决定，世界生成复用 CE randomized_int_state_provider。
 
 Paper 数据包重载完成后，FD 重放 CE 已解析的原生配方并刷新配方资源。不要用服务器数据包重载替代 `/ce reload all` 来重新读取 CE 配置；Folia 自动数据包重载仍要求完整重启。
