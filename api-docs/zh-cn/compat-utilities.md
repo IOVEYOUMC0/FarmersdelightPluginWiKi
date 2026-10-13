@@ -103,6 +103,14 @@ return copy;
 
 `Math.max(1, ...)` 是有用的：原版在 damage 为 0 时会把耐久条整个隐藏，不这样写的话，装满的容器反而没有耐久条。
 
+## 启动数据包工具
+
+`DatapackSupport` 提供 `managedPack`、`startupConfiguration`、`discoverPack`、`migrateLegacyPack` 与 `archiveLegacyPack`。仅在 Paper 的 bootstrap 数据包发现阶段调用 `discoverPack`；它通过官方 `DatapackRegistrar` 首次发现并加载受管包，尊重保存的手动禁用状态。配置读取严格报错，文件写入使用临时文件替换；旧世界包完整备份到插件目录。
+
+`DamageTypePack.prepare(configuration, defaults, pack, description, version)` 从伤害 YAML 生成 JSON 和元数据，`saveConfiguration(configuration, pack)` 仅在 YAML 不存在时导入旧 JSON。配置包含 `damage-types` 与 `tags` 两个映射，键为完整注册 ID，字段采用 Minecraft 数据包原名。JSON 是生成产物，改 YAML 后完整重启。FD、BAC、CAB 共用该工具，两个附属的 bootstrap 均对 FD 声明依赖。新附属请在自己的 bootstrap 完成首次注册；onEnable 注册的动态内容仍需下次启动。
+
+这使用 Paper 的数据包发现 API，仍加载 JSON。直接注册表接口在 1.21.5 用 `freeze()`、1.21.6 起用 `compose()`；不能静态调用新版方法覆盖整个支持范围。
+
 ## 相关页面
 
 * [快速上手](getting-started.md)

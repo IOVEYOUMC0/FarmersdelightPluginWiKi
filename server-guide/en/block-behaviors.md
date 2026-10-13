@@ -394,7 +394,7 @@ The tested third CE 26.10 snapshot `beef44fd` supports this field; the second `9
 
 FD uses 11 sugar-cane appearances, or 12 with Corn's wild corn; other packs share the same pool. Do not make vanilla sugar cane at age=0 transparent or erase all existing mappings. If the pool is full, first restore and load every required block, back up the visual cache, and use `/ce clean-cache visual_block_states` to reclaim unused appearances. Do not clean `all` or internal block states. Reload the configuration, then generate and send the resource pack. FD's eight wild plants have no random Y rotation in the original mod. Shells use CE `models` lists with seven designs × 0/90/180/270-degree Y rotations in each dry/wet appearance. Legacy `variant` and waterlogged states remain readable, but the visible design and angle now come from the client's coordinate-based model choice; replacing a shell at the same position may show the same design. Renderer `yaw`/`rotation` are fixed transformations, not random-angle providers.
 
-After Paper finishes a data-pack reload, FD replays CE's parsed native recipes and refreshes recipe resources. A server data reload does not re-read CE configuration; use `/ce reload all` for that. Automatic data-pack reload remains unavailable on Folia and requires a full restart.
+After an external Paper data reload, FD replays CE's parsed native recipes and refreshes recipe resources. FD loads managed registry packs through Paper startup discovery and does not request server data reloads. Registry configuration changes require a full restart; use `/ce reload all` to re-read CE configuration.
 
 ## Handheld skewer eligibility and models
 

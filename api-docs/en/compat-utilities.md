@@ -118,6 +118,14 @@ return copy;
 The `Math.max(1, ...)` is load-bearing: vanilla hides the damage bar entirely at damage 0, so a completely
 full meter would show no bar at all without the clamp.
 
+## Startup pack utilities
+
+`DatapackSupport` exposes `managedPack`, `startupConfiguration`, `discoverPack`, `migrateLegacyPack` and `archiveLegacyPack`. Call `discoverPack` only from Paper's bootstrap datapack discovery event; the official `DatapackRegistrar` loads newly discovered managed packs and respects saved manual disablement. Configuration parsing fails explicitly, file writes use temporary-file replacement, and legacy world packs are backed up intact under the plugin directory.
+
+`DamageTypePack.prepare(configuration, defaults, pack, description, version)` generates registry JSON and metadata from damage YAML. `saveConfiguration(configuration, pack)` imports existing JSON only when the YAML is absent. The configuration has `damage-types` and `tags` mappings, keyed by full registry IDs and using Minecraft's field names. Edit YAML and fully restart; JSON is generated output. FD, BAC and CAB share this utility; both addons declare FD as a bootstrap dependency. New addons should register initial definitions in their own bootstrap; dynamic onEnable registrations still require the next startup.
+
+This uses Paper datapack discovery and still loads JSON. Direct registry registration uses `freeze()` in 1.21.5 and `compose()` from 1.21.6 onward, so a static call to the new method cannot cover the whole supported range.
+
 ## Related pages
 
 * [Getting started](getting-started.md)
