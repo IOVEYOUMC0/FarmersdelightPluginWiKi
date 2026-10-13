@@ -98,8 +98,7 @@ Bottled drinks, drunk like a potion, that stack to 16 and can always be consumed
 
 - `farmersdelight:apple_cider` — grants Absorption.
 - `farmersdelight:melon_juice` — instantly restores a little health.
-- `farmersdelight:hot_cocoa` — removes several negative effects (Poison, Weakness,
-  Slowness, Mining Fatigue, Nausea, Blindness, Hunger, Wither).
+- `farmersdelight:hot_cocoa` — removes one randomly selected active harmful effect and keeps the others.
 - `farmersdelight:glow_berry_custard` — filling (7 / 8.4) and gives brief Glowing.
 - `farmersdelight:milk_bottle` — a lighter milk. Removes one random status effect (see
   [Effects](effects.md)); leaves an empty glass bottle.

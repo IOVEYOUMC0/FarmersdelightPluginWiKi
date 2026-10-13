@@ -6,7 +6,7 @@ icon: label
 
 # 物品
 
-包名：`com.huidu.farmersdelight.api.item` 类：`FarmersDelightItems` —— `final`，私有构造，`@ApiStatus.NonExtendable`。
+包名：`com.huidu.farmersdelight.api.item` 类：`FarmersDelightItems` —— `final`，私有构造。
 
 一组物品辅助方法，统一处理 CraftEngine 自定义物品、原版材质和物品标签的解析与匹配。签名只用 Bukkit / Adventure / `java` 类型，附属插件的编译 classpath 上不需要 CraftEngine。
 
@@ -17,6 +17,7 @@ icon: label
 ```java
 public static String       idOf(ItemStack item);
 public static ItemStack    create(String itemId);
+public static List<ItemStack> createChoices(String itemId);
 public static boolean      matchesId(ItemStack item, String itemId);
 public static Set<String>  idsOf(ItemStack item);
 public static boolean      isCustomItem(ItemStack item);
@@ -79,7 +80,7 @@ public static Set<String>  tagIdsOf(ItemStack item);
 
 `matchesTag` —— `item` 是否带有给定标签。`#ns:tag` 和 `ns:tag` 两种写法都接受，开头的 `#` 会被去掉。它会**同时** 检查 CraftEngine 自定义物品标签和原版物品标签。
 
-`tagIdsOf` —— **只**返回该物品携带的 CraftEngine 自定义标签，不包含原版标签，与名字给人的直觉不同。需要按原版标签判断时请用 `matchesTag`，那个方法确实会查原版标签。空气或 null 返回空集合。
+`tagIdsOf` —— 返回 CE 声明和主插件/附属注册的公共标签，按物品真实身份匹配，不让自定义物品继承其载体原料标签。它不枚举原版全部物品标签；直接判断原版标签请用 `matchesTag`。空气或 null 返回空集合。
 
 ```java
 if (FarmersDelightItems.matchesTag(tool, "#farmersdelight:tools/knives")) {
@@ -150,3 +151,7 @@ ItemStack icon = FarmersDelightItems.buildIcon(
 * [文本与消息](text-and-messages.md)
 * [方块与工作站](blocks-and-stations.md)
 * [版本兼容工具](compat-utilities.md)
+
+## 标签原料的显示候选
+
+`createChoices("#namespace:tag")` 复用主插件已合并的 CE / 原版 / 附属标签，返回可构造的候选物品列表；不存在时为空。普通 ID 返回至多一个候选。用于配方展示或调试填充，真实匹配仍用 `matchesTag`，不要把首个候选写死成唯一原料。

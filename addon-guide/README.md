@@ -157,14 +157,23 @@ paired block), End knives, and mob drops from End creatures.
 *Seafood & crabbing — a port of Crabber's Delight by AlabasterLeking (MIT, declared in the upstream build
 metadata only). Namespace `crabbersdelight`. Soft-depends on CustomFishing.*
 
-**Adds:** the **crab trap** (baited block that catches loot on a timer), the **worm bin** (composts items
+**Adds:** the **crab trap** (a block that catches loot on a timer), the **worm bin** (composts items
 into worms/bait), fishing gear, a large seafood item set, the **coconut** (a falling block with an
 on-land effect), collectible **notes / message-in-a-bottle**, and cutting-board recipes with drop chances.
 
 **Registered behaviours:**
 
-* **Crab trap** — consumes bait on an interval and rolls a bait-specific loot table. Cards for each bait
-  tier (`worm → cod`, `cod → crab`, etc.) appear in the recipe book.
+* **Crab trap** — progresses while loaded, with double progress in configured aquatic biomes. It
+  draws a fresh capture threshold each tick, consumes supplied bait and rolls its loot table.
+  An empty bait slot also catches, matching the upstream AIR bait entry. Unloaded time does not add catches.
+  `crab-trap.aquatic-biomes` accepts biome ids; water checks include waterlogged CE blocks.
+* **Utility items** — conch messages depend on player luck and have a five-second cooldown. A life
+  preserver equips in the legs slot, adds buoyancy in water and can be placed as CE furniture with a ground seat.
+  A wall fish plaque stores one vanilla fish bucket, preserves its data on restart and returns it to an empty hand.
+  Its display uses an item model, rather than a live animated fish. Conch is a creative-only upstream item.
+* **Seashells** — seven persistent variants in dry/waterlogged states; CE 26.10 builds with renderer
+  offsets add a deterministic horizontal shift. Older CE versions center the model.
+* **Palm cutting** — palm log yields stripped log plus bark; palm door and trapdoor yield planks.
 * **Worm bin** — feeds items tagged `farmersdelight:compost_accelerant`; a hopper-fed variant is throttled.
 * **Item-tag reuse** — `coconut_milk` carries `farmersdelight:milk` to borrow FD's single-effect cleanse.
 * **Cutting-board chance recipes** — registered through the FD chance API (`registerCuttingBoardRecipeWithChances`).
@@ -189,7 +198,10 @@ a grilled skewer).
 
 **Registered behaviours:**
 
-* **Grill** — two skewer slots with a flip timer; missing the flip burns the skewer.
+* **Grill** — two skewer slots with a flip timer; missing the flip burns the skewer. Removing heat
+  reduces cooking progress by two per elapsed tick and retains the flip state.
+* **Skewer ingredients** — default recipes use common ingredient tags. BBQD contributes its own
+  vegetable, fruit and rabbit mappings to FD; other addons can extend these tags without editing FD defaults.
 * **Seasonings** — right-click a grilled skewer at the grill with a seasoning to apply an effect
   (cumin heals, chilli ignites but refills hunger, honey-mustard halves duration/doubles chance, etc.).
   A `seasonings` card in the recipe book documents all six.

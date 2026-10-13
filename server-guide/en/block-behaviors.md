@@ -383,3 +383,13 @@ without repeating four `events` handlers in its resource pack.
 
 The shipped defaults target original-mod behavior. Prefer adding a new custom block id over changing the
 definitions that existing worlds already use.
+
+## Random offsets for wild plants and seashells
+
+The eight default FD wild plants and CAB seashells use CE `state.entity_renderer` with `offset: {type: XZ, horizontal: 0.25, vertical: 0}`. The coordinate-based shift is stable and ignores Y, keeping both rice segments aligned. The carrier still controls logical, support and click positions.
+
+The tested third CE 26.10 snapshot `beef44fd` supports this field; the second `9743c3b0` does not. The shared version name does not identify the capability. Older CE versions ignore offset and render centered. Each visible block adds a CE display object with native tracking/culling; load-test large generated areas.
+
+Single-height wild plants share a transparent tripwire state. Rice and wet seashells retain water-capable carriers. Do not erase existing state mappings to free capacity. Shell variants persist in `variant`; generation uses CE randomized_int_state_provider.
+
+After Paper finishes a data-pack reload, FD replays CE's parsed native recipes and refreshes recipe resources. A server data reload does not re-read CE configuration; use `/ce reload all` for that. Automatic data-pack reload remains unavailable on Folia and requires a full restart.

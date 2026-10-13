@@ -16,6 +16,10 @@
 | `farmersdelight:wild_cabbages` | 沙滩、积雪沙滩 | `farmersdelight:cabbage_seeds`（另有 20% 概率掉落 `farmersdelight:cabbage`） |
 | `farmersdelight:wild_onions` | 森林、针叶林、平原、热带草原、草甸、樱花林、丛林、沼泽等 | `farmersdelight:onion` |
 | `farmersdelight:wild_rice` | 沼泽、红树林沼泽、丛林、河流（生长在浅水中） | `farmersdelight:rice` |
+| `farmersdelight:wild_carrots` | 平原、草甸、热带草原 | 胡萝卜 |
+| `farmersdelight:wild_potatoes` | 森林、针叶林、桦木林等 | 马铃薯 |
+| `farmersdelight:wild_beetroots` | 沙滩、积雪沙滩 | 甜菜种子，另有 20% 概率甜菜 |
+| `farmersdelight:sandy_shrub` | 沙滩、积雪沙滩的沙地 | 12.5% 概率小麦种子；小刀额外掉落稻草 |
 
 {% hint style="info" %}
 **用剪刀**破坏野生植物，收回的是那株装饰性的野生植物方块本身，而不是种子。用手破坏（或在[切菜板](cutting-board.md)上用小刀切）才能拿到种子和产物。
@@ -26,6 +30,11 @@
 - **野生番茄** → `farmersdelight:tomato_seeds` + 20% 概率一个番茄 + 10% 概率绿色染料
 - **野生卷心菜** → `farmersdelight:cabbage_seeds` + 50% 概率 2 个黄色染料
 - **野生洋葱** → 洋葱（及其额外掉落）
+- **野生胡萝卜** → 1 个胡萝卜 + 50% 概率 2 个淡灰色染料
+- **野生马铃薯** → 1 个马铃薯 + 50% 概率 2 个紫色染料
+- **野生甜菜** → 1 个甜菜种子 + 1 个红色染料
+
+默认野生植物在支持随机偏移的 CE 26.10 快照上会有轻微水平错位；稻米上下两格保持对齐。旧版 CE 居中显示。新自然生成配置只作用于新生成区域，不自动填充旧区块。
 
 ---
 

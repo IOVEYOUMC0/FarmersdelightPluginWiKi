@@ -60,7 +60,7 @@
 
 - `farmersdelight:apple_cider`——给予伤害吸收。
 - `farmersdelight:melon_juice`——立即恢复少量生命。
-- `farmersdelight:hot_cocoa`——移除多种负面效果（中毒、虚弱、缓慢、挖掘疲劳、反胃、失明、饥饿、凋零）。
+- `farmersdelight:hot_cocoa`——从当前负面效果中随机移除一个，保留其它效果。
 - `farmersdelight:glow_berry_custard`——顶饿（7 / 8.4），并给予短暂的发光效果。
 - `farmersdelight:milk_bottle`——更轻量的牛奶。随机移除一个状态效果（见 [效果](effects.md)），饮后留下一个空玻璃瓶。
 

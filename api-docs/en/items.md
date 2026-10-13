@@ -3,7 +3,7 @@
 # Items
 
 Package: `com.huidu.farmersdelight.api.item`
-Class: `FarmersDelightItems` — `final`, private constructor, `@ApiStatus.NonExtendable`.
+Class: `FarmersDelightItems` — `final`, private constructor.
 
 Item helpers that resolve and match stacks across CraftEngine custom items, vanilla materials, and item
 tags. Signatures use only Bukkit / Adventure / `java` types, so an addon does not need CraftEngine on its
@@ -17,6 +17,7 @@ directly.
 ```java
 public static String       idOf(ItemStack item);
 public static ItemStack    create(String itemId);
+public static List<ItemStack> createChoices(String itemId);
 public static boolean      matchesId(ItemStack item, String itemId);
 public static Set<String>  idsOf(ItemStack item);
 public static boolean      isCustomItem(ItemStack item);
@@ -85,9 +86,9 @@ public static Set<String>  tagIdsOf(ItemStack item);
 `matchesTag` — true when `item` carries the given tag. Accepts either `#ns:tag` or `ns:tag`; a leading
 `#` is stripped. It checks **both** CraftEngine custom item tags and vanilla item tags.
 
-`tagIdsOf` — returns **only the CraftEngine custom tags** the item carries. Vanilla tags are not included,
-despite what a casual reading of the name suggests. If you need a vanilla-tag decision, use `matchesTag`,
-which does consult vanilla tags. Returns an empty set for null/air.
+`tagIdsOf` returns CE-declared tags and public tags registered by FD/addons. Matching uses the
+item's authoritative identity, so custom items do not inherit their carrier ingredient tags. It does not
+enumerate all vanilla tags; use `matchesTag` for a direct vanilla-tag decision. Returns an empty set for null/air.
 
 ```java
 if (FarmersDelightItems.matchesTag(tool, "#farmersdelight:tools/knives")) {
@@ -171,3 +172,7 @@ not race a `/fd reload` from an async task.
 * [Text and messages](text-and-messages.md)
 * [Blocks and stations](blocks-and-stations.md)
 * [Version compatibility helpers](compat-utilities.md)
+
+## Display choices for tagged ingredients
+
+`createChoices("#namespace:tag")` reuses merged CE, vanilla and addon tags and returns constructible item choices, or an empty list. A literal id returns at most one choice. Use this for recipe display or debug inputs; actual matching still uses `matchesTag`, rather than treating the first choice as the only valid ingredient.

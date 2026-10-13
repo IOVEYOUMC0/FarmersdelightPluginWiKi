@@ -16,6 +16,10 @@ Before you can farm anything new, you need to find the wild version growing in t
 | `farmersdelight:wild_cabbages` | Beaches and snowy beaches | `farmersdelight:cabbage_seeds` (plus a 20% chance of a `farmersdelight:cabbage`) |
 | `farmersdelight:wild_onions` | Forests, taigas, plains, savannas, meadows, cherry groves, jungles, swamps and more | `farmersdelight:onion` |
 | `farmersdelight:wild_rice` | Swamps, mangrove swamps, jungles and rivers (growing in shallow water) | `farmersdelight:rice` |
+| `farmersdelight:wild_carrots` | Plains, meadows and savannas | Carrot |
+| `farmersdelight:wild_potatoes` | Forests, taigas and birch forests | Potato |
+| `farmersdelight:wild_beetroots` | Beaches and snowy beaches | Beetroot seeds, plus a 20% chance of beetroot |
+| `farmersdelight:sandy_shrub` | Sand on beaches and snowy beaches | 12.5% chance of wheat seeds; a knife also yields straw |
 
 {% hint style="info" %}
 Break a wild plant **with shears** and you collect the decorative wild-plant block itself instead of the seeds. Break it by hand (or cut it on a [Cutting Board](cutting-board.md) with a knife) to get seeds and produce.
@@ -26,6 +30,11 @@ Cutting a wild plant on a cutting board with a knife is the most rewarding way t
 - **Wild tomatoes** → `farmersdelight:tomato_seeds` + a 20% chance of a tomato + a 10% chance of green dye
 - **Wild cabbages** → `farmersdelight:cabbage_seeds` + a 50% chance of 2 yellow dye
 - **Wild onions** → onion (and its own bonus roll)
+- **Wild carrots** → 1 carrot + a 50% chance of 2 light gray dye
+- **Wild potatoes** → 1 potato + a 50% chance of 2 purple dye
+- **Wild beetroots** → 1 beetroot seeds + 1 red dye
+
+Default wild plants use a small horizontal model offset on CE 26.10 snapshots that support it. Both rice segments stay aligned; older CE versions render them centered. New generation rules affect newly generated areas and do not fill existing chunks.
 
 ---
 
