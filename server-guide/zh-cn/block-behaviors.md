@@ -360,3 +360,25 @@ FD 野生卷心菜、洋葱、番茄使用甘蔗承载的普通方块模型，�
 FD 甘蔗外观共用 11 格，加 Corn 野生玉米为 12 格；其它内容包也会占用同一状态池。不要把原版甘蔗 age=0 设透明，或清空已有状态映射以腾容量。满池时先确认所需方块已恢复加载，备份外观缓存，再用 `/ce clean-cache visual_block_states` 回收未使用外观；不要清理 `all` 或内部方块状态。重新加载配置并生成、发送资源包后生效。FD 八种野生植物在原模组中均没有随机 Y 旋转。贝壳每种干湿 appearance 通过 CE `models` 列表提供七种花色 × 0°/90°/180°/270°。旧 `variant` 与含水状态继续可读，但可见花色与朝向现在由客户端按坐标选择，同一位置重新放置可能仍是相同外观。renderer 的 `yaw`/`rotation` 是固定变换，不是随机角度来源。
 
 Paper 数据包重载完成后，FD 重放 CE 已解析的原生配方并刷新配方资源。不要用服务器数据包重载替代 `/ce reload all` 来重新读取 CE 配置；Folia 自动数据包重载仍要求完整重启。
+
+## 手持烧烤准入与模型
+
+输入需在所属 CE 物品的 `settings.tags` 声明 `farmersdelight:hand_cookable`，并具有加工结果。FD 默认两种生烤串，BBQD 自行贡献十种生烤串。`handheld-skewer.results` 优先于共享篝火配方查询，但不能绕过标签；只有篝火配方不会开启手持烧烤。
+
+可选的 `<输入物品ID>_hand_cooking_display` 物品提供第一人称姿态。默认定义复用 `farmersdelight:hand_cooking_display` 模板，仅调整第一人称变换，并设 `client-bound-model: false` 供展示副本读取模型键；不替换真实库存物品。`handheld-skewer.progress-display.enabled` 同时控制耐久条与姿态，缺少姿态定义时保留普通模型。修改后生成、发送 CE 资源包。这是物品朝向模拟，不是原模组客户端手臂动画。
+
+## CAB 救生圈浮力
+
+以下位于 `CrabbersDelight/config.yml`，不是 CE 家具节点；`/fd reload all` 后作用于已装备的玩家：
+
+```yaml
+life-preserver:
+  enabled: true
+  lift-factor: 0.15
+  max-upward-velocity: 0.2
+  sneak-to-sink: true
+```
+
+`enabled` 只控制浮力。`lift-factor` 是水面距离的比例（0～1），每 tick 仍最多增加0.08；`max-upward-velocity` 是救生圈停止加速的上浮速度（0～0.5格/tick），已有更快的游泳、击退或其它插件速度不被降低。任一数值为0即停止加浮力；非有限值回退默认。`sneak-to-sink` 让潜行暂停浮力，而非强制向下推。
+
+飞行、滑翔、旁观、载具和死亡时不施加浮力。配置不会授予反作弊豁免；需用实际反作弊与客户端测试水面、潜水、受击和上下船。出现回拉/误判时可降低强度、限速或关闭浮力。

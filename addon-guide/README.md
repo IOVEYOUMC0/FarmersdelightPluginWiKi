@@ -168,11 +168,13 @@ on-land effect), collectible **notes / message-in-a-bottle**, and cutting-board 
   An empty bait slot also catches, matching the upstream AIR bait entry. Unloaded time does not add catches.
   `crab-trap.aquatic-biomes` accepts biome ids; water checks include waterlogged CE blocks.
 * **Utility items** — conch messages depend on player luck and have a five-second cooldown. A life
-  preserver equips in the legs slot, adds buoyancy in water and can be placed as CE furniture with a ground seat.
+  preserver equips in the legs slot, adds capped buoyancy in water and can be placed as CE furniture with a ground seat.
+  Sneaking pauses buoyancy by default; `life-preserver` in the addon config controls the switch, strength, speed cap
+  and sneaking behavior. Flying, gliding and vehicles receive no lift; test with the server's actual anti-cheat.
   A wall fish plaque stores one vanilla fish bucket, preserves its data on restart and returns it to an empty hand.
   Its display uses an item model, rather than a live animated fish. Conch is a creative-only upstream item.
-* **Seashells** — seven persistent variants in dry/waterlogged states; CE 26.10 builds with renderer
-  offsets add a deterministic horizontal shift. Older CE versions center the model.
+* **Seashells** — native dry tripwire / wet kelp models choose seven designs and four Y rotations by position.
+  Legacy variant/waterlogged states remain readable; shells have no display objects or renderer offset.
 * **Palm cutting** — palm log yields stripped log plus bark; palm door and trapdoor yield planks.
 * **Worm bin** — feeds items tagged `farmersdelight:compost_accelerant`; a hopper-fed variant is throttled.
 * **Item-tag reuse** — `coconut_milk` carries `farmersdelight:milk` to borrow FD's single-effect cleanse.

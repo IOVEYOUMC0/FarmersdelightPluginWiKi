@@ -142,3 +142,7 @@ Items that can be placed show a **Placeable** hint in their tooltip.
 - **Kill for it** — a knife produces extra drops from animals, including ham from pigs.
 - **Trade for it** — farmer villagers and the wandering trader deal in the new crops and
   seeds.
+
+## Handheld skewers
+
+Hold a raw meat or vegetable skewer near an active heat source and hold right-click to roast it. Both hands work; releasing use or interrupting the session restores the normal appearance. Cooking uses a first-person model pointing the skewer forward. BBQD raw skewers also support this path; ordinary beef, chicken and potatoes keep their normal campfire cooking.

@@ -393,3 +393,25 @@ The tested third CE 26.10 snapshot `beef44fd` supports this field; the second `9
 FD uses 11 sugar-cane appearances, or 12 with Corn's wild corn; other packs share the same pool. Do not make vanilla sugar cane at age=0 transparent or erase all existing mappings. If the pool is full, first restore and load every required block, back up the visual cache, and use `/ce clean-cache visual_block_states` to reclaim unused appearances. Do not clean `all` or internal block states. Reload the configuration, then generate and send the resource pack. FD's eight wild plants have no random Y rotation in the original mod. Shells use CE `models` lists with seven designs × 0/90/180/270-degree Y rotations in each dry/wet appearance. Legacy `variant` and waterlogged states remain readable, but the visible design and angle now come from the client's coordinate-based model choice; replacing a shell at the same position may show the same design. Renderer `yaw`/`rotation` are fixed transformations, not random-angle providers.
 
 After Paper finishes a data-pack reload, FD replays CE's parsed native recipes and refreshes recipe resources. A server data reload does not re-read CE configuration; use `/ce reload all` for that. Automatic data-pack reload remains unavailable on Folia and requires a full restart.
+
+## Handheld skewer eligibility and models
+
+Inputs must declare `farmersdelight:hand_cookable` in their own CE item `settings.tags` and have a cooking result. FD includes its two raw skewers; BBQD contributes its ten raw skewers. `handheld-skewer.results` overrides the shared campfire recipe lookup but does not bypass the tag. Adding a campfire recipe alone does not enable handheld cooking.
+
+An optional item `<input ID>_hand_cooking_display` supplies the first-person pose. The shipped items reuse `farmersdelight:hand_cooking_display`; only the first-person transforms change, and `client-bound-model: false` exposes the model key for the cosmetic copy. The original inventory item is never replaced. `handheld-skewer.progress-display.enabled` controls both the bar and pose; missing pose assets keep normal rendering. Regenerate and send the CE resource pack after editing. This simulates item orientation, not the original mod's client arm animation.
+
+## CAB life-preserver buoyancy
+
+These settings belong to `CrabbersDelight/config.yml`, not the CE furniture node. `/fd reload all` applies them to players already wearing the item:
+
+```yaml
+life-preserver:
+  enabled: true
+  lift-factor: 0.15
+  max-upward-velocity: 0.2
+  sneak-to-sink: true
+```
+
+`enabled` controls buoyancy only. `lift-factor` scales the distance to the water surface (0–1), with at most 0.08 added per tick. `max-upward-velocity` stops further lift at that upward speed (0–0.5 blocks/tick), without reducing faster swimming, knockback or other plugins' motion. Zero in either numeric setting disables lift; non-finite values fall back to defaults. `sneak-to-sink` pauses buoyancy while sneaking; it does not force downward motion.
+
+Flying, gliding, spectator mode, vehicles and dead players receive no lift. These settings grant no anti-cheat exemption. Test floating, diving, damage and boat transitions with your actual client and anti-cheat setup; lower the strength/cap or disable buoyancy if it causes setbacks or false flags.
