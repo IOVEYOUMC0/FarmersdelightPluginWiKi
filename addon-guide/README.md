@@ -168,7 +168,8 @@ on-land effect), collectible **notes / message-in-a-bottle**, and cutting-board 
   An empty bait slot also catches, matching the upstream AIR bait entry. Unloaded time does not add catches.
   `crab-trap.aquatic-biomes` accepts biome ids; water checks include waterlogged CE blocks.
 * **Utility items** — conch messages depend on player luck and have a five-second cooldown. A life
-  preserver equips in the legs slot, adds capped buoyancy in water and can be placed as CE furniture with a ground seat.
+  preserver equips in the legs slot, adds capped buoyancy while stationary in water and can be placed as CE furniture with a ground seat.
+  Horizontal movement and swimming pause velocity correction; stop moving to float again.
   Sneaking pauses buoyancy by default; `life-preserver` in the addon config controls the switch, strength, speed cap
   and sneaking behavior. Flying, gliding and vehicles receive no lift; test with the server's actual anti-cheat.
   A wall fish plaque stores one vanilla fish bucket, preserves its data on restart and returns it to an empty hand.
@@ -290,5 +291,7 @@ Editing a stack changes one note and returns the unchanged remainder. Main and o
 Text, title, author and signed state persist with furniture. Older empty signed saves recover populated source-book pages; intentionally cleared unsigned saves retain the cleared text. Breaking unchanged notes preserves source metadata for stacking. Older paper notes migrate back to writable books, retaining text, model and count.
 
 Copy a signed note with 1–8 occupied slots of unsigned CAB notes. Normal clicks take one batch; Shift respects blanks and capacity. The source remains and generation advances. Number-key/drop actions do not copy. Vanilla paper/books are not CAB notes.
+
+Craft a bottled note with **one signed CAB note and one vanilla glass bottle**, in any arrangement. Unsigned notes and ordinary books do not qualify. Optional gift slots must contain the same item type; crafting seals and consumes each whole gift stack while preserving its metadata. A normal click crafts one bottle. Shift crafts one bottle with gifts, or batches without gifts subject to ingredients and inventory space. Sneak-right-click to open; right-click normally to throw. Opening, dry landing and recovery from water preserve the original note text, author and copy generation. Sealed physical items are recovered once even when persistent note sharing is enabled.
 
 Upgrade with a full stop/restart. Change the deployed `crabbersdelight:note.material` to `minecraft:writable_book`, preserve other custom settings, and rebuild/send the pack. Verify both hands, stacking, placed read-only content, signing/copying, chunk reload and restart with a player; server tests do not validate client interactions.
