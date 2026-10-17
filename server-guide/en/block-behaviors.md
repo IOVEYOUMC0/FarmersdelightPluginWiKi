@@ -384,13 +384,13 @@ without repeating four `events` handlers in its resource pack.
 The shipped defaults target original-mod behavior. Prefer adding a new custom block id over changing the
 definitions that existing worlds already use.
 
-## Random offsets for wild plants and seashells
+## Carriers and displays for wild plants and seashells
 
-CE random-position `offset` applies only to display entities. Random model selection and quarter-turn rotations in ordinary block `models` are a separate mechanism, not that position offset.
+CE random-position `offset` applies only to display entities. Random model selection and quarter-turn rotations in ordinary block `models` are a separate mechanism. FD no longer uses the renderer XZ offset and does not model crops as display entities just for position offset.
 
-FD wild cabbages, onions and tomatoes use ordinary block models on sugar-cane states, with no display objects. Wild carrots, potatoes, beetroots and sandy shrubs share one transparent sugar-cane state with CE `state.entity_renderer`. Rice keeps its lower water-capable kelp and upper tripwire carriers with two displays. CAB seashells use native dry tripwire and wet kelp models with no displays or renderer offset. Renderer elements use `offset: {type: XZ, horizontal: 0.25, vertical: 0}`. The coordinate-based shift ignores Y, keeping both rice segments aligned. The carrier still controls logical, support and click positions.
+FD wild cabbages, onions and tomatoes use ordinary block models on sugar-cane states, with no display objects. Wild carrots, potatoes, beetroots and sandy shrubs share one transparent sugar-cane state with CE `state.entity_renderer` (the display items carry the crop's own name). Rice keeps its lower water-capable kelp and upper tripwire carriers with two displays. CAB seashells use native dry tripwire and wet kelp models with no displays. These display entities exist to reuse the sugar-cane block (the vanilla sugar-cane state pool is full), not for random offset, and render centered. The carrier still controls logical, support and click positions.
 
-The tested third CE 26.10 snapshot `beef44fd` supports this field; the second `9743c3b0` does not. The shared version name does not identify the capability. Older CE versions ignore the renderer offset and render those displays centered; the three ordinary block models are unaffected. Each visible block using a renderer adds a CE display object with native tracking/culling; load-test large generated areas.
+Each visible block using a renderer adds a CE display object with native tracking/culling; load-test large generated areas.
 
 FD uses 11 sugar-cane appearances, or 12 with Corn's wild corn; other packs share the same pool. Do not make vanilla sugar cane at age=0 transparent or erase all existing mappings. If the pool is full, first restore and load every required block, back up the visual cache, and use `/ce clean-cache visual_block_states` to reclaim unused appearances. Do not clean `all` or internal block states. Reload the configuration, then generate and send the resource pack. FD's eight wild plants have no random Y rotation in the original mod. Shells use CE `models` lists with seven designs × 0/90/180/270-degree Y rotations in each dry/wet appearance. Legacy `variant` and waterlogged states remain readable, but the visible design and angle now come from the client's coordinate-based model choice; replacing a shell at the same position may show the same design. Renderer `yaw`/`rotation` are fixed transformations, not random-angle providers.
 
