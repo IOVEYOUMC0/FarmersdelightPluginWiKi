@@ -133,9 +133,9 @@ damage-type:
 
 Paper 启动时发现并加载 `plugins/FarmersDelight/datapacks/` 内的受管数据包；这三个开关保持原义。标签来源是 `common-tags.yml`，背刺设置仍在 `config.yml`，炉灶伤害与伤害标签在 `damage-types.yml`。BAC 的心脏骤停、CAB 的落椰伤害分别由所属插件自己的 `damage-types.yml` 管理。
 
-旧世界目录中的受管包在迁移这次启动仍正常加载，随后完整移到各插件的 `datapack-backups/`。没有伤害 YAML 时会导入旧 JSON；已有 YAML 时以 YAML 为准。下次完整启动切换到插件目录。注册 ID 保持不变，不要改名已有世界使用的附魔或伤害类型。
+旧世界目录中的受管包在迁移这次启动仍正常加载，随后迁入插件受管目录，复制成功后清理旧目录，不再自动生成备份。没有伤害 YAML 时会导入旧 JSON；已有 YAML 时以 YAML 为准。下次完整启动切换到插件目录。注册 ID 保持不变，不要改名已有世界使用的附魔或伤害类型。
 
-`datapacks/` 内的 JSON 是生成产物，修改配置后需完整重启。`/fd reload enchant`、`/fd reload damage` 可重新生成文件，但不会使新注册内容在本次运行生效。FD 与 VD 不再主动调用服务器数据重载；新增附属原版标签成员仍需下一次启动。备份保留到你确认迁移正常后自行整理。
+`datapacks/` 内的 JSON 是生成产物，修改配置后需完整重启。`/fd reload enchant`、`/fd reload damage` 可重新生成文件，但不会使新注册内容在本次运行生效。FD 与 VD 不再主动调用服务器数据重载；新增附属原版标签成员仍需下一次启动。此前已有的备份目录不会自动清理。
 
 战利品注入仍属于 CE 资源包，编辑 `vanilla_loots.yml` 后执行 `/ce reload all`。
 

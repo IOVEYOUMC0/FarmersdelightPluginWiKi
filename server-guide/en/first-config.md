@@ -140,9 +140,9 @@ damage-type:
 
 Paper discovers the managed packs under `plugins/FarmersDelight/datapacks/` during startup. These three switches keep their meaning. Common tags come from `common-tags.yml`, backstabbing stays in `config.yml`, and stove damage definitions and tags come from `damage-types.yml`. BAC and CAB own their cardiac-arrest and falling-coconut definitions in their respective `damage-types.yml` files.
 
-Existing world packs remain active during the migration boot, then move intact to each plugin's `datapack-backups/` directory. Legacy damage JSON is imported when no damage YAML exists; an existing YAML configuration takes precedence. The next full startup uses the plugin-managed packs. Registry IDs stay unchanged; keep IDs already used by your world.
+Existing world packs remain active during the migration boot. Their definitions are copied into the managed directory, and the old directory is removed only after copying succeeds. Migration no longer creates automatic backups. Legacy damage JSON is imported when no damage YAML exists; an existing YAML configuration takes precedence. The next full startup uses the plugin-managed packs. Registry IDs stay unchanged; keep IDs already used by your world.
 
-JSON under `datapacks/` is generated output. Configuration changes require a full restart. `/fd reload enchant` and `/fd reload damage` regenerate files without making new registry entries live in the current run. FD and VD no longer request server data reloads. New addon contributions to vanilla tags still require the next startup. Keep backups until you have verified the migration.
+JSON under `datapacks/` is generated output. Configuration changes require a full restart. `/fd reload enchant` and `/fd reload damage` regenerate files without making new registry entries live in the current run. FD and VD no longer request server data reloads. New addon contributions to vanilla tags still require the next startup. Existing backup directories are left untouched.
 
 Loot injection remains part of the CE content pack: edit `vanilla_loots.yml` and run `/ce reload all`.
 

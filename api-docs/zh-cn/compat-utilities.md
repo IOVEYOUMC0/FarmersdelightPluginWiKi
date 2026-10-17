@@ -105,7 +105,7 @@ return copy;
 
 ## 启动数据包工具
 
-`DatapackSupport` 提供 `managedPack`、`startupConfiguration`、`discoverPack`、`migrateLegacyPack` 与 `archiveLegacyPack`。仅在 Paper 的 bootstrap 数据包发现阶段调用 `discoverPack`；它通过官方 `DatapackRegistrar` 首次发现并加载受管包，尊重保存的手动禁用状态。配置读取严格报错，文件写入使用临时文件替换；旧世界包完整备份到插件目录。
+`DatapackSupport` 提供 `managedPack`、`startupConfiguration`、`discoverPack`、`migrateLegacyPack` 与 `archiveLegacyPack`。仅在 Paper 的 bootstrap 数据包发现阶段调用 `discoverPack`；它通过官方 `DatapackRegistrar` 首次发现并加载受管包，尊重保存的手动禁用状态。配置读取严格报错，文件写入使用临时文件替换；旧世界包复制到受管目录成功后清理，不自动备份。`archiveLegacyPack` 仍保留为显式调用工具，不参与自动迁移；已有备份不清理。
 
 `DamageTypePack.prepare(configuration, defaults, pack, description, version)` 从伤害 YAML 生成 JSON 和元数据，`saveConfiguration(configuration, pack)` 仅在 YAML 不存在时导入旧 JSON。配置包含 `damage-types` 与 `tags` 两个映射，键为完整注册 ID，字段采用 Minecraft 数据包原名。JSON 是生成产物，改 YAML 后完整重启。FD、BAC、CAB 共用该工具，两个附属的 bootstrap 均对 FD 声明依赖。新附属请在自己的 bootstrap 完成首次注册；onEnable 注册的动态内容仍需下次启动。
 
