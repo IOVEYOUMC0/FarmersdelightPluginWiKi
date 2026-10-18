@@ -38,7 +38,7 @@ debug 构建可以在小范围手动制造测试负载：
 
 `recipe validate` 会检查已加载的厨锅、砧板及已接入附属工作站配方是否为空、是否缺少成品/容器，以及标签是否解析不到任何原版物品、CraftEngine 物品或已注册的公共标签成员。解析阶段失败的配方仍会由常规 `recipe.load_failed` 日志报告。
 
-结束时输出一行汇总 `Recipe setups verified: N, failed/skipped=M, loaded recipes for <type>=K - PASS/FAIL`：任何未验证的填充都计为失败（`FAIL`），不会只埋在逐条列表里。
+结束时输出一行汇总 `配方配置校验：N 个，失败/跳过=M，<type> 已加载配方=K - PASS/FAIL`（英文语言下为 `Recipe setups verified: ...`）：任何未验证的填充都计为失败（`FAIL`），不会只埋在逐条列表里。
 
 ## 保存和序列化采样
 
