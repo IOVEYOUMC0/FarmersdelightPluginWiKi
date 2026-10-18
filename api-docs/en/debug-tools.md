@@ -26,6 +26,8 @@ Debug builds can create a small, local test load manually:
 
 The command places stations near the player, fills their test state, and starts a matching profile. It processes at most 16 positions per slice so the command does not occupy the server thread for one long operation. `count` is the number of positions and `ticks` is the profile duration (20-12000). Use `/fd debugtools undo` to remove the latest batch and `/fd debugtools stop` to stop an unfinished placement, activation, or handheld test. `all` expands the loaded capabilities listed below; handheld simulation stays separate.
 
+Every fill and activation is verified: a fill is read back through the controller and an activation has to change the station. Anything that did not take effect counts as failed and is logged instead of being reported as a success; `test` ends with `activated N, M failed`.
+
 Use `/fd debugtools test handheld 200 200` for simulated computation load: count independent sessions, without held items, repeated right-clicking or nearby heat. It consumes no player items. The result reports updates, display builds, completions and computation time per simulated tick. It covers slot matching, progress, display copies and completion recipe checks; it excludes networking, experience events, live inventories and Folia region dispatch, and is not the MSPT of 200 real players. It uses the loaded beef campfire recipe time. `stop` reports the partial sample and ends it; logout cleans up. Use `/fd stats profile 200 handheld` and `handheld_display` for real handheld sessions.
 Recommended nested commands:
 
@@ -40,6 +42,9 @@ Only canonical commands are accepted. Legacy `placeRecipe`, `placeRecipeRandom`,
 The `recipe validate` action checks loaded cooking-pot, cutting-board and integrated addon-station recipes for empty structure,
 missing results/containers, and tags that resolve to no vanilla, CraftEngine, or registered common-tag
 members. Parse failures are still reported by the normal `recipe.load_failed` logger.
+
+It ends with one summary line, `Recipe setups verified: N, failed/skipped=M, loaded recipes for <type>=K - PASS/FAIL`:
+any unverified fill counts as a failure instead of staying buried in the per-station list.
 
 ## Profile saves and serialization
 

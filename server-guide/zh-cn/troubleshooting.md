@@ -70,6 +70,8 @@ debug:
 
 持有 `farmersdelight.admin` 权限的玩家可运行 `/fd stats profile 200 all`，正常 TPS 下采样约 10 秒；`/fd perf` 是 `/fd stats` 的别名。普通版与 debug 版均可使用，无须打开逐条 debug 日志。期间再次启动采样会被拒绝，避免覆盖别人的结果；结束后仍可用 `/fd stats` 查看上一份结果。发起者移动或离线不影响自动停止。
 
+只读总览 `/fd stats` 也能在**控制台**执行；`profile` 采样和 `addon <name>` 状态行仍然绑定玩家。
+
 | 功能参数 | 计时范围 |
 | --- | --- |
 | `all` | 下列所有功能 |

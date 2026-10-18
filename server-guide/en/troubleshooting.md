@@ -74,6 +74,8 @@ Placed skillets poll up to 512 tracked pans every 4 ticks by default. Exceeding 
 
 A player with `farmersdelight.admin` can run `/fd stats profile 200 all`, approximately 10 seconds at normal TPS. `/fd perf` aliases `/fd stats`. Both release and debug builds support sampling without enabling verbose debug logs. A second profile is refused while one is running; `/fd stats` shows current or last results. Moving or logging out does not prevent automatic stopping.
 
+The read-only overview `/fd stats` also runs from the **console**; `profile` sampling and `addon <name>` status lines stay player-bound.
+
 | Feature argument | Timed work |
 | --- | --- |
 | `all` | All features below |
