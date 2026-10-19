@@ -48,8 +48,9 @@ FarmersDelight 是一个 **CraftEngine 移植**。它提供的每个方块、物
 - **PlaceholderAPI** —— 暴露 `%farmersdelight_buff_...%` 占位符（清单见[自定义 buff](../../api-docs/zh-cn/buffs.md)）。
 - **CE 经验 / 物品兼容来源** —— AuraSkills、MMOCore、Jobs 等经验 provider，以及 ItemsAdder、Nexo、MMOItems 等物品来源，复用 CE 已注册的桥。配置与限制见[首要配置项](first-config.md)。AuraSkills raw 奖励仍使用专用接口。
 - **UltimateAdvancementAPI** —— 驱动进度页面 UI。
-- **领地 / 圈地插件** —— WorldGuard、GriefPrevention、Lands、Towny、Residence 等一大批插件通过随包的保护层被识别，
-  于是工作站使用和采收会尊重领地。除了装上圈地插件本身，不需要额外配置。
+- **领地 / 圈地插件** —— WorldGuard、GriefPrevention、Lands、Towny、Residence 等一大批插件通过 CraftEngine 自带的
+  AntiGriefLib 保护层被识别（WorldGuard 另外还会检查本插件的逐功能 flag），于是工作站使用和采收会尊重领地。
+  除了装上圈地插件本身，不需要额外配置。
 
 以上都不改变安装步骤。一个都没有，直接看 [安装](install.md)。
 

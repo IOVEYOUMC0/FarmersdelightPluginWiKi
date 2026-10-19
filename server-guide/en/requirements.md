@@ -54,8 +54,9 @@ the plugin is present. Everything works without any of them.
 - **CE XP / item integrations** — reuse registered providers for AuraSkills, MMOCore, Jobs and external items such as ItemsAdder, Nexo and MMOItems. See [First config tweaks](first-config.md). Raw AuraSkills rewards retain their dedicated API path.
 - **UltimateAdvancementAPI** — drives the advancement tab UI.
 - **Land / claim plugins** — WorldGuard, GriefPrevention, Lands, Towny, Residence, and a long list of others
-  are recognised through a bundled protection layer, so station use and harvesting respect claims. No setup is
-  needed beyond installing the claim plugin.
+  are recognised through CraftEngine's AntiGriefLib protection layer (WorldGuard additionally honours this
+  plugin's per-feature flags), so station use and harvesting respect claims. No setup is needed beyond
+  installing the claim plugin.
 
 None of these change the install steps. If you have none of them, skip straight to
 [Installation](install.md).
