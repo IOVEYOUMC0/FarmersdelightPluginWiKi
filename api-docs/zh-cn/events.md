@@ -259,7 +259,7 @@ public final class CookStartLogger implements Listener {
 
 ### 取消与线程
 
-不可取消，而且这是设计决定，不是疏漏。否决一次采收属于保护层的职责：FarmersDelight 在每次采收**之前** 都会询问它的 `ProtectionCompat` 门面（WorldGuard flag 加上 AntiGriefLib 覆盖的 24 多个领地插件），本事件只在 该检查通过后才触发。想拦截采收的领地插件应当把自己接入那个门面，让交互被干净地拒绝，而不是在这里监听——在这 里状态已经改了一半。
+不可取消，而且这是设计决定，不是疏漏。否决一次采收属于保护层的职责：FarmersDelight 在每次采收**之前** 都会询问它的 `ProtectionCompat` 门面（WorldGuard 的自定义 flag，加上 CraftEngine 的 AntiGriefLib provider 覆盖的 24 多个领地插件），本事件只在 该检查通过后才触发。想拦截采收的领地插件应当把自己接入那个门面，让交互被干净地拒绝，而不是在这里监听——在这 里状态已经改了一半。
 
 两个触发点都运行在交互玩家的 region 线程上，处于 CraftEngine 方块行为调用内部，且两个 behavior 都不持有方块 实体锁。
 

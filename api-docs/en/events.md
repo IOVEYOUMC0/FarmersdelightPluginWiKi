@@ -324,8 +324,8 @@ list and every stack in it are copies; editing them changes nothing about what a
 ### Cancellation and threading
 
 Not cancellable, and this is a deliberate design decision rather than an oversight. Vetoing a harvest belongs to
-the protection layer: FarmersDelight asks its `ProtectionCompat` facade (WorldGuard flags plus AntiGriefLib's
-24-plus land plugins) *before* every harvest, and this event fires only after that check passed. A land plugin
+the protection layer: FarmersDelight asks its `ProtectionCompat` facade (WorldGuard's custom flags plus the
+24-plus land plugins covered by CraftEngine's AntiGriefLib provider) *before* every harvest, and this event fires only after that check passed. A land plugin
 that wants to block harvesting should expose itself through that facade so the interaction is denied cleanly,
 rather than listening here where the state change is already half-applied.
 
