@@ -106,6 +106,16 @@ Rice is a **water crop** grown in two stacked halves, and is harvested with a kn
 
 ---
 
+## Knife harvesting (ratoon)
+
+Except for the two-block rice plant, every crop (wheat, carrots, potatoes, beetroots, cabbage, onions) can be **harvested with a left-click while holding a knife** once mature: it drops its loot as usual (Fortune on the knife still applies) and is replanted in place at age 0, so no reseeding is needed.
+
+- An **immature** crop cannot be cut by a knife — use another tool, or **sneak** while breaking it.
+- **Melon and pumpkin stems** are unaffected and break normally.
+- To opt a block out of the behaviour, add it to the `farmersdelight:unaffected_by_knife_harvest` block tag (the stems are already in it).
+
+---
+
 ## Where seeds and straw come from
 
 Two materials underpin much of the pack's farming and crafting:
