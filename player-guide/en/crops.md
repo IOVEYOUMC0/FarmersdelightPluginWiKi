@@ -100,6 +100,8 @@ Rice is a **water crop** grown in two stacked halves, and is harvested with a kn
 - `farmersdelight:rice` from the lower stalk,
 - and a piece of `farmersdelight:straw` (the knife harvest yields one straw).
 
+The lower stalk takes a little longer to break than the panicles, so cutting the ripe top does not dig out the stalk below it.
+
 {% hint style="info" %}
 **Rice → panicle → rice.** A `farmersdelight:rice_panicle` can be crafted into 1 `farmersdelight:rice`, or cut on a cutting board into rice + straw. Both `farmersdelight:rice` and `farmersdelight:rice_panicle` can be compacted into storage blocks — see [Storage & Crates](storage.md).
 {% endhint %}

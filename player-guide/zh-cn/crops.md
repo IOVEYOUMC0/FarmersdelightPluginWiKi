@@ -100,6 +100,8 @@
 - 下截稻秆掉落 `farmersdelight:rice`；
 - 以及一份 `farmersdelight:straw`（稻草）（用小刀收获时会掉落一个稻草）。
 
+下截稻秆比顶部稻穗难挖一点，所以用小刀割成熟稻穗时不会顺手把下面的稻秆一起挖掉。
+
 {% hint style="info" %}
 **稻米 ↔ 稻穗。** 一个 `farmersdelight:rice_panicle` 可合成为 1 个 `farmersdelight:rice`，或在切菜板上切成稻米 + 稻草。`farmersdelight:rice` 与 `farmersdelight:rice_panicle` 都能压缩成储物块——见 [储物与板条箱](storage.md)。
 {% endhint %}
