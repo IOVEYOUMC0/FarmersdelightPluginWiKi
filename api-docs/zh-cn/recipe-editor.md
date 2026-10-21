@@ -192,9 +192,13 @@ FarmersDelightApi.get().openRecipeEditor(player, "fdaddon:example", "example_ste
 
 如果你像模板那样在内存里跨多次打开缓存草稿，就该持有一个稳定的编辑器实例 —— `RecipeType.editor()` 每次打开都会 查询一遍，每次返回新实例会把上一个实例持有的东西全丢掉。
 
+当某个工作站的配方较多时，`/fd recipe edit` 的编辑列表支持搜索：列表的筛选槽会变成搜索按钮（左键在聊天框输入配方 id 或成品名的子串，潜行点击清除）。搜索只过滤这个编辑列表，正常的浏览列表仍保留「仅可制作」筛选。
+
 ## 异步文件保存契约
 
 `saveAsync/deleteAsync` 返回 false 仅表示未入队；返回 true 后必须调用 completion 一次，参数表示是否成功。完成回调可以在任意线程，FD 的 GUI 会切回玩家调度器。传给实现的是 `EditableRecipe.copy()`，存储层也应复制对象，不要把可变草稿直接存成已保存定义。
+
+异步落盘的编辑器可以实现 `AsyncRecipeEditor`：它的 `saveAsync(EditableRecipe)` 与 `deleteAsync(String)` 返回 `CompletableFuture<Boolean>`，界面会锁定到 future 完成为止。同步完成的编辑器继续使用 `RecipeEditor` 上的回调默认实现即可。
 
 `RecipeEditorFiles.saveAsync(file, path, body, preservedFields, reload, completion)` 复用主插件写队列：文件解析、按当前内容合并保留字段、局部修改和原子替换在异步线程；reload 与回调在主插件全局调度器，玩家退出不阻止刷新。body 为 null 时删除条目。无效 YAML 拒绝覆盖；保留字段的读取发生在该文件事务锁内。
 

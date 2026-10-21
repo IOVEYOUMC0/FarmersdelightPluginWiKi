@@ -219,9 +219,17 @@ A stable editor instance is worth keeping if you cache drafts in memory across o
 `RecipeType.editor()` is queried on every open, so returning a new instance each time discards anything the
 previous one held.
 
+When a station has many recipes, the edit-mode list in `/fd recipe edit` is searchable: its filter slot becomes a
+search button (left click types a substring of the recipe id or of the result name in chat, sneak-click clears
+it). The search only filters that edit list; the normal browse list keeps its craftable filter.
+
 ## Async file saving contract
 
 False from `saveAsync/deleteAsync` means the operation was not queued. After returning true, call completion once with the operation result. Completion may run on any thread; FD's GUI hops back to the player scheduler. The implementation receives EditableRecipe.copy(); storage must also copy mutable drafts rather than keep the live editor object as a saved definition.
+
+Editors that persist asynchronously can implement `AsyncRecipeEditor` instead: its `saveAsync(EditableRecipe)` and
+`deleteAsync(String)` return a `CompletableFuture<Boolean>`, and the view keeps the GUI locked until it completes.
+The callback defaults on `RecipeEditor` stay valid for editors that finish inline.
 
 RecipeEditorFiles.saveAsync(file, path, body, preservedFields, reload, completion) uses the shared queue. Parsing, merging preserved fields from current contents, local edits and atomic replacement run asynchronously. Reload and completion run on FD's global scheduler, independent of player survival. Null body deletes an entry. Invalid YAML is refused; preserved fields are read under the file transaction lock.
 
