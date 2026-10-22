@@ -118,6 +118,40 @@ Use `/fd debugtools test handheld 200 200` for simulated computation load: count
 `/fd cleanup` strips orphaned plugin state from loaded chunks if you ever need it (requires
 `farmersdelight.admin`).
 
+## Folia concurrency stress checklist
+
+The region-owned work (cooking pot ticks, hopper transfers, GUI writes, display refreshes) cannot be verified by
+the repository checks; it needs a live Folia server. Run this round after changes to `TickManager`, a station
+manager, the container GUI or the scheduler adapter, and keep the console output and `/fd stats` results with
+the deployment notes.
+
+**Setup.** Folia server with the current FD jar, the CraftEngine jar the build targets, Java per the version
+table, and spark installed. Use a test world with a few players; `/fd stats profile 600` takes 30 seconds and
+`/fd stats profile 600 station_tick` narrows it to the pot pass.
+
+1. **Many regions.** Place 20–40 stations (pot, cutting board, skillet, stove) spread over at least three
+   regions; start cooking in all of them, then teleport away until the chunks unload and back again. Expected:
+   no `thread not owned by region` / `IllegalStateException` in the console, no stations frozen mid-batch, no
+   duplicated meals.
+2. **Concurrent GUI writes.** Two players in different regions open different stations and insert/move items at
+   the same time. Expected: clicks are accepted atomically, no item loss or duplication, and a station whose
+   region is busy still saves its state on the next tick.
+3. **Hopper input/output.** Feed a pot/board from hoppers and drain the result while players interact. Expected:
+   no `Inventory` resize races, no gaps in the progress bar, and the hopper paths stay inside the same region
+   as the station.
+4. **Reload under load.** Run `/fd reload all` and `/ce reload` while stations are cooking. Expected: stations
+   resume from a consistent state, no flood of `advancement.award_failed` warnings, and the tag bridge
+   (`CraftEngineTagBridge`) refreshes without touching another region's world state.
+5. **Disable under load.** Stop the server (or disable the plugin) while several players are buffed and stations
+   are active. Expected: buff flush respects the shutdown budget, no blocked main thread waiting on a task
+   queued behind it, and no "scheduler refused" warnings on a normal stop.
+6. **Measure.** Run `/fd stats profile 600 all` and open spark during the busiest station cluster. Record
+   `station_tick` / `recipe_match` / `gui_refresh` call counts and P95, plus the Folia region count. A number is
+   only meaningful next to the scenario; zero calls means the path did not run in the window.
+
+Passing this checklist means the region boundaries were exercised, not that every third-party plugin or custom
+world has been proven. Record the Folia build, Java version, CraftEngine build and results with the round.
+
 ## Next
 
 [Migration & upgrades →](migration.md)

@@ -113,6 +113,33 @@ debug:
 
 需要时，`/fd cleanup` 会从已加载区块里清掉孤立的插件状态（需要 `farmersdelight.admin`）。
 
+## Folia 并发压力检查清单
+
+区域相关工作（厨锅 tick、漏斗传输、GUI 写入、展示刷新）无法由仓库检查覆盖，需要真实的 Folia 服务端验证。
+修改 `TickManager`、任一工作站管理器、容器 GUI 或调度适配层后都跑一遍，把控制台输出与 `/fd stats` 结果
+随部署记录保存。
+
+**准备。** 当前 FD jar、构建对应的 CraftEngine jar、按版本表选择 Java，安装 spark；测试世界放几名玩家。
+`/fd stats profile 600` 采样 30 秒，`/fd stats profile 600 station_tick` 只看厨锅 tick。
+
+1. **多区域。** 在至少三个区域布置 20–40 个工作站（厨锅、砧板、煎锅、炉灶），全部开始烹饪，然后传送
+   远离直到区块卸载再回来。预期：控制台无 `thread not owned by region` / `IllegalStateException`，没有卡在
+   半途的工作站，没有料理复制。
+2. **并发 GUI 写入。** 两名分处不同区域的玩家同时操作不同工作站并放入/移动物品。预期：点击原子生效，
+   无物品丢失/复制，区域繁忙时工作站状态仍能在下一次 tick 正常保存。
+3. **漏斗输入/输出。** 用漏斗给厨锅/砧板进料并抽取产物，同时玩家交互。预期：无库存变更竞态、进度条无
+   跳变，漏斗路径与工作站处于同一区域。
+4. **负载中重载。** 工作站烹饪中执行 `/fd reload all` 与 `/ce reload`。预期：工作站状态一致恢复、无大量
+   `advancement.award_failed` 警告、标签桥接 `CraftEngineTagBridge` 刷新时不跨区访问世界状态。
+5. **负载中关闭。** 多玩家带 buff、工作站活跃时停服（或禁用插件）。预期：buff 保存遵守关服预算、主线程
+   不会等待排在自己后面的任务、正常停止时没有 "scheduler refused" 警告。
+6. **度量。** 在最繁忙的工作站区域执行 `/fd stats profile 600 all` 并开 spark。记录 `station_tick` /
+   `recipe_match` / `gui_refresh` 的调用数与 P95，以及 Folia 区域数。数字必须与场景一起记录；零调用表示
+   窗口内该路径没有执行。
+
+通过该清单只代表区域边界被实际压过，不代表所有第三方插件或自定义世界都已证明。请把 Folia 构建、Java
+版本、CraftEngine 构建与结果随轮次记录。
+
 ## 下一步
 
 [迁移与升级 →](migration.md)
