@@ -26,6 +26,7 @@
 ## World content
 
 * [Blocks and stations](blocks-and-stations.md)
+* [Building an addon station](station-kit.md)
 * [Tags and knife-mineable blocks](tags.md)
 * [Items](items.md)
 * [Food effects](food-effects.md)

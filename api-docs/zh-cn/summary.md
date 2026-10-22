@@ -30,6 +30,7 @@ icon: grid-4
 ## 世界内容
 
 1. [方块与工作站](blocks-and-stations.md)
+2. [编写附属工作站](station-kit.md)
 2. [标签与可被小刀挖掘的方块](tags.md)
 3. [物品](items.md)
 4. [食物效果](food-effects.md)

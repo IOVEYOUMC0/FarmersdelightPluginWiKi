@@ -346,3 +346,4 @@ first if that distinction matters.
 * [Items](items.md)
 * [Events](events.md)
 * [The recipe package](recipes-overview.md)
+* [Building an addon station](station-kit.md)

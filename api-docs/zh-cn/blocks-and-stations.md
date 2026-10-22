@@ -287,3 +287,4 @@ public static BlockEntityController  blockEntityController(World world, int x, i
 * [物品](items.md)
 * [事件](events.md)
 * [配方包总览](recipes-overview.md)
+* [编写附属工作站](station-kit.md)
