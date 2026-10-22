@@ -135,6 +135,8 @@ public static final String COMMON_CROPS_CABBAGE        = "c:crops/cabbage";
 
 自定义物品优先在所属附属的 `items.<id>.settings.tags` 中添加标签，FD 合并 CE 标签与原版公共映射用于匹配和预览。CAB/ED 成员已迁回各自包；升级需同步对应 CE `items.yml`，换 JAR 不会覆盖已有包。FD `common-tags.yml` 保留服主自定义，不自动清理旧附属成员。
 
+预热时以及 `/fd reload tags` 时，FD 还会重新读取全部 CE 物品的 `settings.tags`，把其中的 `c:` 成员并入家族标签注册表（来源名 `craftengine-tags`）。这样这些成员不仅对 CE 自身的匹配索引可见，也能被 `CommonTagResolver.isCommonTag` / `getMembers` / `getTagsForItemId`、配方书图标展开和 `/fd` 标签快照看到。
+
 ```yaml
 items:
   example:fish:

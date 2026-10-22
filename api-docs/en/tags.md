@@ -136,6 +136,8 @@ listener, a command handler), never from a field initializer or a `static final`
 
 Declare custom item membership in the owning addon's `items.<id>.settings.tags`. FD merges CE tags with vanilla common mappings for matching and previews. CAB/ED memberships now live in their packs; synchronize their CE `items.yml` when upgrading, since replacing jars does not overwrite existing packs. Operator entries in FD `common-tags.yml` are preserved.
 
+At warmup and on `/fd reload tags`, FD also re-reads every CE item's `settings.tags` and merges the `c:` members into its family tag registry (source name `craftengine-tags`). That is what makes those members visible to `CommonTagResolver.isCommonTag` / `getMembers` / `getTagsForItemId`, the recipe-book icon expansion and the `/fd` tag snapshots, not just to CE's own matching index.
+
 ```yaml
 items:
   example:fish:
