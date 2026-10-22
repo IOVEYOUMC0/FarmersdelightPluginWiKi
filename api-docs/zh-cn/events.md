@@ -14,9 +14,9 @@ getServer().getPluginManager().registerEvents(new MyFarmersDelightListener(), th
 
 > **关于本页代码片段的约定。** 这些片段展示的是 api 调用**在上下文中的样子**，不是可直接编译的完整文件。方法 签名、事件类型名、getter 名和返回类型都是精确的，可以照着用。而一眼就属于你自己的标识符—— `MyFarmersDelightListener`、传给 `player.getScheduler().run` 的那个 `myPlugin` 字段、`recordHarvest(...)`、 `plugin.reloadAddon()` 之类——是占位符，代表你自己附属里的字段和方法；它们在片段里没有任何声明，背后也没有 对应的 api 成员。除非某个片段的目的就是说明类型来自哪个包，否则 import 一律省略。请把它们换成你自己的引用，并补上周边样板代码。
 
-**这 11 个事件全部不可取消。** 没有任何一个实现 `org.bukkit.event.Cancellable`，因此既没有 `setCancelled` 可 调，触发点也不存在"尊重取消"这回事。它们是通知钩子与累加钩子。想影响 FarmersDelight 的行为，只有三条路： `FarmersDelightCleanupEvent` / `FarmersDelightMigrateEvent` 上的计数累加器，以及 `FarmersDelightCollectLiveDisplaysEvent` 上的保护集合。
+**这 12 个事件全部不可取消。** 没有任何一个实现 `org.bukkit.event.Cancellable`，因此既没有 `setCancelled` 可 调，触发点也不存在"尊重取消"这回事。它们是通知钩子与累加钩子。想影响 FarmersDelight 的行为，只有三条路： `FarmersDelightCleanupEvent` / `FarmersDelightMigrateEvent` 上的计数累加器，以及 `FarmersDelightCollectLiveDisplaysEvent` 上的保护集合。
 
-其中 10 个标注了 `@ApiStatus.NonExtendable`：不要继承，也不要为了伪造 FarmersDelight 的行为而自行构造。但为 **你自己的**工作站上报产出是另一回事，这是明确支持的用法——`FarmersDelightProduceEvent` 与 `ProfessionCookingExperienceEvent` 就是这么设计的，Brewin' And Chewin' 的酒桶正是靠它上报产出。 `FarmersDelightRecipeDiscoveryEvent` 没有任何 `@ApiStatus` 注解，但请同样当作封闭类型对待，插件内部没有任何 地方预期会收到外部子类。
+其中 11 个标注了 `@ApiStatus.NonExtendable`：不要继承，也不要为了伪造 FarmersDelight 的行为而自行构造。但为 **你自己的**工作站上报产出是另一回事，这是明确支持的用法——`FarmersDelightProduceEvent` 与 `ProfessionCookingExperienceEvent` 就是这么设计的，Brewin' And Chewin' 的酒桶正是靠它上报产出。 `FarmersDelightRecipeDiscoveryEvent` 没有任何 `@ApiStatus` 注解，但请同样当作封闭类型对待，插件内部没有任何 地方预期会收到外部子类。
 
 ## 总览
 
@@ -27,6 +27,7 @@ getServer().getPluginManager().registerEvents(new MyFarmersDelightListener(), th
 | `FarmersDelightCollectLiveDisplaysEvent` | `/fd cleanup`，在孤儿显示实体清扫**之前**               | 否（累加受保护 id） |
 | `FarmersDelightCookStartEvent`           | 炖锅从"无匹配配方"变为"有匹配配方"                         | 否           |
 | `FarmersDelightHarvestEvent`             | 蘑菇簇被剪刀 / 小刀采收，或成熟稻谷被采收                      | 否           |
+| `FarmersDelightMealConsumedEvent`        | 玩家吃完农夫乐事的料理、零食、饮品或甜点                        | 否           |
 | `FarmersDelightMigrateEvent`             | **从不触发——没有任何地方派发这个事件**                     | 否（累加计数）     |
 | `FarmersDelightProduceEvent`             | 工作站把产出物交给玩家                                 | 否           |
 | `FarmersDelightRecipeDiscoveryEvent`     | 玩家的配方发现状态真正变化（解锁 / 重新锁定）                    | 否           |
@@ -288,6 +289,37 @@ public final class HarvestStats implements Listener {
 ```
 
 ***
+
+## FarmersDelightMealConsumedEvent
+
+`com.huidu.farmersdelight.api.event.FarmersDelightMealConsumedEvent` — `@ApiStatus.NonExtendable`
+
+### 触发时机
+
+唯一触发点是 `FoodEatListener.onPlayerItemConsume`：在玩家物品消耗事件的 `MONITOR` 优先级、消耗被接受且 FarmersDelight 已应用自己的 comfort / nourishment 效果之后触发。它只上报"吃完"这一既成事实，不参与、也不询问是否取消。
+
+触发对象是 CraftEngine id 属于 `farmersdelight:` 命名空间、或带有料理家族标签（`farmersdelight:meals`、`snacks`、`drinks`、`sweets`、`pies`、`feasts`、`milk`）的物品。附属物品除非带这些标签，否则不会触发，所以这不是"任何人吃了任何东西"的通用事件。
+
+### 携带的数据
+
+`getPlayerId()` `UUID`、`getPlayerName()` `String`（可能为 null）、`getItemId()` `String`（CraftEngine id，原版物品为 `minecraft:<material>`）、`getItem()` 消耗物副本、`getLocation()` 玩家坐标副本。
+
+### 取消与线程
+
+不可取消——事件派发时物品已经被消耗。需要否决进食的监听器请用 `PlayerItemConsumeEvent`。事件在玩家线程（Folia 下为玩家所在 region 线程）派发；监听器可以直接读取玩家，但改其它 region 的世界状态前必须走 `player.getScheduler()`。
+
+### 示例
+
+```java
+@EventHandler
+public void onMealConsumed(FarmersDelightMealConsumedEvent event) {
+    Player player = Bukkit.getPlayer(event.getPlayerId());
+    if (player == null) {
+        return;
+    }
+    mealsEaten.merge(player.getUniqueId(), 1, Integer::sum);
+}
+```
 
 ## FarmersDelightMigrateEvent
 

@@ -17,13 +17,13 @@ getServer().getPluginManager().registerEvents(new MyFarmersDelightListener(), th
 > them. Imports are omitted except where a snippet exists to show
 > which package a type comes from. Substitute your own references and the surrounding boilerplate.
 
-**None of these eleven events is cancellable.** Not one of them implements `org.bukkit.event.Cancellable`, so
+**None of these twelve events is cancellable.** Not one of them implements `org.bukkit.event.Cancellable`, so
 there is no `setCancelled` to call and no fire site that could honour it. They are notification and
 accumulation hooks. The only ways to influence what FarmersDelight does are the accumulators on
 `FarmersDelightCleanupEvent` / `FarmersDelightMigrateEvent` and the protective set on
 `FarmersDelightCollectLiveDisplaysEvent`.
 
-Ten of the eleven are annotated `@ApiStatus.NonExtendable`: do not subclass them and do not construct them to
+Eleven of the twelve are annotated `@ApiStatus.NonExtendable`: do not subclass them and do not construct them to
 fake a FarmersDelight action. Constructing one to report *your own* station's activity is a different matter
 and is explicitly supported for `FarmersDelightProduceEvent` and `ProfessionCookingExperienceEvent` — that is
 how Brewin' And Chewin' reports keg output. `FarmersDelightRecipeDiscoveryEvent` carries no `@ApiStatus`
@@ -38,6 +38,7 @@ annotation at all, but treat it as equally closed; nothing in the plugin expects
 | `FarmersDelightCollectLiveDisplaysEvent` | `/fd cleanup`, *before* the orphan display sweep runs | No (accumulates protected ids) |
 | `FarmersDelightCookStartEvent` | A cooking pot goes from no matched recipe to a matched one | No |
 | `FarmersDelightHarvestEvent` | A mushroom colony is sheared/knifed, or mature rice is harvested | No |
+| `FarmersDelightMealConsumedEvent` | A player finishes a FarmersDelight meal, snack, drink or sweet | No |
 | `FarmersDelightMigrateEvent` | **Never — nothing dispatches this event** | No (accumulates a count) |
 | `FarmersDelightProduceEvent` | A station hands a produced item to a player | No |
 | `FarmersDelightRecipeDiscoveryEvent` | A player's recipe-discovery state really changes (unlock / re-lock) | No |
@@ -357,6 +358,38 @@ public final class HarvestStats implements Listener {
 ```
 
 ---
+
+## FarmersDelightMealConsumedEvent
+
+`com.huidu.farmersdelight.api.event.FarmersDelightMealConsumedEvent` — `@ApiStatus.NonExtendable`
+
+### When it fires
+
+One fire site: `FoodEatListener.onPlayerItemConsume`, at `EventPriority.MONITOR` on the player's item-consume event, after the consume has been accepted and after FarmersDelight applied its own comfort / nourishment effects. It reports the finished meal; it neither participates in nor asks to veto the consumption.
+
+It fires for an item whose CraftEngine id is in the `farmersdelight:` namespace, or that carries one of the meal-family item tags (`farmersdelight:meals`, `snacks`, `drinks`, `sweets`, `pies`, `feasts`, `milk`). Addon foods stay silent unless they carry one of those tags, so this is not a general "someone ate something" event.
+
+### What it carries
+
+`getPlayerId()` `UUID`, `getPlayerName()` `String` (may be null), `getItemId()` `String` (the CraftEngine id, or `minecraft:<material>` for a vanilla item), `getItem()` a copy of the consumed stack, and `getLocation()` the player's location (a copy).
+
+### Cancellation and threading
+
+Not cancellable: the stack has already been consumed when the event is dispatched. Use `PlayerItemConsumeEvent` when a listener has to veto eating. The event fires on the player's thread (their region thread on Folia); a listener may read the player directly, but must use `player.getScheduler()` before touching another region's world state.
+
+### Example
+
+```java
+@EventHandler
+public void onMealConsumed(FarmersDelightMealConsumedEvent event) {
+    Player player = Bukkit.getPlayer(event.getPlayerId());
+    if (player == null) {
+        return;
+    }
+    // Count meals per player; the id is the CraftEngine id, so dishes, drinks and sweets all land here.
+    mealsEaten.merge(player.getUniqueId(), 1, Integer::sum);
+}
+```
 
 ## FarmersDelightMigrateEvent
 
