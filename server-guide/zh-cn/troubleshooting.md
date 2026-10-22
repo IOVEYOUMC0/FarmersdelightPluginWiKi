@@ -84,6 +84,9 @@ debug:
 | `item_serialization` | 已接入路径的 CE 物品 NBT 编码 |
 | `serialization_lock` | 已接入保存锁的获取耗时，不含外层已持有的锁 |
 | `inventory_holder` | 已接入的 `getHolder(false)` 查询 |
+| `recipe_match` | 一次厨锅或砧板配方查找 |
+| `station_tick` | 已注册厨锅的一次 tick 更新 |
+| `gui_refresh` | 一次配方查看器列表/详情界面刷新 |
 
 例如 `/fd stats profile 600 handheld` 观察手持负载，再用 `/fd stats profile 600 handheld_display` 检查显示刷新。时长范围为 20 至 12000 tick；省略时长为 200，省略功能为 `all`。采样结束输出调用数、每秒调用数、累计/平均/最大耗时和 P95。全部耗时以毫秒表示，调用率使用实际经过时间。零调用表示窗口内未执行此功能，不表示功能没有成本。
 

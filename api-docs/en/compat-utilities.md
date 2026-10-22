@@ -20,7 +20,7 @@ try (PerformanceProbe.Sample ignored = PerformanceProbe.begin(PerformanceProbe.O
 }
 ```
 
-Operations are `SERIALIZATION`, `ITEM_SERIALIZATION`, `SERIALIZATION_LOCK`, and `INVENTORY_HOLDER`. Begin a lock sample before entering synchronized and close it on the first line inside, so encoding is excluded. `FarmersDelightApi.get().performanceTiming(operation)` returns a session-bound recorder, or null while inactive/unavailable; do not retain it long-term. See [debug tools](debug-tools.md).
+Operations are `SERIALIZATION`, `ITEM_SERIALIZATION`, `SERIALIZATION_LOCK`, `INVENTORY_HOLDER`, `RECIPE_MATCH`, `STATION_TICK` and `GUI_REFRESH`. Begin a lock sample before entering synchronized and close it on the first line inside, so encoding is excluded. `RECIPE_MATCH` wraps one cooking pot / cutting board lookup, `STATION_TICK` one cooking pot tick pass and `GUI_REFRESH` one recipe-viewer screen refresh. `FarmersDelightApi.get().performanceTiming(operation)` returns a session-bound recorder, or null while inactive/unavailable; do not retain it long-term. See [debug tools](debug-tools.md).
 
 ## CompatAttributes
 

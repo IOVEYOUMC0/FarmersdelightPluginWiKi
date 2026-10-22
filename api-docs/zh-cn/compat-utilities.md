@@ -24,7 +24,7 @@ try (PerformanceProbe.Sample ignored = PerformanceProbe.begin(PerformanceProbe.O
 }
 ```
 
-`Operation` 包含 `SERIALIZATION`、`ITEM_SERIALIZATION`、`SERIALIZATION_LOCK`、`INVENTORY_HOLDER`。锁样本在进入 synchronized 前开始，进入后的第一行关闭，不把编码算作等待。Facade `FarmersDelightApi.get().performanceTiming(operation)` 返回绑定当前会话的 recorder，未采样/插件不可用时返回 null；不得长期缓存。使用方式见[调试工具](debug-tools.md)。
+`Operation` 包含 `SERIALIZATION`、`ITEM_SERIALIZATION`、`SERIALIZATION_LOCK`、`INVENTORY_HOLDER`、`RECIPE_MATCH`、`STATION_TICK`、`GUI_REFRESH`。锁样本在进入 synchronized 前开始，进入后的第一行关闭，不把编码算作等待；`RECIPE_MATCH` 包住一次厨锅/砧板配方查找，`STATION_TICK` 包住一次厨锅 tick，`GUI_REFRESH` 包住一次配方查看器界面刷新。Facade `FarmersDelightApi.get().performanceTiming(operation)` 返回绑定当前会话的 recorder，未采样/插件不可用时返回 null；不得长期缓存。使用方式见[调试工具](debug-tools.md)。
 
 ## CompatAttributes
 
