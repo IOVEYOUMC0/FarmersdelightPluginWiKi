@@ -7,6 +7,7 @@
 ## Read in this order
 
 * [Requirements & load order](requirements.md)
+* [Compatibility matrix](compatibility.md)
 * [Installation](install.md)
 * [Resource pack](resource-pack.md)
 * [First config tweaks](first-config.md)

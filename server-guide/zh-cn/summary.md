@@ -11,6 +11,7 @@ icon: grid-4
 ## 按这个顺序读
 
 * [环境要求与加载顺序](requirements.md)
+* [兼容性矩阵](compatibility.md)
 * [安装](install.md)
 * [资源包](resource-pack.md)
 * [首要配置项](first-config.md)
