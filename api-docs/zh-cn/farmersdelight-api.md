@@ -49,7 +49,7 @@ FarmersDelight 的插件版本号跟的是**内容**。**api 版本**跟的是�
 
 返回当前运行构建的 api 接口修订号。文档化的递增策略是：单调递增；每一个**新增**面向附属接口（新的 api 类、方法、事件或 feature id）的版本 `+1`；从不回退，从不复用，纯内部重构不递增。这套方案下根本不做删除和 不兼容改动，所以按修订号 N 编译的附属，在任何大于 N 的修订上都能继续编译和链接。
 
-当前值是 **4**。修订 3 新增了 `api.visual.DisplayGroup`（分组持有封包展示实体并自动声明存活）与 `api.block.HeatSources`（按插件记录热源声明并在重载后自动重放）。修订 1 是第一个暴露 `apiVersion()` 本身的版本。比它更老的构建上这个方法不存在，调用会抛 `NoSuchMethodError`——捕获它并当作修订 0 处理：
+当前值是 **5**。修订 5 补齐了已有接口区域此前无法探测的 feature id：`tags`、`container-gui`、`recipe-editor`、`config-helpers`、`text` 与 `advancements`。修订 4 增加了异步保存契约（`api.recipe.AsyncRecipeEditor`）。修订 3 新增了 `api.visual.DisplayGroup`（分组持有封包展示实体并自动声明存活）与 `api.block.HeatSources`（按插件记录热源声明并在重载后自动重放）。修订 1 是第一个暴露 `apiVersion()` 本身的版本。比它更老的构建上这个方法不存在，调用会抛 `NoSuchMethodError`——捕获它并当作修订 0 处理：
 
 ```java
 int version;
@@ -91,6 +91,12 @@ if (version >= 1) {
 | `content-check`               | CraftEngine 内容存在性检查（`FarmersDelightContent`）                                                                                         |
 | `common-tags`                 | 中心标签注册表：附属注册自己的 标签→物品 映射，整个family解析同一套标签（`registerCommonTags` / `unregisterCommonTags`）                                      |
 | `advancement-triggers`        | 统一处理物品获得/制作/产出与食用触发的成就映射                                                                  |
+| `tags`                        | 本插件使用的标签 id 常量（`FarmersDelightTags`）与只读的小刀可破坏方块查询（`KnifeMineableBlocks`）                                                        |
+| `container-gui`               | `api.gui` 容器 GUI 引擎：`GuiLayout` / `GuiLayouts`、`GuiSlotGroup`、`GuiWriteBack`、`ContainerGuiKernel`、`GuiItems`                                     |
+| `recipe-editor`               | `api.recipe` 的编辑器契约：`RecipeEditor`、`EditableRecipe`、`AsyncRecipeEditor` 及配方文件辅助                                                       |
+| `config-helpers`              | `api.config` 的配置段读取、文件更新/改名与更新提示                                                                                                  |
+| `text`                        | `api.text` 的消息与时长格式化辅助                                                                                                          |
+| `advancements`                | `api.advancement` 的成就树与可用性注册                                                                                                      |
 
 **单构建**：游戏内配方编辑器、配方关联跳转、手持煎锅烹饪都在同一份源码里。这三项功能仍受运维开关控制
 （`config.yml: recipe-editor.enabled`、`recipe-navigation.jumps`、`skillet.handheld`）。

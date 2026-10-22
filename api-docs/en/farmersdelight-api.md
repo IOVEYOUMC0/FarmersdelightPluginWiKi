@@ -77,7 +77,7 @@ decremented, never reused, and never bumped for internal refactors. Removals and
 made under this scheme at all, so an addon compiled against revision N keeps compiling and linking against
 every revision greater than N.
 
-The current value is **4**. Revision 3 added `api.visual.DisplayGroup` (a group that holds packet displays and declares them live for the cleanup sweep) and `api.block.HeatSources` (per-plugin heat-source declarations, replayed after a reload). Revision 1 was the first to expose `apiVersion()` itself. On a build older than that the
+The current value is **5**. Revision 5 added feature ids for api areas that already existed but were not probe-able: `tags`, `container-gui`, `recipe-editor`, `config-helpers`, `text` and `advancements`. Revision 4 added the async editor contract (`api.recipe.AsyncRecipeEditor`). Revision 3 added `api.visual.DisplayGroup` (a group that holds packet displays and declares them live for the cleanup sweep) and `api.block.HeatSources` (per-plugin heat-source declarations, replayed after a reload). Revision 1 was the first to expose `apiVersion()` itself. On a build older than that the
 method does not exist, so the call throws `NoSuchMethodError` — catch it and treat it as revision 0:
 
 ```java
@@ -123,6 +123,12 @@ The complete set answered by the current build:
 | `content-check` | CraftEngine content existence checks (`FarmersDelightContent`) |
 | `common-tags` | Central tag registry: addons register their tag→item mappings so the whole family resolves the same tags (`registerCommonTags` / `unregisterCommonTags`) |
 | `advancement-triggers` | Shared obtain/craft/produce and consume advancement item triggers |
+| `tags` | Tag id constants (`FarmersDelightTags`) and the read-only knife-mineable block query (`KnifeMineableBlocks`) |
+| `container-gui` | The `api.gui` container GUI engine: `GuiLayout` / `GuiLayouts`, `GuiSlotGroup`, `GuiWriteBack`, `ContainerGuiKernel`, `GuiItems` |
+| `recipe-editor` | The editor contract in `api.recipe`: `RecipeEditor`, `EditableRecipe`, `AsyncRecipeEditor` and the recipe file helpers |
+| `config-helpers` | `api.config` section reading, file update/rename and update notices |
+| `text` | `api.text` message and duration formatting helpers |
+| `advancements` | `api.advancement` advancement tree and availability registration |
 
 **Single build.** The recipe editor, the recipe-to-recipe jumps and handheld skillet cooking are all part of
 the same source tree. Each of the three still obeys its operator switch (`config.yml: recipe-editor.enabled`,
