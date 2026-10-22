@@ -73,6 +73,11 @@ served in a bowl. If the meal needs a bowl:
 Meals that don't need a container (for example a block of cooked food) can be taken
 directly out of the meal slot.
 
+If the server also installs **Kaleidoscope Cookery**, holding a recipe item that recorded a dish and
+right-clicking the pot moves the recorded ingredients from your inventory into it; the recipe item itself is
+never consumed. Nothing moves when an ingredient is missing or the pot already holds ingredients that recipe
+did not record.
+
 Default cook time is 200 ticks (10 seconds); individual recipes set their own time.
 
 ## The recipe viewer and the "craftable only" filter

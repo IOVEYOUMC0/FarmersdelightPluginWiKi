@@ -111,6 +111,19 @@ Legacy `mmoitems:TYPE:ID` recognition is always retained. Identity order is CE I
 
 A missing source/template returns `null` and never creates a vanilla substitute. Editor inputs/tools match the real identity; results and data-bearing containers retain full snapshots. Existing ID-only MMOItems recipes rebuild through CE. Results are fixed templates built at recipe load, not fresh player-specific or random results for each craft. Apply source configuration with `/fd reload all`; CE reload also clears bindings and icon caches.
 
+## Kaleidoscope Cookery recipe auto-fill
+
+When **Kaleidoscope Cookery** is installed, right-clicking a cooking pot while holding one of its recipe items moves the ingredients recorded on that item from the player's inventory into the pot. The recipe item itself is never consumed, and nothing moves unless every recorded ingredient is carried and the pot holds no ingredients the recipe did not record (creative players must still carry the items).
+
+```yaml
+compatibility:
+  kaleidoscope:
+    enabled: true
+    recipe-auto-fill: true
+```
+
+Both switches default to on and only do anything when the other plugin is present, so a server without it is unaffected. `enabled` is the master switch; set `recipe-auto-fill` to `false` to keep the plugin installed but disable this interaction. Apply changes with `/fd reload all`. No per-recipe configuration is needed: the recording travels on the item itself.
+
 ## Recipe discovery (locked recipe books)
 
 ```yaml
