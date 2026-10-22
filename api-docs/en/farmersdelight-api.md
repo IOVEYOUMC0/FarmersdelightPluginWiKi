@@ -77,7 +77,7 @@ decremented, never reused, and never bumped for internal refactors. Removals and
 made under this scheme at all, so an addon compiled against revision N keeps compiling and linking against
 every revision greater than N.
 
-The current value is **5**. Revision 5 added feature ids for api areas that already existed but were not probe-able: `tags`, `container-gui`, `recipe-editor`, `config-helpers`, `text` and `advancements`, plus `meal-consumed-event` for the new consumption event. Revision 4 added the async editor contract (`api.recipe.AsyncRecipeEditor`). Revision 3 added `api.visual.DisplayGroup` (a group that holds packet displays and declares them live for the cleanup sweep) and `api.block.HeatSources` (per-plugin heat-source declarations, replayed after a reload). Revision 1 was the first to expose `apiVersion()` itself. On a build older than that the
+The current value is **5**. Revision 5 added feature ids for api areas that already existed but were not probe-able: `tags`, `container-gui`, `recipe-editor`, `config-helpers`, `text` and `advancements`, plus `meal-consumed-event` and `station-events` for the new consumption and station events. Revision 4 added the async editor contract (`api.recipe.AsyncRecipeEditor`). Revision 3 added `api.visual.DisplayGroup` (a group that holds packet displays and declares them live for the cleanup sweep) and `api.block.HeatSources` (per-plugin heat-source declarations, replayed after a reload). Revision 1 was the first to expose `apiVersion()` itself. On a build older than that the
 method does not exist, so the call throws `NoSuchMethodError` — catch it and treat it as revision 0:
 
 ```java
@@ -130,6 +130,7 @@ The complete set answered by the current build:
 | `text` | `api.text` message and duration formatting helpers |
 | `advancements` | `api.advancement` advancement tree and availability registration |
 | `meal-consumed-event` | `FarmersDelightMealConsumedEvent` after a player finishes a FarmersDelight meal, snack, drink or sweet |
+| `station-events` | `FarmersDelightStationPlacedEvent` / `FarmersDelightStationBrokenEvent` for the four built-in stations |
 
 **Single build.** The recipe editor, the recipe-to-recipe jumps and handheld skillet cooking are all part of
 the same source tree. Each of the three still obeys its operator switch (`config.yml: recipe-editor.enabled`,

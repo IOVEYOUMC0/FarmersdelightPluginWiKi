@@ -17,13 +17,13 @@ getServer().getPluginManager().registerEvents(new MyFarmersDelightListener(), th
 > them. Imports are omitted except where a snippet exists to show
 > which package a type comes from. Substitute your own references and the surrounding boilerplate.
 
-**None of these twelve events is cancellable.** Not one of them implements `org.bukkit.event.Cancellable`, so
+**None of these fourteen events is cancellable.** Not one of them implements `org.bukkit.event.Cancellable`, so
 there is no `setCancelled` to call and no fire site that could honour it. They are notification and
 accumulation hooks. The only ways to influence what FarmersDelight does are the accumulators on
 `FarmersDelightCleanupEvent` / `FarmersDelightMigrateEvent` and the protective set on
 `FarmersDelightCollectLiveDisplaysEvent`.
 
-Eleven of the twelve are annotated `@ApiStatus.NonExtendable`: do not subclass them and do not construct them to
+Thirteen of the fourteen are annotated `@ApiStatus.NonExtendable`: do not subclass them and do not construct them to
 fake a FarmersDelight action. Constructing one to report *your own* station's activity is a different matter
 and is explicitly supported for `FarmersDelightProduceEvent` and `ProfessionCookingExperienceEvent` — that is
 how Brewin' And Chewin' reports keg output. `FarmersDelightRecipeDiscoveryEvent` carries no `@ApiStatus`
@@ -43,6 +43,8 @@ annotation at all, but treat it as equally closed; nothing in the plugin expects
 | `FarmersDelightProduceEvent` | A station hands a produced item to a player | No |
 | `FarmersDelightRecipeDiscoveryEvent` | A player's recipe-discovery state really changes (unlock / re-lock) | No |
 | `FarmersDelightReloadEvent` | A FarmersDelight reload finishes | No |
+| `FarmersDelightStationBrokenEvent` | A player breaks one of the four built-in stations | No |
+| `FarmersDelightStationPlacedEvent` | A player places one of the four built-in stations | No |
 | `FarmersDelightWarmupEvent` | CraftEngine items are ready and FarmersDelight has warmed its caches | No |
 | `ProfessionCookingExperienceEvent` | A station credits a player with cooking experience | No |
 
@@ -673,6 +675,38 @@ advancement listener rebuilds its cold-source set at `MONITOR` precisely so it r
 reload handler above.
 
 ---
+
+## FarmersDelightStationBrokenEvent
+
+`com.huidu.farmersdelight.api.event.FarmersDelightStationBrokenEvent` — `@ApiStatus.NonExtendable`
+
+### When it fires
+
+One fire site: `BlockBreakListener.onCustomBlockBreak`, after the protection check and for the four built-in stations (cooking pot, cutting board, skillet, stove) recognised by their block behaviour, before FarmersDelight cleans the station's contents up. It reports a player break; the block is already breaking, so it cannot veto the action.
+
+### What it carries
+
+`getPlayerId()` `UUID`, `getPlayerName()` `String` (may be null), `getStation()` `FarmersDelightStation`, `getLocation()` (the block location, a copy) and `getTool()` (a copy of the main-hand item at break time, or null for an empty hand).
+
+### Cancellation and threading
+
+Not cancellable: the break has passed the protection check and the event is a notification hook. It fires on the region thread owning the block, inside CraftEngine's block-break call; a listener may read the block, but should schedule later world work instead of doing it inline.
+
+## FarmersDelightStationPlacedEvent
+
+`com.huidu.farmersdelight.api.event.FarmersDelightStationPlacedEvent` — `@ApiStatus.NonExtendable`
+
+### When it fires
+
+One fire site: `BlockPlaceListener.awardForCustomBlock`, after the placed block state exists and before the station-specific setup (tray placement, skillet tracking, advancement awards). It covers the same four stations and reports the placement, it does not ask to veto it.
+
+### What it carries
+
+`getPlayerId()` `UUID`, `getPlayerName()` `String` (may be null), `getStation()` `FarmersDelightStation`, `getLocation()` (the block location, a copy) and `getItem()` (a copy of the placed item, or null when unknown).
+
+### Cancellation and threading
+
+Not cancellable: the block has already been placed when the event is dispatched. It fires on the region thread owning the block, inside CraftEngine's block-place call; the station setup that follows happens after the listeners return, so a listener must not assume the station's block entity is final yet.
 
 ## FarmersDelightWarmupEvent
 

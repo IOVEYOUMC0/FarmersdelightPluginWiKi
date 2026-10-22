@@ -14,9 +14,9 @@ getServer().getPluginManager().registerEvents(new MyFarmersDelightListener(), th
 
 > **关于本页代码片段的约定。** 这些片段展示的是 api 调用**在上下文中的样子**，不是可直接编译的完整文件。方法 签名、事件类型名、getter 名和返回类型都是精确的，可以照着用。而一眼就属于你自己的标识符—— `MyFarmersDelightListener`、传给 `player.getScheduler().run` 的那个 `myPlugin` 字段、`recordHarvest(...)`、 `plugin.reloadAddon()` 之类——是占位符，代表你自己附属里的字段和方法；它们在片段里没有任何声明，背后也没有 对应的 api 成员。除非某个片段的目的就是说明类型来自哪个包，否则 import 一律省略。请把它们换成你自己的引用，并补上周边样板代码。
 
-**这 12 个事件全部不可取消。** 没有任何一个实现 `org.bukkit.event.Cancellable`，因此既没有 `setCancelled` 可 调，触发点也不存在"尊重取消"这回事。它们是通知钩子与累加钩子。想影响 FarmersDelight 的行为，只有三条路： `FarmersDelightCleanupEvent` / `FarmersDelightMigrateEvent` 上的计数累加器，以及 `FarmersDelightCollectLiveDisplaysEvent` 上的保护集合。
+**这 14 个事件全部不可取消。** 没有任何一个实现 `org.bukkit.event.Cancellable`，因此既没有 `setCancelled` 可 调，触发点也不存在"尊重取消"这回事。它们是通知钩子与累加钩子。想影响 FarmersDelight 的行为，只有三条路： `FarmersDelightCleanupEvent` / `FarmersDelightMigrateEvent` 上的计数累加器，以及 `FarmersDelightCollectLiveDisplaysEvent` 上的保护集合。
 
-其中 11 个标注了 `@ApiStatus.NonExtendable`：不要继承，也不要为了伪造 FarmersDelight 的行为而自行构造。但为 **你自己的**工作站上报产出是另一回事，这是明确支持的用法——`FarmersDelightProduceEvent` 与 `ProfessionCookingExperienceEvent` 就是这么设计的，Brewin' And Chewin' 的酒桶正是靠它上报产出。 `FarmersDelightRecipeDiscoveryEvent` 没有任何 `@ApiStatus` 注解，但请同样当作封闭类型对待，插件内部没有任何 地方预期会收到外部子类。
+其中 13 个标注了 `@ApiStatus.NonExtendable`：不要继承，也不要为了伪造 FarmersDelight 的行为而自行构造。但为 **你自己的**工作站上报产出是另一回事，这是明确支持的用法——`FarmersDelightProduceEvent` 与 `ProfessionCookingExperienceEvent` 就是这么设计的，Brewin' And Chewin' 的酒桶正是靠它上报产出。 `FarmersDelightRecipeDiscoveryEvent` 没有任何 `@ApiStatus` 注解，但请同样当作封闭类型对待，插件内部没有任何 地方预期会收到外部子类。
 
 ## 总览
 
@@ -32,6 +32,8 @@ getServer().getPluginManager().registerEvents(new MyFarmersDelightListener(), th
 | `FarmersDelightProduceEvent`             | 工作站把产出物交给玩家                                 | 否           |
 | `FarmersDelightRecipeDiscoveryEvent`     | 玩家的配方发现状态真正变化（解锁 / 重新锁定）                    | 否           |
 | `FarmersDelightReloadEvent`              | FarmersDelight 一次重载完成                       | 否           |
+| `FarmersDelightStationBrokenEvent`       | 玩家破坏四种内置工作站之一                          | 否           |
+| `FarmersDelightStationPlacedEvent`       | 玩家放置四种内置工作站之一                          | 否           |
 | `FarmersDelightWarmupEvent`              | CraftEngine 物品就绪且 FarmersDelight 已预热完自己的缓存  | 否           |
 | `ProfessionCookingExperienceEvent`       | 工作站给玩家结算烹饪经验                                | 否           |
 
@@ -558,6 +560,38 @@ public final class BrewinReloadListener implements Listener {
 如果你需要读到另一个处理器重载后的值，请注册为 `MONITOR`——Brewin' And Chewin' 的成就监听器就是在 `MONITOR` 上重建冷源集合，正是为了排在上面那个 `NORMAL` 优先级的重载处理器之后。
 
 ***
+
+## FarmersDelightStationBrokenEvent
+
+`com.huidu.farmersdelight.api.event.FarmersDelightStationBrokenEvent` — `@ApiStatus.NonExtendable`
+
+### 触发时机
+
+唯一触发点是 `BlockBreakListener.onCustomBlockBreak`：在领地保护检查之后、FarmersDelight 清理工作站内容之前，对四种内置工作站（炖锅、砧板、煎锅、炉灶，按方块行为识别）触发。它上报"玩家破坏"这一既成事实，不能否决破坏。
+
+### 携带的数据
+
+`getPlayerId()` `UUID`、`getPlayerName()` `String`（可能为 null）、`getStation()` `FarmersDelightStation`、`getLocation()`（方块坐标副本）、`getTool()`（破坏时主手物品副本，空手为 null）。
+
+### 取消与线程
+
+不可取消——破坏已通过保护检查，本事件只是通知钩子。事件在方块所属 region 线程、CraftEngine 的方块破坏调用内派发；监听器可以读取方块，但后续世界操作应另行调度。
+
+## FarmersDelightStationPlacedEvent
+
+`com.huidu.farmersdelight.api.event.FarmersDelightStationPlacedEvent` — `@ApiStatus.NonExtendable`
+
+### 触发时机
+
+唯一触发点是 `BlockPlaceListener.awardForCustomBlock`：在放置后的方块状态可用之后、工作站专属初始化（托盘、煎锅记录、成就奖励）之前触发。覆盖同样的四种工作站，只上报放置，不询问是否取消。
+
+### 携带的数据
+
+`getPlayerId()` `UUID`、`getPlayerName()` `String`（可能为 null）、`getStation()` `FarmersDelightStation`、`getLocation()`（方块坐标副本）、`getItem()`（放置物副本，未知时为 null）。
+
+### 取消与线程
+
+不可取消——事件派发时方块已经放下。事件在方块所属 region 线程、CraftEngine 的方块放置调用内派发；其后的工作站初始化在监听器返回后才执行，所以不要假设工作站方块实体已经就绪。
 
 ## FarmersDelightWarmupEvent
 
