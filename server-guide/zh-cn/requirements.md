@@ -45,7 +45,9 @@ FarmersDelight 是一个 **CraftEngine 移植**。它提供的每个方块、物
 
 以下这些都**不是必须的**。FarmersDelight 在运行时检测它们，只有插件在场时才点亮对应功能。没有它们一切照常。
 
-- **PlaceholderAPI** —— 暴露 `%farmersdelight_buff_...%` 占位符（清单见[自定义 buff](../../api-docs/zh-cn/buffs.md)）。
+- **PlaceholderAPI** —— 暴露 `%farmersdelight_buff_...%` 占位符，以及 `%farmersdelight_api_version%`、
+  `%farmersdelight_discovery_enabled%` 和 `%farmersdelight_discovered_*%` 配方发现计数（见
+  [FarmersDelightApi](../../api-docs/zh-cn/farmersdelight-api.md)）。
 - **CE 经验 / 物品兼容来源** —— AuraSkills、MMOCore、Jobs 等经验 provider，以及 ItemsAdder、Nexo、MMOItems 等物品来源，复用 CE 已注册的桥。配置与限制见[首要配置项](first-config.md)。AuraSkills raw 奖励仍使用专用接口。
 - **UltimateAdvancementAPI** —— 驱动进度页面 UI。
 - **领地 / 圈地插件** —— WorldGuard、GriefPrevention、Lands、Towny、Residence 等一大批插件通过 CraftEngine 自带的

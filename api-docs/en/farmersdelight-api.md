@@ -148,6 +148,25 @@ if (FarmersDelightApi.get().hasFeature("knife-drop-rules")) {
 }
 ```
 
+## PlaceholderAPI placeholders
+
+When PlaceholderAPI is installed, the `farmersdelight` expansion answers these placeholders:
+
+| Placeholder | Value |
+| --- | --- |
+| `%farmersdelight_buff_count%` | How many custom buffs are active on the player |
+| `%farmersdelight_buff_<namespace>_<id>_<field>%` | One field of one buff: `active`, `level`, `time`, `time_fmt` or `name` (see [Custom buffs](buffs.md)) |
+| `%farmersdelight_api_version%` | The `apiVersion()` of the running build |
+| `%farmersdelight_discovery_enabled%` | `1` when recipe discovery is on, otherwise `0` |
+| `%farmersdelight_discovered_cooking_pot%` | Cooking pot recipes the player has unlocked |
+| `%farmersdelight_discovered_cutting_board%` | Cutting board recipes the player has unlocked |
+| `%farmersdelight_discovered_total%` | The sum of the two discovery counts |
+
+A context without a player (for example a scoreboard placeholder resolved for an offline name) answers `0`
+for the per-player values; `api_version` and `discovery_enabled` stay meaningful. The values are read-only and
+computed on the requesting thread, so they are safe to use in HUD/scoreboard plugins but not inside a
+per-tick placeholder chain that already does its own scheduling.
+
 ## `void registerAddonBlockNamespace(String namespace)`
 
 FarmersDelight monitors CraftEngine block-state consumption and reports it. By default the report only

@@ -113,6 +113,24 @@ if (FarmersDelightApi.get().hasFeature("knife-drop-rules")) {
 }
 ```
 
+## PlaceholderAPI 占位符
+
+安装 PlaceholderAPI 后，`farmersdelight` 扩展应答以下占位符：
+
+| 占位符 | 值 |
+| --- | --- |
+| `%farmersdelight_buff_count%` | 玩家身上激活的自定义 buff 数量 |
+| `%farmersdelight_buff_<命名空间>_<id>_<字段>%` | 单个 buff 的字段：`active`、`level`、`time`、`time_fmt`、`name`（见[自定义 buff](buffs.md)） |
+| `%farmersdelight_api_version%` | 当前构建的 `apiVersion()` |
+| `%farmersdelight_discovery_enabled%` | 配方发现开启时为 `1`，否则 `0` |
+| `%farmersdelight_discovered_cooking_pot%` | 玩家已解锁的厨锅配方数 |
+| `%farmersdelight_discovered_cutting_board%` | 玩家已解锁的砧板配方数 |
+| `%farmersdelight_discovered_total%` | 两者之和 |
+
+没有玩家上下文时（例如按离线名解析计分板占位符），按玩家取值一律为 `0`；`api_version` 与
+`discovery_enabled` 仍然有效。这些值只读、在发起请求的线程上计算，可用于 HUD/计分板插件；不要把它们塞进
+本身已经在做逐 tick 调度的占位符链里。
+
 ## `void registerAddonBlockNamespace(String namespace)`
 
 FarmersDelight 会统计并报告 CraftEngine 方块状态的占用情况。默认这份报告只归因 FarmersDelight 自己的命名 空间；把你的命名空间注册进去，你的方块就会一并出现在报告里。BrewinAndChewin 在 `onEnable` 很早就调用了它：

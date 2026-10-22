@@ -49,8 +49,9 @@ Install a CraftEngine build compatible with your server. FarmersDelight compiles
 These are **not required**. FarmersDelight detects them at runtime and lights up the matching feature only when
 the plugin is present. Everything works without any of them.
 
-- **PlaceholderAPI** — exposes the `%farmersdelight_buff_...%` placeholders (listed in
-  [Custom buffs](../../api-docs/en/buffs.md)).
+- **PlaceholderAPI** — exposes the `%farmersdelight_buff_...%` placeholders plus `%farmersdelight_api_version%`,
+  `%farmersdelight_discovery_enabled%` and the `%farmersdelight_discovered_*%` recipe-discovery counters (listed
+  in [FarmersDelightApi](../../api-docs/en/farmersdelight-api.md)).
 - **CE XP / item integrations** — reuse registered providers for AuraSkills, MMOCore, Jobs and external items such as ItemsAdder, Nexo and MMOItems. See [First config tweaks](first-config.md). Raw AuraSkills rewards retain their dedicated API path.
 - **UltimateAdvancementAPI** — drives the advancement tab UI.
 - **Land / claim plugins** — WorldGuard, GriefPrevention, Lands, Towny, Residence, and a long list of others
