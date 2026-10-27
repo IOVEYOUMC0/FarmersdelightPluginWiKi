@@ -6,7 +6,7 @@ icon: square-kanban
 
 # 调度与 ApiTask
 
-FarmersDelight 同时支持 Paper 与 Folia。它内部的调度适配层会判断当前服务端，并相应选择全局、区域或实体 调度器。`FarmersDelightApi` 上有三个方法把这套适配暴露给附属，而 `com.huidu.farmersdelight.api.scheduler.ApiTask` 是重复任务返回给你的句柄。
+FarmersDelight 同时支持 Paper 与 Folia。它内部的调度适配层会判断当前服务端，并相应选择全局、区域或实体 调度器。`FarmersDelightApi` 上有六个方法把这套适配暴露给附属——`runAtLocation`、`runLaterAtLocation`、`runRepeating`、`runForEntity`、`runLaterForEntity`、`runLater`——而 `com.huidu.farmersdelight.api.scheduler.ApiTask` 是重复任务返回给你的句柄。
 
 用这些封装，附属才能在 `paper-plugin.yml` 里写 `folia-supported: true` 而不必自己写一套 Folia 反射。对应的 feature id 是 `scheduler`。
 
@@ -81,6 +81,45 @@ public void doAtBlock(Location loc, Runnable task) {
 实际会踩的坑是：在 Folia 上传一个 `null`／没有世界的坐标，同时 `delayTicks <= 0`，还指望延迟被兑现、并且跑在 拥有坐标的线程上。你拿到的是下一 tick 的全局区域任务，在里面碰方块或实体会抛异常。
 
 FarmersDelight 未加载或 `task` 为 `null` 时是空操作；什么情况下它反而会抛异常，见上面的可用性一节。没有返回值——也就是说这个 api 无法取消一个延时任务。 需要取消能力的话，用 `runRepeating` 并在首次执行后取消，或者让任务自己检查一个标志位。
+
+## `void runForEntity(Entity entity, Runnable task)`
+
+把 `task` 排到拥有 `entity` 的线程上执行。
+
+* **Folia**：走实体自己的调度器（`Entity#getScheduler().run`）。玩家、村民、展示实体的读写因此都落在它的区域线程上。已经退役的实体会拒绝这个任务且**不执行**；没有回调能感知，也没有日志（见「没有暴露的部分」）。
+* **Paper**：调用线程就是主线程时**内联同步执行**，否则排到下一 tick 的主线程。`entity` 参数只用来在 Folia 上选调度器；Paper 上一切都是主线程。
+* FarmersDelight 未加载、`entity` 为 `null` 或 `task` 为 `null` 时是空操作。
+
+玩家相关的工作（背包写入、客户端物品更新、打开 GUI）用这个入口，而不是自己调 `player.getScheduler()`，两个平台才会走同一条路径。
+
+```java
+/** Folia 安全：在玩家自己的线程上读背包。 */
+public void inspectHand(Player player) {
+    if (!FarmersDelightApi.get().isAvailable()) return;
+    FarmersDelightApi.get().runForEntity(player, () -> {
+        ItemStack held = player.getInventory().getItemInMainHand();
+        // ...
+    });
+}
+```
+
+## `void runLaterForEntity(Entity entity, Runnable task, long delayTicks)`
+
+路由与 `runForEntity` 相同，只是延后 `delayTicks`。
+
+* **Folia**：在实体调度器上 `runDelayed`；`delayTicks <= 0` 退化成该调度器上的普通 `run`（下一次实体 tick，不是内联）。
+* **Paper**：`entity` 被忽略，走下面的全局路径——主线程任务，延迟夹到 `max(0, delayTicks)` tick。
+* 实体在派发前退役时任务被丢弃；没有退役回调，也没有句柄可取消。
+
+## `void runLater(Runnable task, long delayTicks)`
+
+在**全局**路径上执行一次 `task`——只用于全局状态，绝不要在里面访问世界、方块或实体。
+
+* **Folia**：全局区域调度器 `runDelayed`；`delayTicks <= 0` 退化成全局 `run`（下一次全局 tick）。没有主线程可兜底。
+* **Paper**：`Bukkit.getScheduler().runTaskLater`，主线程，延迟下限 0 tick。
+* FarmersDelight 未加载或 `task` 为 `null` 时是空操作；没有句柄，任务无法取消。
+
+对 Folia 而言等价于 `runLaterAtLocation(null, task, delayTicks)`，但写法上把意图写清楚了。
 
 ## `ApiTask runRepeating(Runnable task, long delayTicks, long periodTicks)`
 
@@ -161,13 +200,13 @@ public final class Schedulers {
 }
 ```
 
-注意它**不是**该附属唯一的调度出口，别当成「一切都走这里」来抄。它覆盖的就是它包住的那两个 api 调用。 **延时**的坐标绑定任务是直接调 `FarmersDelightApi.get().runLaterAtLocation(...)` 的——`KegManager`、 `KegListener`、`BrewinAdvancementListener` 各有一处——因为这个工具类里根本没有延时方法。按实体调度的部分直接 用 Folia 自己的 `entity.getScheduler().run(...)`，因为 api 压根没有暴露实体调度封装（见下面「没有暴露的部分」）。
+注意它**不是**该附属唯一的调度出口，别当成「一切都走这里」来抄。它覆盖的就是它包住的那两个 api 调用。 **延时**的坐标绑定任务是直接调 `FarmersDelightApi.get().runLaterAtLocation(...)` 的——`KegManager`、 `KegListener`、`BrewinAdvancementListener` 各有一处——因为这个工具类里根本没有延时方法。按实体调度的部分现在可以直接用 `runForEntity` / `runLaterForEntity`，不必再自己摸 Folia 的 `Entity#getScheduler()`。
 
 抄这个形状时还有一个细节：两个封装方法上的 `plugin` 参数收下之后并没有被用到。api 自己会去取 FarmersDelight 的插件实例，任务的归属方是 FarmersDelight 而不是你的插件——这也正是必须在你自己的 `onDisable` 里取消它的原因。
 
 ## 没有暴露的部分
 
-内部调度适配层还有更多能力：带 retired 回调的实体绑定调度、异步执行、区域绑定的重复任务，以及 `isOwnedByCurrentRegion(Location)` 判定。**当前修订下这些都不在 api 接口面上。** 需要异步写文件就用 Bukkit 自己的异步调度器；Folia 上需要实体区域调度就直接用 Folia 的 `Entity#getScheduler()`。
+内部调度适配层还有更多能力：**带 retired 回调**的实体调度、异步执行（`tryRunAsync`）、区域绑定的重复任务，以及 `isOwnedByCurrentRegion(Location)` 判定。**当前修订下这些都不在 api 接口面上。** 需要异步写文件就用 Bukkit 自己的异步调度器；需要 retired 回调那种形状，直接用 Folia 的 `Entity#getScheduler()`。
 
 ## api 调用的线程要求，总览
 

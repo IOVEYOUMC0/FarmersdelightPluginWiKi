@@ -3,9 +3,10 @@
 # Scheduling and `ApiTask`
 
 FarmersDelight supports both Paper and Folia. Its internal scheduler adapter detects which one it is running
-on and picks the global, region or entity scheduler accordingly. Three methods on `FarmersDelightApi` expose
-that adapter to addons, and `com.huidu.farmersdelight.api.scheduler.ApiTask` is the handle you get back for
-the repeating one.
+on and picks the global, region or entity scheduler accordingly. Six methods on `FarmersDelightApi` expose
+that adapter to addons — `runAtLocation`, `runLaterAtLocation`, `runRepeating`, `runForEntity`,
+`runLaterForEntity` and `runLater` — and `com.huidu.farmersdelight.api.scheduler.ApiTask` is the handle you get
+back for the repeating one.
 
 Using these helpers is what lets an addon put `folia-supported: true` in its `paper-plugin.yml` without writing its
 own Folia reflection. The feature id is `scheduler`.
@@ -117,6 +118,52 @@ throws instead. Returns nothing — there is no handle, so a
 delayed task cannot be cancelled through this api. If you need cancellation, use `runRepeating` and cancel
 after the first run, or track a flag your task checks.
 
+## `void runForEntity(Entity entity, Runnable task)`
+
+Runs `task` on the thread that owns `entity`.
+
+- **Folia**: the entity's own scheduler (`Entity#getScheduler().run`). A player, villager or item display is
+  therefore touched on its region thread. An entity that is already retired rejects the task without running
+  it; nothing is logged, and there is no callback to detect that (see "What is not exposed").
+- **Paper**: inline when the calling thread is the primary thread, otherwise scheduled for the next tick. The
+  entity argument only selects the Folia scheduler; on Paper everything is main-thread anyway.
+- No-op when FarmersDelight is not loaded, `entity` is `null` or `task` is `null`.
+
+Use this for player-bound work — inventory writes, client-bound item updates, GUI opens — instead of calling
+`player.getScheduler()` yourself, so both platforms take the same path.
+
+```java
+/** Folia-safe: read the player's inventory on the player's own thread. */
+public void inspectHand(Player player) {
+    if (!FarmersDelightApi.get().isAvailable()) return;
+    FarmersDelightApi.get().runForEntity(player, () -> {
+        ItemStack held = player.getInventory().getItemInMainHand();
+        // ...
+    });
+}
+```
+
+## `void runLaterForEntity(Entity entity, Runnable task, long delayTicks)`
+
+Same routing as `runForEntity`, delayed by `delayTicks`.
+
+- **Folia**: `runDelayed` on the entity's scheduler; `delayTicks <= 0` becomes a plain `run` on that scheduler
+  (next entity tick, not inline).
+- **Paper**: the entity is ignored and the task goes through the global path below — a main-thread task after
+  `max(0, delayTicks)` ticks.
+- A retired entity drops the task when it is dispatched; there is no retired callback and no handle to cancel.
+
+## `void runLater(Runnable task, long delayTicks)`
+
+Runs `task` once on the **global** path — for global state only, never for world, block or entity access.
+
+- **Folia**: the global region scheduler, `runDelayed`; `delayTicks <= 0` becomes a plain global `run` (next
+  global tick). There is no main thread to fall back to.
+- **Paper**: `Bukkit.getScheduler().runTaskLater` on the main thread with the delay clamped to a minimum of 0.
+- No-op when FarmersDelight is not loaded or `task` is `null`; no handle, so the task cannot be cancelled.
+
+Equivalent to `runLaterAtLocation(null, task, delayTicks)` on Folia, but states the intent.
+
 ## `ApiTask runRepeating(Runnable task, long delayTicks, long periodTicks)`
 
 Schedules a repeating task and returns the handle.
@@ -218,10 +265,11 @@ by your plugin — which is also why cancelling in your `onDisable` matters.
 
 ## What is not exposed
 
-The internal scheduler adapter has more: entity-bound scheduling with a "retired" callback, async execution,
-region-bound repeating tasks, and an `isOwnedByCurrentRegion(Location)` check. **None of these are on the api
-surface** at the current revision. If you need an async file write, use Bukkit's own async scheduler; if you
-need entity-region scheduling on Folia, use Folia's `Entity#getScheduler()` directly.
+The internal scheduler adapter has more: entity scheduling with an explicit **retired callback**, async
+execution (`tryRunAsync`), region-bound repeating tasks, and an `isOwnedByCurrentRegion(Location)` check.
+**None of these are on the api surface** at the current revision. If you need an async file write, use
+Bukkit's own async scheduler; if you need the retired-callback shape, use Folia's `Entity#getScheduler()`
+directly.
 
 ## Threading of api calls generally
 
